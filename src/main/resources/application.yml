@@ -1,0 +1,14 @@
+management:
+  endpoints:
+    jmx:
+      exposure:
+        exclude: "*"
+    web:
+      exposure:
+        include: health
+      base-path: /devfit-actuator
+    access:
+      default: none
+  endpoint:
+    health:
+      access: unrestricted
