@@ -12,8 +12,8 @@ public class GlobalExceptionManager {
 		ErrorDetail errorDetail = ErrorDetail.builder()
 			.field(e.getErrorField())
 			.given(e.getErrorGiven())
-			.reasonMessage(e.getErrorCode().name()+": "+e.getMessage())
+			.reasonMessage(e.getAuthErrorCode().name()+": "+e.getMessage())
 			.build();
-		return CommonResponse.onFailure(e.getErrorCode().getHttpStatusValue(),errorDetail);
+		return CommonResponse.onFailure(e.getAuthErrorCode().getHttpStatusValue(),errorDetail);
 	}
 }

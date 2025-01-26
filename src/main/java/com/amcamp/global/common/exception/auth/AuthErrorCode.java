@@ -1,10 +1,10 @@
-package com.amcamp.global.common.exception;
+package com.amcamp.global.common.exception.auth;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 @Getter
-public enum ErrorCode {
+public enum AuthErrorCode {
 
 	//잘못된 요청
 	WRONG_REQUEST(HttpStatus.BAD_REQUEST),
@@ -24,7 +24,7 @@ public enum ErrorCode {
 
 
 	private final HttpStatus httpStatus;
-	ErrorCode(HttpStatus httpStatus){
+	AuthErrorCode(HttpStatus httpStatus){
 		this.httpStatus = httpStatus;
 	}
 
