@@ -23,6 +23,11 @@ public class CommonResponseAdvice implements ResponseBodyAdvice {
 		int status = httpServletResponse.getStatus();
 		HttpStatus resolve = HttpStatus.resolve(status);
 
+		//ExceptionHandler 에서 생성된 CommonResponseBody 넘어오면 별도로 wrapping 하지 않고 즉시 리턴
+		if (body instanceof CommonResponse) {
+			return body;
+		}
+
 		if (resolve == null || body instanceof String) {
 			return body;
 		}
