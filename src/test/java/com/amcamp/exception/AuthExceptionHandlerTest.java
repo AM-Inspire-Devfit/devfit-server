@@ -12,7 +12,7 @@ public class AuthExceptionHandlerTest {
 	public void globalExceptionManagerTest(){
 		System.out.println(
 			new GlobalExceptionManager().AuthExceptionHandler(
-				new AuthException(AuthErrorCode.NO_AUTHORITY, "권한이 없는 유저입니다.")
+				new AuthException(AuthErrorCode.NO_AUTHORITY)
 			)
 		);
 	}
@@ -20,7 +20,7 @@ public class AuthExceptionHandlerTest {
 	public void globalExceptionManagerTestWithFieldAndGiven(){
 		System.out.println(
 			new GlobalExceptionManager().AuthExceptionHandler(
-				new AuthException(AuthErrorCode.NO_AUTHORITY, "권한이 없는 유저입니다.","username","user1")
+				new AuthException(AuthErrorCode.NO_AUTHORIZED_USER,"username","user1")
 			)
 		);
 	}

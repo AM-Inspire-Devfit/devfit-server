@@ -8,13 +8,18 @@ import lombok.Getter;
 public class AuthException extends RuntimeException{
 
 	private final AuthErrorCode authErrorCode;
-	private final String message;
 	private String errorField;
 	private String errorGiven;
 
-	public AuthException(AuthErrorCode authErrorCode, String message){
+	// field/given null 처리용 생성자
+	public AuthException(AuthErrorCode authErrorCode){
 		this.authErrorCode = authErrorCode;
-		this.message = message;
 	}
+
+	public String getErrorMsg(){
+		return this.authErrorCode.name() + ": " + this.authErrorCode.getMessage();
+	}
+
+
 
 }
