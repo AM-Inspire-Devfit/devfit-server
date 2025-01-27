@@ -16,9 +16,9 @@ public class ErrorDetail {
 	private String reasonMessage;
 
 	public ErrorDetail(FieldError fieldError) {
-		this.field = fieldError.getField() == null ? null : fieldError.getField().toString();
-		this.given = fieldError.getRejectedValue() == null ? null : fieldError.getRejectedValue().toString();
-		this.reasonMessage = fieldError.getDefaultMessage() != null ? fieldError.getDefaultMessage() : "Unknown error";
+		this.field = fieldError.getField();
+		this.given = fieldError.getRejectedValue().toString();
+		this.reasonMessage = fieldError.getDefaultMessage();
 	}
 }
 
