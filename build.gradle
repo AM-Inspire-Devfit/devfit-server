@@ -62,3 +62,5 @@ checkstyle {
     configFile = file("config/checkstyle/naver-checkstyle-rules.xml")
     configProperties = ['suppressionFile': file("config/checkstyle/naver-checkstyle-suppressions.xml")]
 }
+
+jar.enabled = true
