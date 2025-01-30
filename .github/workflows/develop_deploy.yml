@@ -41,7 +41,7 @@ jobs:
       - name: Extract metadata for Docker
         uses: docker/metadata-action@v4
         with:
-          images: ${{ DOCKERHUB_USERNAME }}/${{ DOCKERHUB_IMAGE_NAME }}
+          images: ${{ env.DOCKERHUB_USERNAME }}/${{ env.DOCKERHUB_IMAGE_NAME }}
           tags: |
             type=sha,prefix=
 
