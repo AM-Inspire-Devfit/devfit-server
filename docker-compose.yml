@@ -6,3 +6,5 @@ services:
     container_name: ${DOCKERHUB_IMAGE_NAME}
     restart: always
     network_mode: host
+    env_file:
+      - .env
