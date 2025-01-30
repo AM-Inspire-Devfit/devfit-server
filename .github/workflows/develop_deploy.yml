@@ -8,6 +8,10 @@ on:
     branches:
       - develop
 
+env:
+  DOCKERHUB_USERNAME: ht3064
+  DOCKERHUB_IMAGE_NAME: devfit-server
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -31,7 +35,7 @@ jobs:
       - name: Login to DockerHub
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
+          username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and Push Docker image
@@ -39,7 +43,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/spring-boot-server
+          tags: ${{ env.DOCKERHUB_USERNAME }}/spring-boot-server
 
   deploy:
     runs-on: ubuntu-latest
@@ -52,8 +56,8 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            docker pull ${{ secrets.DOCKER_USERNAME }}/spring-boot-server
+            docker pull ${{ env.DOCKERHUB_USERNAME }}/spring-boot-server
             docker stop $(docker ps -a -q)
-            docker run -d --name spring-boot-server -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/spring-boot-server
+            docker run -d --name spring-boot-server -p 8080:8080 ${{ env.DOCKERHUB_USERNAME }}/spring-boot-server
             docker rm $(docker ps --filter 'status=exited' -a -q)
             docker image prune -a -f
