@@ -76,8 +76,6 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           envs: IMAGE_FULL_URL, DOCKERHUB_IMAGE_NAME
           script: |
-            docker pull ${{ env.DOCKERHUB_USERNAME }}/spring-boot-server
-            docker stop $(docker ps -a -q)
-            docker run -d --name spring-boot-server -p 8080:8080 ${{ env.DOCKERHUB_USERNAME }}/spring-boot-server
-            docker rm $(docker ps --filter 'status=exited' -a -q)
+            echo "${{ secrets.DOCKERHUB_ACCESS_TOKEN }}" | docker login -u "${{ env.DOCKERHUB_USERNAME }}" --password-stdin
+            docker compose up -d
             docker image prune -a -f
