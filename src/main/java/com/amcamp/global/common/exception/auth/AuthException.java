@@ -19,7 +19,4 @@ public class AuthException extends RuntimeException{
 	public String getErrorMsg(){
 		return this.authErrorCode.name() + ": " + this.authErrorCode.getMessage();
 	}
-
-
-
 }
