@@ -3,6 +3,6 @@ spring:
     group:
       test: "test"
       local: "local"
-      dev: "dev, actuator"
+      dev: "dev, datasource, actuator"
     include:
       - redis
