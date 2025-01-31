@@ -51,6 +51,12 @@ dependencies {
 
     // MySQL
     implementation 'mysql:mysql-connector-java:8.0.33'
+
+    // Spring Cloud
+    implementation platform("org.springframework.cloud:spring-cloud-dependencies:2024.0.0")
+
+    // Spring Cloud Open Feign
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 }
 
 tasks.named('test') {
