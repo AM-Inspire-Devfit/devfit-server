@@ -2,6 +2,7 @@ package com.amcamp.domain.auth.application;
 
 import com.amcamp.domain.auth.dao.RefreshTokenRepository;
 import com.amcamp.domain.auth.domain.RefreshToken;
+import com.amcamp.domain.auth.dto.AccessTokenDto;
 import com.amcamp.domain.member.domain.MemberRole;
 import com.amcamp.global.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -29,5 +30,13 @@ public class JwtTokenService {
         refreshTokenRepository.save(refreshToken);
 
         return token;
+    }
+
+    public AccessTokenDto retrieveAccessToken(String accessTokenValue) {
+        try {
+            return jwtUtil.parseAccessToken(accessTokenValue);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
