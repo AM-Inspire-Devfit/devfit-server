@@ -1,7 +1,12 @@
 package com.amcamp.global.util;
 
+import com.amcamp.domain.auth.dto.AccessTokenDto;
+import com.amcamp.domain.auth.dto.RefreshTokenDto;
 import com.amcamp.domain.member.domain.MemberRole;
 import com.amcamp.infra.config.jwt.JwtProperties;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +35,44 @@ public class JwtUtil {
         Date expiredAt =
                 new Date(issuedAt.getTime() + jwtProperties.refreshTokenExpirationMilliTime());
         return buildRefreshToken(memberId, issuedAt, expiredAt);
+    }
+
+    public AccessTokenDto parseAccessToken(String accessTokenValue) throws ExpiredJwtException {
+        try {
+            Jws<Claims> claims = getClaims(accessTokenValue, getAccessTokenKey());
+
+            return AccessTokenDto.of(
+                    Long.parseLong(claims.getBody().getSubject()),
+                    MemberRole.valueOf(claims.getBody().get(TOKEN_ROLE_NAME, String.class)),
+                    accessTokenValue);
+        } catch (ExpiredJwtException e) {
+            throw e;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public RefreshTokenDto parseRefreshToken(String refreshTokenValue) throws ExpiredJwtException {
+        try {
+            Jws<Claims> claims = getClaims(refreshTokenValue, getRefreshTokenKey());
+
+            return RefreshTokenDto.of(
+                    Long.parseLong(claims.getBody().getSubject()),
+                    refreshTokenValue,
+                    jwtProperties.refreshTokenExpirationTime());
+        } catch (ExpiredJwtException e) {
+            throw e;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private Jws<Claims> getClaims(String token, Key key) {
+        return Jwts.parserBuilder()
+                .requireIssuer(jwtProperties.issuer())
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token);
     }
 
     public long getRefreshTokenExpirationTime() {
