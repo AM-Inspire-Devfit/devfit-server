@@ -40,7 +40,7 @@ public class WebSecurityConfig {
 		http.authorizeHttpRequests(
 			auth ->
 				auth.requestMatchers("/devfit-actuator/**").permitAll()
-					.requestMatchers("/auth/social-login").permitAll()
+					.requestMatchers("/**").permitAll()
 					.anyRequest().authenticated());
 
 		http.addFilterBefore(
