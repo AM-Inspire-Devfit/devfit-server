@@ -2,6 +2,7 @@ package com.amcamp.global.config.security;
 
 import com.amcamp.domain.auth.application.JwtTokenService;
 import com.amcamp.global.security.JwtAuthenticationFilter;
+import com.amcamp.global.util.CookieUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +25,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class WebSecurityConfig {
 
 	private final JwtTokenService jwtTokenService;
+	private final CookieUtil cookieUtil;
 
 	@Bean
 	public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -42,7 +44,7 @@ public class WebSecurityConfig {
 					.anyRequest().authenticated());
 
 		http.addFilterBefore(
-			jwtAuthenticationFilter(jwtTokenService), UsernamePasswordAuthenticationFilter.class);
+			jwtAuthenticationFilter(jwtTokenService, cookieUtil), UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
 	}
@@ -63,7 +65,7 @@ public class WebSecurityConfig {
 	}
 
 	@Bean
-	public JwtAuthenticationFilter jwtAuthenticationFilter(JwtTokenService jwtTokenService) {
-		return new JwtAuthenticationFilter(jwtTokenService);
+	public JwtAuthenticationFilter jwtAuthenticationFilter(JwtTokenService jwtTokenService, CookieUtil cookieUtil) {
+		return new JwtAuthenticationFilter(jwtTokenService, cookieUtil);
 	}
 }

@@ -23,11 +23,27 @@ public class JwtUtil {
 
     private final JwtProperties jwtProperties;
 
+    public AccessTokenDto generateAccessTokenDto(Long memberId, MemberRole memberRole) {
+        Date issuedAt = new Date();
+        Date expiredAt =
+                new Date(issuedAt.getTime() + jwtProperties.accessTokenExpirationMilliTime());
+        String accessTokenValue = buildAccessToken(memberId, memberRole, issuedAt, expiredAt);
+        return AccessTokenDto.of(memberId, memberRole, accessTokenValue);
+    }
+
     public String generateAccessToken(Long memberId, MemberRole memberRole) {
         Date issuedAt = new Date();
         Date expiredAt =
                 new Date(issuedAt.getTime() + jwtProperties.accessTokenExpirationMilliTime());
         return buildAccessToken(memberId, memberRole, issuedAt, expiredAt);
+    }
+
+    public RefreshTokenDto generateRefreshTokenDto(Long memberId) {
+        Date issuedAt = new Date();
+        Date expiredAt =
+                new Date(issuedAt.getTime() + jwtProperties.refreshTokenExpirationMilliTime());
+        String refreshTokenValue = buildRefreshToken(memberId, issuedAt, expiredAt);
+        return RefreshTokenDto.of(memberId, refreshTokenValue, jwtProperties.refreshTokenExpirationTime());
     }
 
     public String generateRefreshToken(Long memberId) {
