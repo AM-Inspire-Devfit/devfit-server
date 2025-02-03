@@ -1,14 +1,17 @@
 name: Check Style And Test
+
 on:
   pull_request:
     branches:
       - develop
+
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         java-version: [ 17 ]
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -32,6 +35,7 @@ jobs:
       - name: Code Formatting Check With CheckStyle
         run: |
           ./gradlew checkstyleMain checkstyleTest
+
       - name: Test
         run: |
           ./gradlew test

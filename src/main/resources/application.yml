@@ -6,3 +6,4 @@ spring:
       dev: "dev, datasource, actuator"
     include:
       - redis
+      - security
