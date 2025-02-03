@@ -13,12 +13,7 @@ import org.springframework.validation.FieldError;
 public class ErrorDetail {
 	private String field;
 	private String given;
-	private String reasonMessage;
+	private ErrorMsg reasonMessage;
 
-	public ErrorDetail(FieldError fieldError) {
-		this.field = fieldError.getField();
-		this.given = fieldError.getRejectedValue().toString();
-		this.reasonMessage = fieldError.getDefaultMessage();
-	}
 }
 

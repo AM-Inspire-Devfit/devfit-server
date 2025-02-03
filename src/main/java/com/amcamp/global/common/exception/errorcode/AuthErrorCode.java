@@ -1,10 +1,10 @@
-package com.amcamp.global.common.exception.auth;
+package com.amcamp.global.common.exception.errorcode;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 @Getter
-public enum AuthErrorCode {
+public enum AuthErrorCode implements BaseErrorCode {
 
 	ID_TOKEN_VERIFICATION_FAILED(HttpStatus.UNAUTHORIZED, "ID 토큰 검증에 실패했습니다."),
 	;
@@ -33,7 +33,8 @@ public enum AuthErrorCode {
 		this.message = message;
 	}
 
-	public int getHttpStatusValue(){
-		return httpStatus.value();
+	@Override
+	public String getCodeName() {
+		return this.name();
 	}
 }

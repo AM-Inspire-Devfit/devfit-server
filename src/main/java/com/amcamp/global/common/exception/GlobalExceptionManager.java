@@ -1,19 +1,20 @@
 package com.amcamp.global.common.exception;
 
 import com.amcamp.global.common.CommonResponse;
-import com.amcamp.global.common.exception.auth.AuthException;
+import com.amcamp.global.common.exception.errorcode.BaseErrorCode;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RestControllerAdvice(basePackages = "com.amcamp")//모듈 별로 나누어 적용
+@RestControllerAdvice(basePackages = "com.amcamp")
 public class GlobalExceptionManager {
 	@ExceptionHandler(AuthException.class)
-	public CommonResponse<?> AuthExceptionHandler(AuthException e){
+	public CommonResponse<?> commonExceptionHandler(CommonException e){
+		BaseErrorCode baseErrorCode = e.getErrorCode();
 		ErrorDetail errorDetail = ErrorDetail.builder()
 			.field(e.getErrorField())
 			.given(e.getErrorGiven())
-			.reasonMessage(e.getErrorMsg())
+			.reasonMessage(baseErrorCode.getErrorMsg())
 			.build();
-		return CommonResponse.onFailure(e.getAuthErrorCode().getHttpStatusValue(),errorDetail);
+		return CommonResponse.onFailure(baseErrorCode.getHttpStatus().value(),errorDetail);
 	}
 }
