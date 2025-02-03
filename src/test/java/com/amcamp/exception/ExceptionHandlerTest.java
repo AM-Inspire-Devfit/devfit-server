@@ -1,0 +1,81 @@
+package com.amcamp.exception;
+
+import com.amcamp.global.common.CommonResponse;
+import com.amcamp.global.common.exception.CommonException;
+import com.amcamp.global.common.exception.ErrorDetail;
+import com.amcamp.global.common.exception.ErrorMsg;
+import com.amcamp.global.common.exception.GlobalExceptionManager;
+import com.amcamp.global.common.exception.errorcode.AuthErrorCode;
+import com.amcamp.global.common.exception.errorcode.ProjectErrorCode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.util.Optional;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+public class ExceptionHandlerTest {
+
+	AuthErrorCode authErrorCode = AuthErrorCode.ID_TOKEN_VERIFICATION_FAILED;
+	ProjectErrorCode projectErrorCode = ProjectErrorCode.PROJECT_NOT_FOUND;
+	void throwExceptionWithAuthErrorCode(Object o){
+		Optional<Object> mockObject = Optional.ofNullable(o);
+		if(!mockObject.isPresent()){
+			throw new CommonException(authErrorCode);
+		}
+	}
+	void throwExceptionWithProjectErrorCode(Object o){
+		Optional<Object> mockObject = Optional.ofNullable(o);
+		if(!mockObject.isPresent()){
+			throw new CommonException(projectErrorCode);
+		}
+	}
+	@Test
+	@DisplayName("authError Test")
+	void commonExceptionWithAuthErrorTest() {
+		assertThatThrownBy(()-> throwExceptionWithAuthErrorCode(null))
+			.isInstanceOf(CommonException.class)
+			.hasMessageContaining(authErrorCode.getMessage());
+	}
+
+	@Test
+	@DisplayName("projectError Test")
+	void commonExceptionWithProjectErrorTest() {
+		assertThatThrownBy(()-> throwExceptionWithProjectErrorCode(null))
+			.isInstanceOf(CommonException.class)
+			.hasMessageContaining(projectErrorCode.getMessage());
+
+	}
+
+	@Test
+	@DisplayName("ExceptionHandler Test")
+	void globalExceptionHandlerTest() {
+
+		//given: 예외 핸들러와 예외 생성
+		GlobalExceptionManager globalExceptionManager = new GlobalExceptionManager();
+		CommonException exception = new CommonException(ProjectErrorCode.PROJECT_NOT_FOUND, "project_id", null);
+
+		//when: 예외 핸들러 실행
+		CommonResponse<?> response = globalExceptionManager.commonExceptionHandler(exception);
+
+		//then: 응답 객체 검증
+		assertThat(response).isNotNull();
+		assertThat(response.getStatus()).isEqualTo(400);
+		assertThat(response.getData()).isInstanceOf(ErrorDetail.class);
+
+		//ErrorMsg 객체 세부 검증
+		ObjectMapper objectMapper = new ObjectMapper();
+
+		ErrorDetail errorDetail = objectMapper.convertValue(response.getData(), ErrorDetail.class);
+		ErrorMsg errorMsg = objectMapper.convertValue(errorDetail.getReasonMessage(), ErrorMsg.class);
+
+		assertThat(errorMsg.getStatus()).isEqualTo(projectErrorCode.getErrorMsg().getStatus());
+		assertThat(errorMsg.getReason()).isEqualTo(projectErrorCode.getErrorMsg().getReason());
+		assertThat(errorMsg.getCode()).isEqualTo(projectErrorCode.getErrorMsg().getCode());
+
+
+
+	}
+
+}
