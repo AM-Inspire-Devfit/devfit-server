@@ -12,7 +12,6 @@ public interface BaseErrorCode {
 	default ErrorMsg getErrorMsg(){
 		return ErrorMsg.builder()
 			.code(getCodeName()) // Enum 이름을 사용
-			.status(getHttpStatus().value()) // HttpStatus의 숫자 값
 			.reason(getMessage()) // 오류 메시지
 			.build();
 	}
