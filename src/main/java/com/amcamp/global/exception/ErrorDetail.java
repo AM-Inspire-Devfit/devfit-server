@@ -1,10 +1,9 @@
-package com.amcamp.global.common.exception;
+package com.amcamp.global.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.validation.FieldError;
 
 @Data
 @Builder

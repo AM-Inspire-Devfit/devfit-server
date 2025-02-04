@@ -1,8 +1,8 @@
 package com.amcamp.domain.auth.application;
 
 import com.amcamp.domain.auth.domain.OauthProvider;
-import com.amcamp.global.common.exception.errorcode.AuthErrorCode;
-import com.amcamp.global.common.exception.AuthException;
+import com.amcamp.global.exception.errorcode.AuthErrorCode;
+import com.amcamp.global.exception.errorcode.AuthException;
 import com.amcamp.infra.config.oauth.GoogleProperties;
 import com.amcamp.infra.config.oauth.KakaoProperties;
 import lombok.RequiredArgsConstructor;

@@ -1,12 +1,12 @@
 package com.amcamp.exception;
 
-import com.amcamp.global.common.CommonResponse;
-import com.amcamp.global.common.exception.CommonException;
-import com.amcamp.global.common.exception.ErrorDetail;
-import com.amcamp.global.common.exception.ErrorMsg;
-import com.amcamp.global.common.exception.GlobalExceptionManager;
-import com.amcamp.global.common.exception.errorcode.AuthErrorCode;
-import com.amcamp.global.common.exception.errorcode.ProjectErrorCode;
+import com.amcamp.global.common.response.CommonResponse;
+import com.amcamp.global.exception.CommonException;
+import com.amcamp.global.exception.ErrorDetail;
+import com.amcamp.global.exception.ErrorMsg;
+import com.amcamp.global.exception.GlobalExceptionManager;
+import com.amcamp.global.exception.errorcode.AuthErrorCode;
+import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,14 +1,11 @@
-package com.amcamp.global.common.exception.errorcode;
+package com.amcamp.global.exception.errorcode;
 
-import com.amcamp.global.common.exception.ErrorMsg;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.amcamp.global.exception.ErrorMsg;
 import org.springframework.http.HttpStatus;
 
 public interface BaseErrorCode {
 	HttpStatus getHttpStatus();
 	String getMessage();
-
 	String getCodeName();
 
 	// 공통 ErrorMsg 생성 메서드

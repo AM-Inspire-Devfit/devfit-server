@@ -1,7 +1,8 @@
-package com.amcamp.global.common.exception;
+package com.amcamp.global.exception;
 
-import com.amcamp.global.common.CommonResponse;
-import com.amcamp.global.common.exception.errorcode.BaseErrorCode;
+import com.amcamp.global.common.response.CommonResponse;
+import com.amcamp.global.exception.errorcode.AuthException;
+import com.amcamp.global.exception.errorcode.BaseErrorCode;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 

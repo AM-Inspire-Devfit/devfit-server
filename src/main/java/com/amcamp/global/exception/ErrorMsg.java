@@ -1,4 +1,4 @@
-package com.amcamp.global.common.exception;
+package com.amcamp.global.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

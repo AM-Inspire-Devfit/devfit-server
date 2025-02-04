@@ -1,6 +1,6 @@
-package com.amcamp.global.common.exception;
+package com.amcamp.global.exception.errorcode;
 
-import com.amcamp.global.common.exception.errorcode.BaseErrorCode;
+import com.amcamp.global.exception.CommonException;
 import lombok.Getter;
 
 

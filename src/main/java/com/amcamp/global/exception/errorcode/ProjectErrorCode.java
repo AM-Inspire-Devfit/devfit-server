@@ -1,4 +1,4 @@
-package com.amcamp.global.common.exception.errorcode;
+package com.amcamp.global.exception.errorcode;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
