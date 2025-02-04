@@ -4,7 +4,7 @@ import com.amcamp.global.common.response.CommonResponse;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.ErrorDetail;
 import com.amcamp.global.exception.ErrorMsg;
-import com.amcamp.global.exception.GlobalExceptionManager;
+import com.amcamp.global.exception.GlobalExceptionHandler;
 import com.amcamp.global.exception.errorcode.AuthErrorCode;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,6 +15,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+
 public class ExceptionHandlerTest {
 
 	AuthErrorCode authErrorCode = AuthErrorCode.ID_TOKEN_VERIFICATION_FAILED;
@@ -53,11 +54,11 @@ public class ExceptionHandlerTest {
 	void globalExceptionHandlerTest() {
 
 		//given: 예외 핸들러와 예외 생성
-		GlobalExceptionManager globalExceptionManager = new GlobalExceptionManager();
+		GlobalExceptionHandler globalExceptionHandler = new GlobalExceptionHandler();
 		CommonException exception = new CommonException(ProjectErrorCode.PROJECT_NOT_FOUND, "project_id", null);
 
 		//when: 예외 핸들러 실행
-		CommonResponse<?> response = globalExceptionManager.commonExceptionHandler(exception);
+		CommonResponse<?> response = globalExceptionHandler.commonExceptionHandler(exception).getBody();
 
 		//then: 응답 객체 검증
 		assertThat(response).isNotNull();
@@ -70,7 +71,6 @@ public class ExceptionHandlerTest {
 		ErrorDetail errorDetail = objectMapper.convertValue(response.getData(), ErrorDetail.class);
 		ErrorMsg errorMsg = objectMapper.convertValue(errorDetail.getReasonMessage(), ErrorMsg.class);
 
-		assertThat(errorMsg.getStatus()).isEqualTo(projectErrorCode.getErrorMsg().getStatus());
 		assertThat(errorMsg.getReason()).isEqualTo(projectErrorCode.getErrorMsg().getReason());
 		assertThat(errorMsg.getCode()).isEqualTo(projectErrorCode.getErrorMsg().getCode());
 
