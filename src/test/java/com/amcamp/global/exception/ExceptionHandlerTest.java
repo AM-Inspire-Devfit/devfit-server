@@ -1,10 +1,6 @@
-package com.amcamp.exception;
+package com.amcamp.global.exception;
 
 import com.amcamp.global.common.response.CommonResponse;
-import com.amcamp.global.exception.CommonException;
-import com.amcamp.global.exception.ErrorDetail;
-import com.amcamp.global.exception.ErrorMsg;
-import com.amcamp.global.exception.GlobalExceptionHandler;
 import com.amcamp.global.exception.errorcode.AuthErrorCode;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
