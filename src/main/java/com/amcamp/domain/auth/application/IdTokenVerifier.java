@@ -1,8 +1,8 @@
 package com.amcamp.domain.auth.application;
 
 import com.amcamp.domain.auth.domain.OauthProvider;
-import com.amcamp.global.common.exception.errorcode.AuthErrorCode;
-import com.amcamp.global.common.exception.AuthException;
+import com.amcamp.global.exception.CommonException;
+import com.amcamp.global.exception.errorcode.AuthErrorCode;
 import com.amcamp.infra.config.oauth.GoogleProperties;
 import com.amcamp.infra.config.oauth.KakaoProperties;
 import lombok.RequiredArgsConstructor;
@@ -59,7 +59,7 @@ public class IdTokenVerifier {
 		String idTokenAudience = oidcIdToken.getAudience().get(0);
 
 		if (idTokenAudience == null || !idTokenAudience.equals(clientId)) {
-			throw new AuthException(AuthErrorCode.ID_TOKEN_VERIFICATION_FAILED);
+			throw new CommonException(AuthErrorCode.ID_TOKEN_VERIFICATION_FAILED);
 		}
 	}
 
@@ -67,7 +67,7 @@ public class IdTokenVerifier {
 		String idTokenIssuer = oidcIdToken.getIssuer().toString();
 
 		if (idTokenIssuer == null || !idTokenIssuer.equals(issuer)) {
-			throw new AuthException(AuthErrorCode.ID_TOKEN_VERIFICATION_FAILED);
+			throw new CommonException(AuthErrorCode.ID_TOKEN_VERIFICATION_FAILED);
 		}
 	}
 
@@ -75,7 +75,7 @@ public class IdTokenVerifier {
 		Instant expiresAt = oidcIdToken.getExpiresAt();
 
 		if (expiresAt == null || expiresAt.isBefore(Instant.now())) {
-			throw new AuthException(AuthErrorCode.ID_TOKEN_VERIFICATION_FAILED);
+			throw new CommonException(AuthErrorCode.ID_TOKEN_VERIFICATION_FAILED);
 		}
 	}
 }

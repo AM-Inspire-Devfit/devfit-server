@@ -1,6 +1,5 @@
-package com.amcamp.global.common;
+package com.amcamp.global.common.response;
 
-import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
@@ -10,6 +9,7 @@ import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
+
 @RestControllerAdvice(basePackages = "com.amcamp")
 public class CommonResponseAdvice implements ResponseBodyAdvice {
 	@Override
@@ -23,17 +23,14 @@ public class CommonResponseAdvice implements ResponseBodyAdvice {
 		int status = httpServletResponse.getStatus();
 		HttpStatus resolve = HttpStatus.resolve(status);
 
-		//ExceptionHandler 에서 생성된 CommonResponseBody 넘어오면 별도로 wrapping 하지 않고 즉시 리턴
-		if (body instanceof CommonResponse) {
-			return body;
-		}
-
 		if (resolve == null || body instanceof String) {
 			return body;
 		}
+
 		if (resolve.is2xxSuccessful()) {
 			return CommonResponse.onSuccess(status, body);
 		}
+
 		return body;
 	}
 }

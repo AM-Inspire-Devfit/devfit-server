@@ -1,4 +1,4 @@
-package com.amcamp.global.common;
+package com.amcamp.global.common.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,6 +25,7 @@ public class CommonResponse <T> {
 			.timestamp(LocalDateTime.now())
 			.build();
 	}
+
 	public static <T> CommonResponse<T> onFailure(int status, T data) {
 		return CommonResponse.<T>builder()
 			.success(false)
@@ -33,6 +34,4 @@ public class CommonResponse <T> {
 			.timestamp(LocalDateTime.now())
 			.build();
 	}
-
-
 }

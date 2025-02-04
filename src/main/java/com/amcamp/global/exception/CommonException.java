@@ -1,6 +1,6 @@
-package com.amcamp.global.common.exception;
+package com.amcamp.global.exception;
 
-import com.amcamp.global.common.exception.errorcode.BaseErrorCode;
+import com.amcamp.global.exception.errorcode.BaseErrorCode;
 import lombok.Getter;
 
 
@@ -17,7 +17,7 @@ public class CommonException extends RuntimeException {
 	}
 
 	public CommonException(BaseErrorCode errorCode, String errorField, String errorGiven) {
-		super(errorCode.getErrorMsg().getReason()); //RuntimeExceptio
+		super(errorCode.getErrorMsg().getReason()); //RuntimeException
 		this.errorCode = errorCode;
 		this.errorField = errorField;
 		this.errorGiven = errorGiven;
