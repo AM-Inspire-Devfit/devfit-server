@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.WebUtils;
@@ -74,14 +73,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private void setAuthenticationToken(Long memberId, MemberRole memberRole) {
-        UserDetails userDetails =
-                User.withUsername(memberId.toString())
-                        .password("")
-                        .authorities(memberRole.toString())
-                        .build();
+		UserDetails userDetails = new PrincipalDetails(memberId, memberRole);
 
-        UsernamePasswordAuthenticationToken token =
-                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+		UsernamePasswordAuthenticationToken token =
+			new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
         SecurityContextHolder.getContext().setAuthentication(token);
     }
