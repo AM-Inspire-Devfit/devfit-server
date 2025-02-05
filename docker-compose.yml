@@ -6,6 +6,8 @@ services:
     container_name: ${DOCKERHUB_IMAGE_NAME}
     restart: always
     network_mode: host
+    environment:
+      - TZ=Asia/Seoul
     env_file:
       - .env
   redis:
@@ -14,3 +16,5 @@ services:
     ports:
       - "6379:6379"
     network_mode: host
+    environment:
+      - TZ=Asia/Seoul
