@@ -22,6 +22,7 @@ public class TeamServiceImpl implements TeamService {
 	private final MemberUtil memberUtil;
 	private final TeamRepository teamRepository;
 	private final ParticipantRepository participantRepository;
+	private final InviteCodeService inviteCodeService;
 
 	@Override
 	@Transactional
@@ -39,18 +40,33 @@ public class TeamServiceImpl implements TeamService {
 
 	@Override
 	@Transactional
-	public Participant joinTeam(Long teamId) {
+	public Participant joinTeam(String inviteCode) {
 		Member member = memberUtil.getCurrentMember();
-		Team team = teamRepository.findById(teamId)
-			.orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_NOT_FOUND));
-
+		Team team = inviteCodeService.searchTeamByCode(inviteCode);
 		boolean isAlreadyParticipant = participantRepository.existsByMemberAndTeam(member, team);
 		if (isAlreadyParticipant) {
 			throw new CommonException(TeamErrorCode.ALREADY_PARTICIPANT);
 		}
-
 		Participant participant = Participant.createParticipant(member, team, ParticipantRole.USER);
 		participantRepository.save(participant);
 		return participant;
 	}
+
+
+//	@Override
+//	@Transactional
+//	public Participant joinTeam(Long teamId) {
+//		Member member = memberUtil.getCurrentMember();
+//		Team team = teamRepository.findById(teamId)
+//			.orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_NOT_FOUND));
+//
+//		boolean isAlreadyParticipant = participantRepository.existsByMemberAndTeam(member, team);
+//		if (isAlreadyParticipant) {
+//			throw new CommonException(TeamErrorCode.ALREADY_PARTICIPANT);
+//		}
+//
+//		Participant participant = Participant.createParticipant(member, team, ParticipantRole.USER);
+//		participantRepository.save(participant);
+//		return participant;
+//	}
 }
