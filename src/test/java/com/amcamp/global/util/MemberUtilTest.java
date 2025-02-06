@@ -2,17 +2,17 @@ package com.amcamp.global.util;
 
 import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
-import com.amcamp.domain.member.domain.MemberRole;
+import com.amcamp.domain.member.domain.OauthInfo;
 import com.amcamp.global.security.PrincipalDetails;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ActiveProfiles;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -23,23 +23,30 @@ public class MemberUtilTest {
 	@Autowired
 	private MemberRepository memberRepository;
 
-	@Test
-	void 로그인한_멤버의_정보를_조회한다() {
+	private Member registerAuthenticatedMember() {
+		Member member = Member.createMember("testNickName", "testProfileImageUrl",
+			OauthInfo.createOauthInfo("testOauthId", "testOauthProvider"));
+		memberRepository.save(member);
 
-		// given
-		UserDetails userDetails = new PrincipalDetails(1L, MemberRole.USER);
+		UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());
 		UsernamePasswordAuthenticationToken token =
 			new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 		SecurityContextHolder.getContext().setAuthentication(token);
 
-		Member savedMember =
-			memberRepository.save(Member.createMember("", null, null));
+		return member;
+	}
+
+	@Test
+	void 로그인한_멤버의_정보를_조회한다() {
+
+		// given
+		Member member = registerAuthenticatedMember();
 
 		// when
 		Member currentMember = memberUtil.getCurrentMember();
 
 		// then
-		Assertions.assertEquals(savedMember.getId(), currentMember.getId());
-		Assertions.assertEquals(savedMember.getRole(), currentMember.getRole());
+		assertThat(member.getId()).isEqualTo(currentMember.getId());
+		assertThat(member.getRole()).isEqualTo(currentMember.getRole());
 	}
 }
