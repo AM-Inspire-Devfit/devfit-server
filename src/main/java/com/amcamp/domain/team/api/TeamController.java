@@ -4,6 +4,7 @@ import com.amcamp.domain.team.application.InviteCodeService;
 import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.domain.team.domain.Participant;
 import com.amcamp.domain.team.domain.Team;
+import com.amcamp.domain.team.dto.response.TeamCreatedResponse;
 import com.amcamp.domain.team.dto.response.TeamInviteCodeResponse;
 import com.amcamp.domain.team.dto.request.TeamCreateRequest;
 import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
@@ -20,17 +21,17 @@ public class TeamController {
 	private final InviteCodeService inviteCodeService;
 
 	@PostMapping("/create")
-	public CommonResponse<TeamInviteCodeResponse> createTeam (@RequestBody TeamCreateRequest teamCreateRequest){
+	public TeamCreatedResponse createTeam (@RequestBody TeamCreateRequest teamCreateRequest){
 		Team team = teamService.saveTeam(teamCreateRequest.teamName(), teamCreateRequest.teamDescription());
 		String inviteCode = inviteCodeService.generateCode(team.getId());
-		TeamInviteCodeResponse response = new TeamInviteCodeResponse(inviteCode);
-		return CommonResponse.onSuccess(HttpStatus.OK.value(), response);
+		TeamCreatedResponse response = new TeamCreatedResponse(team, inviteCode);
+		return response;
 	}
 	@PostMapping("/invite/{teamId}")
-	public CommonResponse<TeamInviteCodeResponse> inviteTeam (@PathVariable Long teamId){
+	public TeamInviteCodeResponse inviteTeam (@PathVariable Long teamId){
 		String inviteCode = inviteCodeService.generateCode(teamId);
 		TeamInviteCodeResponse response = new TeamInviteCodeResponse(inviteCode);
-		return CommonResponse.onSuccess(HttpStatus.OK.value(), response);
+		return response;
 	}
 //	@PostMapping("/join/{teamId}")
 //	public CommonResponse<Participant> joinTeam (@PathVariable Long teamId){
@@ -38,13 +39,13 @@ public class TeamController {
 //		return CommonResponse.onSuccess(HttpStatus.OK.value(),participant);
 //	}
 	@GetMapping("/join")
-	public CommonResponse<Team> checkTeamInfo(@RequestBody TeamInviteCodeRequest teamInviteCodeRequest){
+	public Team checkTeamInfo(@RequestBody TeamInviteCodeRequest teamInviteCodeRequest){
 		Team team = inviteCodeService.searchTeamByCode(teamInviteCodeRequest.inviteCode());
-		return CommonResponse.onSuccess(HttpStatus.OK.value(),team);
+		return team;
 	}
 	@PostMapping("/join")
-	public CommonResponse<Participant> joinTeam (@RequestBody TeamInviteCodeRequest teamInviteCodeRequest){
+	public Participant joinTeam (@RequestBody TeamInviteCodeRequest teamInviteCodeRequest){
 		Participant participant = teamService.joinTeam(teamInviteCodeRequest.inviteCode());
-		return CommonResponse.onSuccess(HttpStatus.OK.value(),participant);
+		return participant;
 	}
 }

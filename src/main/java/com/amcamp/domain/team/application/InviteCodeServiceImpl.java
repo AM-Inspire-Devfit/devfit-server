@@ -48,7 +48,6 @@ public class InviteCodeServiceImpl implements InviteCodeService{
 	}
 	@Override
 	public Team searchTeamByCode(String inviteCode){
-//		Long teamId = Long.valueOf(redisTemplate.opsForValue().get("teamId:" + inviteCode));
 		Long teamId = Optional.ofNullable(redisTemplate.opsForValue().get("teamId:" + inviteCode))
 			.map(Long::valueOf)
 			.orElseThrow(() -> new CommonException(TeamErrorCode.INVALID_INVITE_CODE));
