@@ -45,7 +45,7 @@ public class SwaggerConfig {
 
 	private SecurityRequirement securityRequirement() {
 		SecurityRequirement securityRequirement = new SecurityRequirement();
-		securityRequirement.addList("Authorization");
+		securityRequirement.addList("accessToken");
 		return securityRequirement;
 	}
 }

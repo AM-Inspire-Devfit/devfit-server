@@ -2,6 +2,7 @@ package com.amcamp.global.util;
 
 import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
+import com.amcamp.domain.member.domain.MemberStatus;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.AuthErrorCode;
 import com.amcamp.global.exception.errorcode.MemberErrorCode;
@@ -17,12 +18,19 @@ public class MemberUtil {
     private final MemberRepository memberRepository;
 
     public Member getCurrentMember() {
-        return memberRepository
-                .findById(getCurrentMemberId())
-                .orElseThrow(() -> new CommonException(MemberErrorCode.MEMBER_NOT_FOUND));
+		Member member =
+			memberRepository
+				.findById(getCurrentMemberId())
+				.orElseThrow(() -> new CommonException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+		if (member.getStatus() == MemberStatus.DELETED){
+			throw new CommonException(MemberErrorCode.MEMBER_ALREADY_DELETED);
+		}
+
+		return member;
     }
 
-    public Long getCurrentMemberId() {
+    private Long getCurrentMemberId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         try {

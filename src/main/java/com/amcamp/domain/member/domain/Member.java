@@ -1,6 +1,8 @@
 package com.amcamp.domain.member.domain;
 
 import com.amcamp.domain.common.model.BaseTimeEntity;
+import com.amcamp.global.exception.CommonException;
+import com.amcamp.global.exception.errorcode.MemberErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -49,4 +51,16 @@ public class Member extends BaseTimeEntity {
                 .role(MemberRole.USER)
                 .build();
     }
+
+	public void withdrawal() {
+		if (this.status == MemberStatus.DELETED) {
+			throw new CommonException(MemberErrorCode.MEMBER_ALREADY_DELETED);
+		}
+
+		this.status = MemberStatus.DELETED;
+	}
+
+	public void reEnroll() {
+		this.status = MemberStatus.NORMAL;
+	}
 }

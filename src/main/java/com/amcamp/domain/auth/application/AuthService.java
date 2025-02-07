@@ -5,6 +5,7 @@ import com.amcamp.domain.auth.dto.request.AuthCodeRequest;
 import com.amcamp.domain.auth.dto.response.SocialLoginResponse;
 import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
+import com.amcamp.domain.member.domain.MemberStatus;
 import com.amcamp.domain.member.domain.OauthInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,10 @@ public class AuthService {
 
         Optional<Member> optionalMember = findByOidcUser(oidcUser);
         Member member = optionalMember.orElseGet(() -> saveMember(oidcUser, provider));
+
+		if (member.getStatus() == MemberStatus.DELETED){
+			member.reEnroll();
+		}
 
         return getLoginResponse(member);
     }
