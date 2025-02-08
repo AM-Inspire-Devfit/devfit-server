@@ -39,7 +39,7 @@ public class TeamService{
 	private long expirationTime = 24;
 
 
-	public Team teamCreate(String teamName, String teamDescription) {
+	public TeamInviteCodeResponse createTeam(String teamName, String teamDescription) {
 		Member member = memberUtil.getCurrentMember();
 
 		Team team = Team.createTeam(teamName, teamDescription);
@@ -48,10 +48,10 @@ public class TeamService{
 		Participant participant = Participant.createParticipant(member, team, ParticipantRole.ADMIN);
 		participantRepository.save(participant);
 
-		return team;
+		return generateCode(team.getId());
 	}
 
-	public TeamInviteCodeResponse codeGenerate(Long teamId) {
+	public TeamInviteCodeResponse generateCode(Long teamId) {
 		Team team = teamRepository.findById(teamId)
 			.orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_NOT_FOUND));
 
@@ -67,26 +67,23 @@ public class TeamService{
 	}
 
 
-	public TeamInfoResponse teamInfo (String inviteCode){
-		Team team = teamSearchByCode(inviteCode);
+	public TeamInfoResponse getTeamInfo (String inviteCode){
+		Team team = searchTeamByCode(inviteCode);
 		return new TeamInfoResponse(team.getId(), team.getTeamName());
 	}
 
 
-	public Participant teamJoin(String inviteCode) {
+	public void joinTeam (String inviteCode) {
 		Member member = memberUtil.getCurrentMember();
-		Team team = teamSearchByCode(inviteCode);
-		teamJoinValidate(member, team);
+		Team team = searchTeamByCode(inviteCode);
+		validateTeamJoin(member, team);
 
 		Participant participant = Participant.createParticipant(member, team, ParticipantRole.USER);
 		participantRepository.save(participant);
 
-		return participant;
 	}
 
-
-
-	private Team teamSearchByCode(String inviteCode){
+	private Team searchTeamByCode(String inviteCode){
 		Long teamId = redisUtil.getData(INVITE_CODE_PREFIX.formatted(inviteCode))
 			.map(Long::valueOf)
 			.orElseThrow(() -> new CommonException(TeamErrorCode.INVALID_INVITE_CODE));
@@ -95,7 +92,7 @@ public class TeamService{
 			new CommonException(TeamErrorCode.TEAM_NOT_FOUND));
 	}
 
-	private void teamJoinValidate(Member member, Team team) {
+	private void validateTeamJoin(Member member, Team team) {
 
 		if (participantRepository.findByMemberAndTeam(member, team).isPresent()) {
 			throw new CommonException(TeamErrorCode.MEMBER_ALREADY_JOINED);

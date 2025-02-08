@@ -22,27 +22,26 @@ public class TeamController {
 
 	@Operation(summary = "팀 생성", description = "팀을 생성합니다.")
 	@PostMapping("/create")
-	public TeamInviteCodeResponse createTeam (@RequestBody TeamCreateRequest teamCreateRequest){
-		Team team = teamService.teamCreate(teamCreateRequest.teamName(), teamCreateRequest.teamDescription());
-		return teamService.codeGenerate(team.getId());
+	public TeamInviteCodeResponse teamCreate (@RequestBody TeamCreateRequest teamCreateRequest){
+		return teamService.createTeam(teamCreateRequest.teamName(), teamCreateRequest.teamDescription());
 	}
 
 	@Operation(summary = "코드 확인", description = "팀 가입을 위한 초대 코드를 확인합니다.")
 	@GetMapping("/invite/{teamId}")
-	public TeamInviteCodeResponse inviteTeam (@PathVariable Long teamId){
-		return teamService.codeGenerate(teamId);
+	public TeamInviteCodeResponse teamInvite (@PathVariable Long teamId){
+		return teamService.generateCode(teamId);
 	}
 
 	@Operation(summary = "팀 참가 전 팀 확인", description = "초대 코드를 입력하여 참여하려고 하는 팀 정보를 확인합니다.")
 	@PostMapping("/check")
-	public TeamInfoResponse checkTeamInfo(@RequestBody TeamInviteCodeRequest teamInviteCodeRequest){
-		return teamService.teamInfo(teamInviteCodeRequest.inviteCode());
+	public TeamInfoResponse teamCheck (@RequestBody TeamInviteCodeRequest teamInviteCodeRequest){
+		return teamService.getTeamInfo(teamInviteCodeRequest.inviteCode());
 	}
 
 	@Operation(summary = "팀 참가", description = "팀 정보를 확인 후 팀에 참가합니다.")
 	@PostMapping("/join")
-	public ResponseEntity<Void> joinTeam (@RequestBody TeamInviteCodeRequest teamInviteCodeRequest){
-		Participant participant = teamService.teamJoin(teamInviteCodeRequest.inviteCode());
+	public ResponseEntity<Void> teamJoin (@RequestBody TeamInviteCodeRequest teamInviteCodeRequest){
+		teamService.joinTeam(teamInviteCodeRequest.inviteCode());
 		return ResponseEntity.ok().build();
 	}
 }
