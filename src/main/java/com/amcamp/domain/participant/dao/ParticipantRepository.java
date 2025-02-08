@@ -1,7 +1,7 @@
-package com.amcamp.domain.team.dao;
+package com.amcamp.domain.participant.dao;
 
 import com.amcamp.domain.member.domain.Member;
-import com.amcamp.domain.team.domain.Participant;
+import com.amcamp.domain.participant.domain.Participant;
 import com.amcamp.domain.team.domain.Team;
 import org.springframework.data.jpa.repository.JpaRepository;
 

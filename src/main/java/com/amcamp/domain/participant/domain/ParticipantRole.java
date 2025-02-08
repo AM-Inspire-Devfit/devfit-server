@@ -1,4 +1,4 @@
-package com.amcamp.domain.team.domain;
+package com.amcamp.domain.participant.domain;
 
 
 import lombok.AllArgsConstructor;

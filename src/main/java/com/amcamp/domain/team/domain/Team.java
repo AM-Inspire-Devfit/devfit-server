@@ -15,19 +15,19 @@ public class Team extends BaseTimeEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "team_id")
 	private Long id;
-	private String team_name;
-	private String team_description;
+	private String teamName;
+	private String teamDescription;
 
 	@Builder(access = AccessLevel.PRIVATE)
-	private Team(String team_name, String team_description){
-		this.team_name = team_name;
-		this.team_description = team_description;
+	private Team(String teamName, String teamDescription){
+		this.teamName = teamName;
+		this.teamDescription = teamDescription;
 	}
 
-	public static Team createTeam (String team_name, String team_description){
+	public static Team createTeam (String teamName, String teamDescription){
 		return Team.builder()
-			.team_name(team_name)
-			.team_description(team_description)
+			.teamName(teamName)
+			.teamDescription(teamDescription)
 			.build();
 	}
 }

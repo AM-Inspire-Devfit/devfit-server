@@ -1,8 +1,8 @@
-package com.amcamp.domain.team.domain;
+package com.amcamp.domain.participant.domain;
 
 import com.amcamp.domain.common.model.BaseTimeEntity;
 import com.amcamp.domain.member.domain.Member;
-import com.amcamp.domain.member.domain.MemberRole;
+import com.amcamp.domain.team.domain.Team;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
