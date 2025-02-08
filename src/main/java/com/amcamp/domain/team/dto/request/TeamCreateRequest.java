@@ -1,4 +1,15 @@
 package com.amcamp.domain.team.dto.request;
 
-public record TeamCreateRequest(String teamName, String teamDescription) {
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
+
+public record TeamCreateRequest(
+	@NotEmpty
+	@Size(max = 25, message = "팀 이름은 최대 25자까지 입력 가능합니다.")
+	String teamName,
+
+	@NotEmpty
+	@Size(max = 100, message = "팀 설명은 최대 100자까지 입력 가능합니다.")
+	String teamDescription){
 }
