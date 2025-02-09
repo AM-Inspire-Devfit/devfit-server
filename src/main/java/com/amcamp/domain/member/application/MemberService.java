@@ -2,6 +2,7 @@ package com.amcamp.domain.member.application;
 
 import com.amcamp.domain.auth.dao.RefreshTokenRepository;
 import com.amcamp.domain.member.domain.Member;
+import com.amcamp.domain.member.dto.request.NicknameUpdateRequest;
 import com.amcamp.global.util.MemberUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,5 +24,11 @@ public class MemberService {
 			.ifPresent(refreshTokenRepository::delete);
 
 		currentMember.withdrawal();
+	}
+
+	public void updateMemberNickname(NicknameUpdateRequest request) {
+		Member currentMember = memberUtil.getCurrentMember();
+
+		currentMember.updateNickname(request.nickname());
 	}
 }

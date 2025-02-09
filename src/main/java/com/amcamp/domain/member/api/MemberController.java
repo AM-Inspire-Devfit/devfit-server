@@ -1,14 +1,14 @@
 package com.amcamp.domain.member.api;
 
 import com.amcamp.domain.member.application.MemberService;
+import com.amcamp.domain.member.dto.request.NicknameUpdateRequest;
 import com.amcamp.global.util.CookieUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "회원 API", description = "회원 관련 API입니다.")
 @RestController
@@ -24,5 +24,13 @@ public class MemberController {
 	public ResponseEntity<Void> memberWithdrawal() {
 		memberService.withdrawalMember();
 		return ResponseEntity.ok().headers(cookieUtil.deleteRefreshTokenCookie()).build();
+	}
+
+	@Operation(summary = "회원 닉네임 변경", description = "회원 닉네임을 변경합니다.")
+	@PostMapping("/me/nickname")
+	public ResponseEntity<Void> memberNicknameUpdate(
+			@Valid @RequestBody NicknameUpdateRequest request) {
+		memberService.updateMemberNickname(request);
+		return ResponseEntity.ok().build();
 	}
 }
