@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 
-@Schema(description = "팀 정보")
 public record TeamInfoResponse(
 	@Schema(description = "팀 아이디", example = "1")
 	Long teamId,
