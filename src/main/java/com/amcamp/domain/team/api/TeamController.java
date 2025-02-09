@@ -27,9 +27,9 @@ public class TeamController {
 	}
 
 	@Operation(summary = "코드 확인", description = "팀 가입을 위한 초대 코드를 확인합니다.")
-	@GetMapping("/invite/{teamId}")
+	@GetMapping("{teamId}/invite-code")
 	public TeamInviteCodeResponse teamInvite (@PathVariable Long teamId){
-		return teamService.generateCode(teamId);
+		return teamService.getTeamCode(teamId);
 	}
 
 	@Operation(summary = "팀 참가 전 팀 확인", description = "초대 코드를 입력하여 참여하려고 하는 팀 정보를 확인합니다.")

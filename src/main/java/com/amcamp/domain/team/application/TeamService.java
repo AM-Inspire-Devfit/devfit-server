@@ -48,24 +48,20 @@ public class TeamService{
 		Participant participant = Participant.createParticipant(member, team, ParticipantRole.ADMIN);
 		participantRepository.save(participant);
 
-		return generateCode(team.getId());
+		String code = generateCode(team.getId());
+
+		return new TeamInviteCodeResponse(code);
 	}
 
-	public TeamInviteCodeResponse generateCode(Long teamId) {
+
+	public TeamInviteCodeResponse getTeamCode (Long teamId) {
 		Team team = teamRepository.findById(teamId)
 			.orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_NOT_FOUND));
 
-		final Optional<String> existingCode = redisUtil.getData(TEAM_ID_PREFIX.formatted(team.getId()));
+		String code = generateCode(team.getId());
 
-		if (existingCode.isEmpty()) {
-			String inviteCode = codeGenerator(6);
-			redisUtil.setDataExpire(TEAM_ID_PREFIX.formatted(teamId), inviteCode, expirationTime);
-			redisUtil.setDataExpire(INVITE_CODE_PREFIX.formatted(inviteCode), teamId.toString(), expirationTime);
-			return new TeamInviteCodeResponse(inviteCode);
-		}
-		return new TeamInviteCodeResponse(existingCode.get());
+		return new TeamInviteCodeResponse(code);
 	}
-
 
 	public TeamInfoResponse getTeamInfo (String inviteCode){
 		Team team = searchTeamByCode(inviteCode);
@@ -83,6 +79,18 @@ public class TeamService{
 
 	}
 
+	private String generateCode(Long teamId) {
+		final Optional<String> existingCode = redisUtil.getData(TEAM_ID_PREFIX.formatted(teamId));
+
+		if (existingCode.isEmpty()) {
+			String inviteCode = codeGenerator(6);
+			redisUtil.setDataExpire(TEAM_ID_PREFIX.formatted(teamId), inviteCode, expirationTime);
+			redisUtil.setDataExpire(INVITE_CODE_PREFIX.formatted(inviteCode), teamId.toString(), expirationTime);
+			return inviteCode;
+		}
+		return existingCode.get();
+	}
+
 	private Team searchTeamByCode(String inviteCode){
 		Long teamId = redisUtil.getData(INVITE_CODE_PREFIX.formatted(inviteCode))
 			.map(Long::valueOf)
@@ -90,7 +98,7 @@ public class TeamService{
 
 		return teamRepository.findById(teamId).orElseThrow(() ->
 			new CommonException(TeamErrorCode.TEAM_NOT_FOUND));
-	}
+	} // todo: 코드 유효성만 체크하고 팀 바로 반환하기?
 
 	private void validateTeamJoin(Member member, Team team) {
 
@@ -98,7 +106,6 @@ public class TeamService{
 			throw new CommonException(TeamErrorCode.MEMBER_ALREADY_JOINED);
 		}
 	}
-
 
 	private static String codeGenerator(int length){
 		byte[] randomBytes = new byte[length];
