@@ -8,4 +8,4 @@ cloud:
     accessKey: ${AWS_ACCESS_KEY}
     secretKey: ${AWS_SECRET_KEY}
     bucket: ${AWS_BUCKET}
-    endpoint: ${AWS_ENDPOINT}
+    endpoint: ${S3_ENDPOINT:https://s3.ap-northeast-2.amazonaws.com}
