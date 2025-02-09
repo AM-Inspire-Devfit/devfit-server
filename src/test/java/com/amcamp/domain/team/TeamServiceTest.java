@@ -43,9 +43,8 @@ public class TeamServiceTest {
 	@Autowired
 	private TeamService teamService;
 
-	@BeforeEach
-	void setUp() {
-		UserDetails userDetails = new PrincipalDetails(1L, MemberRole.USER);
+	private void loginAs(Member member) {
+		UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());
 		UsernamePasswordAuthenticationToken token =
 			new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 		SecurityContextHolder.getContext().setAuthentication(token);
@@ -59,6 +58,7 @@ public class TeamServiceTest {
 			Member member = Member.createMember("testNickName", "testProfileImageUrl",
 				OauthInfo.createOauthInfo("testOauthId", "testOauthProvider"));
 			memberRepository.save(member);
+			loginAs(member);
 
 			// when
 			TeamInviteCodeResponse inviteCodeResponse = teamService.createTeam("팀 이름", "팀 설명");
@@ -78,6 +78,7 @@ public class TeamServiceTest {
 			Member member = Member.createMember("testNickName", "testProfileImageUrl",
 				OauthInfo.createOauthInfo("testOauthId", "testOauthProvider"));
 			memberRepository.save(member);
+			loginAs(member);
 
 			TeamInviteCodeResponse inviteCodeResponse = teamService.createTeam("팀 이름", "팀 설명");
 			Long teamId = teamService.getTeamInfo(inviteCodeResponse.inviteCode()).teamId();
@@ -97,6 +98,7 @@ public class TeamServiceTest {
 			Member member = Member.createMember("testNickName", "testProfileImageUrl",
 				OauthInfo.createOauthInfo("testOauthId", "testOauthProvider"));
 			memberRepository.save(member);
+			loginAs(member);
 
 			TeamInviteCodeResponse inviteCodeResponse = teamService.createTeam("팀 이름", "팀 설명");
 
@@ -118,6 +120,7 @@ public class TeamServiceTest {
 			Member savedAdmin = Member.createMember("admin", "testProfileImageUrl",
 				OauthInfo.createOauthInfo("adminOauthId", "adminOauthProvider"));
 			memberRepository.save(savedAdmin);
+			loginAs(savedAdmin);
 
 			TeamInviteCodeResponse inviteCodeResponse = teamService.createTeam("팀 이름", "팀 설명");
 			String inviteCode = inviteCodeResponse.inviteCode();
@@ -125,10 +128,11 @@ public class TeamServiceTest {
 
 			// 2. savedMember 로그인 처리 후 팀 참여
 			Member savedMember = memberRepository.save(Member.createMember("member", null, null));
-			UserDetails newUserDetails = new PrincipalDetails(savedMember.getId(), savedMember.getRole());
-			UsernamePasswordAuthenticationToken newToken =
-				new UsernamePasswordAuthenticationToken(newUserDetails, null, newUserDetails.getAuthorities());
-			SecurityContextHolder.getContext().setAuthentication(newToken);
+//			UserDetails newUserDetails = new PrincipalDetails(savedMember.getId(), savedMember.getRole());
+//			UsernamePasswordAuthenticationToken newToken =
+//				new UsernamePasswordAuthenticationToken(newUserDetails, null, newUserDetails.getAuthorities());
+//			SecurityContextHolder.getContext().setAuthentication(newToken);
+			loginAs(savedMember);
 
 			// when
 			teamService.joinTeam(inviteCode);
@@ -152,6 +156,7 @@ public class TeamServiceTest {
 			Member member = Member.createMember("testNickName", "testProfileImageUrl",
 				OauthInfo.createOauthInfo("testOauthId", "testOauthProvider"));
 			memberRepository.save(member);
+			loginAs(member);
 
 			TeamInviteCodeResponse inviteCodeResponse = teamService.createTeam("팀 이름", "팀 설명");
 			String inviteCode = inviteCodeResponse.inviteCode();
@@ -171,6 +176,7 @@ public class TeamServiceTest {
 			Member member = Member.createMember("testNickName", "testProfileImageUrl",
 				OauthInfo.createOauthInfo("testOauthId", "testOauthProvider"));
 			memberRepository.save(member);
+			loginAs(member);
 
 			TeamInviteCodeResponse inviteCodeResponse = teamService.createTeam("팀 이름", "팀 설명");
 			String validInviteCode = inviteCodeResponse.inviteCode();
