@@ -8,9 +8,13 @@ import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amcamp.domain.image.dao.ImageRepository;
 import com.amcamp.domain.image.domain.Image;
 import com.amcamp.domain.image.domain.ImageFileExtension;
+import com.amcamp.domain.image.dto.request.MemberImageUploadCompleteRequest;
 import com.amcamp.domain.image.dto.request.MemberImageUploadRequest;
 import com.amcamp.domain.image.dto.response.PresignedUrlResponse;
 import com.amcamp.domain.member.domain.Member;
+import com.amcamp.global.common.constants.UrlConstants;
+import com.amcamp.global.exception.CommonException;
+import com.amcamp.global.exception.errorcode.ImageErrorCode;
 import com.amcamp.global.util.MemberUtil;
 import com.amcamp.infra.config.s3.S3Properties;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +54,18 @@ public class ImageService {
         return new PresignedUrlResponse(presignedUrl);
     }
 
+    public void uploadCompleteMemberImage(MemberImageUploadCompleteRequest request) {
+        final Member currentMember = memberUtil.getCurrentMember();
+
+        String imageUrl = null;
+        if (request.imageFileExtension() != null) {
+            Image image = findImage(currentMember.getId(), request.imageFileExtension());
+            imageUrl = createReadImageUrl(currentMember.getId(), image.getImageKey(), image.getImageFileExtension());
+        }
+
+        currentMember.updateProfileImageUrl(imageUrl);
+    }
+
     private GeneratePresignedUrlRequest generatePresignedUrlRequest(
             String bucket, String imageName, String imageFileExtension) {
         GeneratePresignedUrlRequest generatePresignedUrlRequest =
@@ -79,5 +95,14 @@ public class ImageService {
         expiration.setTime(expTime);
 
         return expiration;
+    }
+
+    private Image findImage(Long memberId, ImageFileExtension imageFileExtension) {
+        return imageRepository.findLatestByMemberIdAndExtension(memberId, imageFileExtension)
+                .orElseThrow(() -> new CommonException(ImageErrorCode.IMAGE_NOT_FOUND));
+    }
+
+    private String createReadImageUrl(Long memberId, String imageKey, ImageFileExtension imageFileExtension) {
+        return UrlConstants.IMAGE_URL + "/" + createImageFileName(memberId, imageKey, imageFileExtension);
     }
 }

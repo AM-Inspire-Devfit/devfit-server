@@ -63,4 +63,8 @@ public class Member extends BaseTimeEntity {
 	public void reEnroll() {
 		this.status = MemberStatus.NORMAL;
 	}
+
+	public void updateProfileImageUrl(String profileImageUrl) {
+		this.profileImageUrl = profileImageUrl;
+	}
 }
