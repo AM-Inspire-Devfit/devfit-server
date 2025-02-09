@@ -2,6 +2,8 @@ package com.amcamp.domain.team;
 
 import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
+import com.amcamp.domain.member.domain.MemberRole;
+import com.amcamp.domain.member.domain.OauthInfo;
 import com.amcamp.domain.participant.dao.ParticipantRepository;
 import com.amcamp.domain.participant.domain.Participant;
 import com.amcamp.domain.participant.domain.ParticipantRole;
@@ -14,6 +16,8 @@ import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,6 +27,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -37,158 +43,162 @@ public class TeamServiceTest {
 	@Autowired
 	private TeamService teamService;
 
-
-	@Test
-	void 팀생성시_초대코드_반환 () {
-		// given
-		Member savedMember = memberRepository.save(Member.createMember("admin", null, null));
-		UserDetails userDetails = new PrincipalDetails(savedMember.getId(), savedMember.getRole());
+	@BeforeEach
+	void setUp() {
+		UserDetails userDetails = new PrincipalDetails(1L, MemberRole.USER);
 		UsernamePasswordAuthenticationToken token =
 			new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 		SecurityContextHolder.getContext().setAuthentication(token);
-
-		// when
-		TeamInviteCodeResponse inviteCodeResponse = teamService.createTeam("팀 이름", "팀 설명");
-
-		// then
-		assertNotNull(inviteCodeResponse);
-		assertNotNull(inviteCodeResponse.inviteCode());
-		Assertions.assertTrue(inviteCodeResponse.inviteCode().length() == 8);
 	}
 
-	@Test
-	void 팀아이디로_코드확인시_팀이_유효한_경우_초대코드_반환 (){
-		// given
-		Member savedMember = memberRepository.save(Member.createMember("admin", null, null));
-		UserDetails userDetails = new PrincipalDetails(savedMember.getId(), savedMember.getRole());
-		UsernamePasswordAuthenticationToken token =
-			new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-		SecurityContextHolder.getContext().setAuthentication(token);
+	@Nested
+	class 팀_생성_시 {
+		@Test
+		void 초대코드를_반환한다 () {
+			// given
+			Member member = Member.createMember("testNickName", "testProfileImageUrl",
+				OauthInfo.createOauthInfo("testOauthId", "testOauthProvider"));
+			memberRepository.save(member);
 
-		TeamInviteCodeResponse inviteCodeResponse = teamService.createTeam("팀 이름", "팀 설명");
-		Long teamId = teamService.getTeamInfo(inviteCodeResponse.inviteCode()).teamId();
+			// when
+			TeamInviteCodeResponse inviteCodeResponse = teamService.createTeam("팀 이름", "팀 설명");
 
-		// when
-		TeamInviteCodeResponse response = teamService.getTeamCode(teamId);
-
-		// then
-		assertNotNull(response);
-		assertNotNull(response.inviteCode());
-		assertEquals(8, response.inviteCode().length());
+			// then
+			assertThat(inviteCodeResponse).isNotNull();
+			assertThat(inviteCodeResponse.inviteCode()).isNotNull();
+			assertThat(inviteCodeResponse.inviteCode()).hasSize(8);
+		}
 	}
 
-	@Test
-	void 팀아이디로_코드확인시_팀이_유효하지않는_경우(){
-		// given
-		Member savedMember = memberRepository.save(Member.createMember("admin", null, null));
-		UserDetails userDetails = new PrincipalDetails(savedMember.getId(), savedMember.getRole());
-		UsernamePasswordAuthenticationToken token =
-			new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-		SecurityContextHolder.getContext().setAuthentication(token);
+	@Nested
+	class 팀_아이디로_코드확인_시{
+		@Test
+		void 팀이_유효한_경우에는_초대코드를_반환한다 (){
+			// given
+			Member member = Member.createMember("testNickName", "testProfileImageUrl",
+				OauthInfo.createOauthInfo("testOauthId", "testOauthProvider"));
+			memberRepository.save(member);
 
-		TeamInviteCodeResponse inviteCodeResponse = teamService.createTeam("팀 이름", "팀 설명");
+			TeamInviteCodeResponse inviteCodeResponse = teamService.createTeam("팀 이름", "팀 설명");
+			Long teamId = teamService.getTeamInfo(inviteCodeResponse.inviteCode()).teamId();
 
-		// when
-		Long invalidTeamId = -999L;
-		CommonException exception = assertThrows(CommonException.class, () -> teamService.getTeamCode(invalidTeamId));
+			// when
+			TeamInviteCodeResponse response = teamService.getTeamCode(teamId);
 
-		// then
-		assertEquals(TeamErrorCode.TEAM_NOT_FOUND, exception.getErrorCode());
+			// then
+			assertThat(response).isNotNull();
+			assertThat(response.inviteCode()).isNotNull();
+			assertThat(response.inviteCode()).hasSize(8);
+		}
 
+		@Test
+		void 팀이_유효하지않는_경우에는_예외가_발생한다 (){
+			// given
+			Member member = Member.createMember("testNickName", "testProfileImageUrl",
+				OauthInfo.createOauthInfo("testOauthId", "testOauthProvider"));
+			memberRepository.save(member);
+
+			TeamInviteCodeResponse inviteCodeResponse = teamService.createTeam("팀 이름", "팀 설명");
+
+			// when & then
+			assertThatThrownBy(() -> teamService.getTeamCode(-999L))
+				.isInstanceOf(CommonException.class)
+				.extracting("errorCode")
+				.isEqualTo(TeamErrorCode.TEAM_NOT_FOUND);
+
+		}
 	}
+	@Nested
+	class 팀_참가_시{
+		@Test
+		@Transactional
+		void 새롭게_참여하는_경우에는_팀에_USER로_등록된다(){
+			//given
+			// 1. savedAdmin 로그인 후 팀 생성
+			Member savedAdmin = Member.createMember("admin", "testProfileImageUrl",
+				OauthInfo.createOauthInfo("adminOauthId", "adminOauthProvider"));
+			memberRepository.save(savedAdmin);
 
-	@Test
-	void 팀참가시_이미_팀에_참가한_경우(){
-		//given
-		Member savedMember = memberRepository.save(Member.createMember("admin", null, null));
-		UserDetails userDetails = new PrincipalDetails(savedMember.getId(), savedMember.getRole());
-		UsernamePasswordAuthenticationToken token =
-			new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-		SecurityContextHolder.getContext().setAuthentication(token);
+			TeamInviteCodeResponse inviteCodeResponse = teamService.createTeam("팀 이름", "팀 설명");
+			String inviteCode = inviteCodeResponse.inviteCode();
 
-		TeamInviteCodeResponse inviteCodeResponse = teamService.createTeam("팀 이름", "팀 설명");
-		String inviteCode = inviteCodeResponse.inviteCode();
 
-		// when & then
-		CommonException exception = assertThrows(CommonException.class, () -> {
-			teamService.joinTeam(inviteCode); // 다시 참여 시도
-		});
-		assertEquals(TeamErrorCode.MEMBER_ALREADY_JOINED, exception.getErrorCode());
+			// 2. savedMember 로그인 처리 후 팀 참여
+			Member savedMember = memberRepository.save(Member.createMember("member", null, null));
+			UserDetails newUserDetails = new PrincipalDetails(savedMember.getId(), savedMember.getRole());
+			UsernamePasswordAuthenticationToken newToken =
+				new UsernamePasswordAuthenticationToken(newUserDetails, null, newUserDetails.getAuthorities());
+			SecurityContextHolder.getContext().setAuthentication(newToken);
+
+			// when
+			teamService.joinTeam(inviteCode);
+
+			// then
+			TeamInfoResponse teamInfoResponse = teamService.getTeamInfo(inviteCode);
+			Team savedTeam = teamRepository.findById(teamInfoResponse.teamId()).orElseThrow(()
+				-> new CommonException(TeamErrorCode.TEAM_NOT_FOUND));
+
+			Participant participant = participantRepository.findByMemberAndTeam(savedMember, savedTeam)
+				.orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_NOT_FOUND));
+
+			assertThat(participant.getMember()).isEqualTo(savedMember);
+			assertThat(participant.getRole()).isEqualTo(ParticipantRole.USER);
+			assertThat(participant.getTeam()).isEqualTo(savedTeam);
+
+		}
+		@Test
+		void 이미_팀에_참가한_경우에는_예외가_발생한다(){
+			//given
+			Member member = Member.createMember("testNickName", "testProfileImageUrl",
+				OauthInfo.createOauthInfo("testOauthId", "testOauthProvider"));
+			memberRepository.save(member);
+
+			TeamInviteCodeResponse inviteCodeResponse = teamService.createTeam("팀 이름", "팀 설명");
+			String inviteCode = inviteCodeResponse.inviteCode();
+
+			// when & then
+			assertThatThrownBy(() -> teamService.joinTeam(inviteCode))
+				.isInstanceOf(CommonException.class)
+				.extracting("errorCode")
+				.isEqualTo(TeamErrorCode.MEMBER_ALREADY_JOINED);
+		}
 	}
+	@Nested
+	class 초대코드로_팀_확인_시{
+		@Test
+		void 코드가_유효한_경우에는_팀_정보를_반환한다(){
+			//given
+			Member member = Member.createMember("testNickName", "testProfileImageUrl",
+				OauthInfo.createOauthInfo("testOauthId", "testOauthProvider"));
+			memberRepository.save(member);
 
-	@Test
-	@Transactional
-	void 팀참가시_새롭게_참여하는_경우(){
-		//given
-		// 1. savedAdmin 로그인 후 팀 생성
-		Member savedAdmin = memberRepository.save(Member.createMember("admin", null, null));
-		UserDetails userDetails = new PrincipalDetails(savedAdmin.getId(), savedAdmin.getRole());
-		UsernamePasswordAuthenticationToken token =
-			new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-		SecurityContextHolder.getContext().setAuthentication(token);
+			TeamInviteCodeResponse inviteCodeResponse = teamService.createTeam("팀 이름", "팀 설명");
+			String validInviteCode = inviteCodeResponse.inviteCode();
 
-		TeamInviteCodeResponse inviteCodeResponse = teamService.createTeam("팀 이름", "팀 설명");
-		String inviteCode = inviteCodeResponse.inviteCode();
+			// when
+			TeamInfoResponse teamInfoResponse = teamService.getTeamInfo(validInviteCode);
 
-		// 2. savedMember 로그인 처리 후 팀 참여
-		Member savedMember = memberRepository.save(Member.createMember("member", null, null));
-		UserDetails newUserDetails = new PrincipalDetails(savedMember.getId(), savedMember.getRole());
-		UsernamePasswordAuthenticationToken newToken =
-			new UsernamePasswordAuthenticationToken(newUserDetails, null, newUserDetails.getAuthorities());
-		SecurityContextHolder.getContext().setAuthentication(newToken);
+			// then
+			assertThat(teamInfoResponse).isNotNull();
+			assertThat(teamInfoResponse.teamId()).isNotNull();
 
-		// when
-		teamService.joinTeam(inviteCode);
+			Team savedTeam = teamRepository.findById(teamInfoResponse.teamId())
+				.orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_NOT_FOUND));
 
-		// then
-		TeamInfoResponse teamInfoResponse = teamService.getTeamInfo(inviteCode);
-		Team savedTeam = teamRepository.findById(teamInfoResponse.teamId()).orElseThrow(()
-			-> new CommonException(TeamErrorCode.TEAM_NOT_FOUND));
+			assertThat(teamInfoResponse.teamName()).isEqualTo(savedTeam.getTeamName());
+			assertThat(teamInfoResponse.teamId()).isEqualTo(savedTeam.getId());
+		}
 
+		@Test
+		void 코드가_유효하지않는_경우에는_예외를_반환한다(){
+			// given
+			String invalidInviteCode = "invalidCode";
 
-		Participant participant = participantRepository.findByMemberAndTeam(savedMember, savedTeam)
-			.orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_NOT_FOUND));
-
-		assertEquals(savedMember, participant.getMember());
-		assertEquals(ParticipantRole.USER, participant.getRole());
-		assertEquals(savedTeam, participant.getTeam());
-
-	}
-	@Test
-	void 초대코드로_팀_확인시_코드가_유효한_경우(){
-		//given
-		Member savedAdmin = memberRepository.save(Member.createMember("admin", null, null));
-		UserDetails userDetails = new PrincipalDetails(savedAdmin.getId(), savedAdmin.getRole());
-		UsernamePasswordAuthenticationToken token =
-			new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-		SecurityContextHolder.getContext().setAuthentication(token);
-
-		TeamInviteCodeResponse inviteCodeResponse = teamService.createTeam("팀 이름", "팀 설명");
-		String validInviteCode = inviteCodeResponse.inviteCode();
-
-		// when
-		TeamInfoResponse teamInfoResponse = teamService.getTeamInfo(validInviteCode);
-
-		// then
-		assertNotNull(teamInfoResponse);
-		assertNotNull(teamInfoResponse.teamId());
-
-		Team savedTeam = teamRepository.findById(teamInfoResponse.teamId())
-			.orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_NOT_FOUND));
-
-		assertEquals(savedTeam.getTeamName(), teamInfoResponse.teamName());
-		assertEquals(savedTeam.getId(), teamInfoResponse.teamId());  // 반환된 team값과 실제 팀 레파지토리에 저장됨 값이 일치하는지 확인
-	}
-
-	@Test
-	void 초대코드로_팀_확인시_코드가_유효하지않는_경우(){
-		// given
-		String invalidInviteCode = "invalidCode";
-
-		// when & then
-		CommonException exception = assertThrows(CommonException.class, () -> {
-			teamService.getTeamInfo(invalidInviteCode);
-		});
-		assertEquals(TeamErrorCode.INVALID_INVITE_CODE, exception.getErrorCode());
+			// when & then
+			assertThatThrownBy(() -> teamService.getTeamInfo(invalidInviteCode))
+				.isInstanceOf(CommonException.class)
+				.extracting("errorCode")
+				.isEqualTo(TeamErrorCode.INVALID_INVITE_CODE);
+		}
 	}
 }
