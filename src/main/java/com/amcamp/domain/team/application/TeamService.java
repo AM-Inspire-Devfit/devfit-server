@@ -98,7 +98,7 @@ public class TeamService{
 
 		return teamRepository.findById(teamId).orElseThrow(() ->
 			new CommonException(TeamErrorCode.TEAM_NOT_FOUND));
-	} // todo: 코드 유효성만 체크하고 팀 바로 반환하기?
+	}
 
 	private void validateTeamJoin(Member member, Team team) {
 

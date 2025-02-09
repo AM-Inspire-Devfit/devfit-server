@@ -9,6 +9,7 @@ import com.amcamp.domain.team.dto.request.TeamCreateRequest;
 import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@ public class TeamController {
 
 	@Operation(summary = "팀 생성", description = "팀을 생성합니다.")
 	@PostMapping("/create")
-	public TeamInviteCodeResponse teamCreate (@RequestBody TeamCreateRequest teamCreateRequest){
+	public TeamInviteCodeResponse teamCreate (@Valid @RequestBody TeamCreateRequest teamCreateRequest){
 		return teamService.createTeam(teamCreateRequest.teamName(), teamCreateRequest.teamDescription());
 	}
 
@@ -34,13 +35,13 @@ public class TeamController {
 
 	@Operation(summary = "팀 참가 전 팀 확인", description = "초대 코드를 입력하여 참여하려고 하는 팀 정보를 확인합니다.")
 	@PostMapping("/check")
-	public TeamInfoResponse teamCheck (@RequestBody TeamInviteCodeRequest teamInviteCodeRequest){
+	public TeamInfoResponse teamCheck (@Valid @RequestBody TeamInviteCodeRequest teamInviteCodeRequest){
 		return teamService.getTeamInfo(teamInviteCodeRequest.inviteCode());
 	}
 
 	@Operation(summary = "팀 참가", description = "팀 정보를 확인 후 팀에 참가합니다.")
 	@PostMapping("/join")
-	public ResponseEntity<Void> teamJoin (@RequestBody TeamInviteCodeRequest teamInviteCodeRequest){
+	public ResponseEntity<Void> teamJoin (@Valid @RequestBody TeamInviteCodeRequest teamInviteCodeRequest){
 		teamService.joinTeam(teamInviteCodeRequest.inviteCode());
 		return ResponseEntity.ok().build();
 	}

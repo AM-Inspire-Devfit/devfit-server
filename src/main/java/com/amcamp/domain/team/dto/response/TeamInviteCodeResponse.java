@@ -1,10 +1,11 @@
 package com.amcamp.domain.team.dto.response;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 
+@Schema(description = "초대 코드 응답")
 public record TeamInviteCodeResponse(
-	@NotEmpty(message = "팀 초대코드는 필수 응답 사항입니다.")
-	@Size(min = 8, max = 8, message = "8자리 초대 코드를 입력해주세요.")
+	@Schema(description = "초대 코드", example = "FFbKeJvJ")
 	String inviteCode) {
 }
