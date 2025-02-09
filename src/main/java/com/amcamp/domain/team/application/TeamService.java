@@ -11,12 +11,12 @@ import com.amcamp.domain.team.dto.response.TeamInviteCodeResponse;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.util.MemberUtil;
+import com.amcamp.global.util.RandomUtil;
 import com.amcamp.global.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.amcamp.global.common.constants.RedisConstants
 import java.util.Optional;
 import static com.amcamp.global.common.constants.RedisConstants.*;
 
@@ -29,6 +29,7 @@ public class TeamService{
 	private final TeamRepository teamRepository;
 	private final ParticipantRepository participantRepository;
 	private final RedisUtil redisUtil;
+	private final RandomUtil randomUtil;
 
 	public TeamInviteCodeResponse createTeam(String teamName, String teamDescription) {
 		Member member = memberUtil.getCurrentMember();
@@ -39,7 +40,7 @@ public class TeamService{
 		Participant participant = Participant.createParticipant(member, team, ParticipantRole.ADMIN);
 		participantRepository.save(participant);
 
-		String code = generateCode(team.getId());
+		String code = randomUtil.generateCode(team.getId());
 
 		return new TeamInviteCodeResponse(code);
 	}
@@ -49,7 +50,7 @@ public class TeamService{
 		Team team = teamRepository.findById(teamId)
 			.orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_NOT_FOUND));
 
-		String code = generateCode(team.getId());
+		String code = randomUtil.generateCode(team.getId());
 
 		return new TeamInviteCodeResponse(code);
 	}
@@ -70,18 +71,6 @@ public class TeamService{
 
 	}
 
-	private String generateCode(Long teamId) {
-		final Optional<String> existingCode = redisUtil.getData(TEAM_ID_PREFIX.formatted(teamId));
-
-		if (existingCode.isEmpty()) {
-			String inviteCode = codeGenerator(6);
-			redisUtil.setDataExpire(TEAM_ID_PREFIX.formatted(teamId), inviteCode, expirationTime);
-			redisUtil.setDataExpire(INVITE_CODE_PREFIX.formatted(inviteCode), teamId.toString(), expirationTime);
-			return inviteCode;
-		}
-		return existingCode.get();
-	}
-
 	private Team searchTeamByCode(String inviteCode){
 		Long teamId = redisUtil.getData(INVITE_CODE_PREFIX.formatted(inviteCode))
 			.map(Long::valueOf)
@@ -97,11 +86,4 @@ public class TeamService{
 			throw new CommonException(TeamErrorCode.MEMBER_ALREADY_JOINED);
 		}
 	}
-
-	private static String codeGenerator(int length){
-		byte[] randomBytes = new byte[length];
-		secureRandom.nextBytes(randomBytes);
-		return base64Encoder.encodeToString(randomBytes);
-	}
-
 }
