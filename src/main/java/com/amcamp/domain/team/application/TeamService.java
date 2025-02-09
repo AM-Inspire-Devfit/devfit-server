@@ -16,10 +16,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.security.SecureRandom;
-import java.util.Base64;
+import com.amcamp.global.common.constants.RedisConstants
 import java.util.Optional;
+import static com.amcamp.global.common.constants.RedisConstants.*;
 
 @Transactional
 @Service
@@ -30,14 +29,6 @@ public class TeamService{
 	private final TeamRepository teamRepository;
 	private final ParticipantRepository participantRepository;
 	private final RedisUtil redisUtil;
-
-	private static final SecureRandom secureRandom = new SecureRandom();
-	private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
-
-	public static final String TEAM_ID_PREFIX = "teamId=%d";
-	public static final String INVITE_CODE_PREFIX = "inviteCode=%s";
-	private long expirationTime = 24;
-
 
 	public TeamInviteCodeResponse createTeam(String teamName, String teamDescription) {
 		Member member = memberUtil.getCurrentMember();
