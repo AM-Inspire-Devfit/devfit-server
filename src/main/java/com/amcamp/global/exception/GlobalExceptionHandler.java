@@ -2,6 +2,7 @@ package com.amcamp.global.exception;
 
 import com.amcamp.global.common.response.CommonResponse;
 import com.amcamp.global.exception.errorcode.BaseErrorCode;
+import com.amcamp.global.exception.errorcode.GlobalErrorCode;
 import lombok.SneakyThrows;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -45,5 +46,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 CommonResponse.onFailure(HttpStatus.BAD_REQUEST.value(), errorResponse);
 
         return ResponseEntity.status(status).body(response);
+    }
+
+    @ExceptionHandler(Exception.class)
+    protected ResponseEntity<CommonResponse> handleException(Exception e) {
+        final BaseErrorCode errorCode = GlobalErrorCode.INTERNAL_SERVER_ERROR;
+        final ErrorResponse errorResponse =
+                ErrorResponse.of(e.getClass().getSimpleName(), errorCode.getMessage());
+        final CommonResponse response =
+                CommonResponse.onFailure(errorCode.getHttpStatus().value(), errorResponse);
+
+        return ResponseEntity.status(errorCode.getHttpStatus().value()).body(response);
     }
 }
