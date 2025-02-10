@@ -13,34 +13,30 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Participant extends BaseTimeEntity {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "participant_id")
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "participant_id")
+    private Long id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "member_id")
-	private Member member;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private Member member;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "team_id")
-	private Team team;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "team_id")
+    private Team team;
 
-	@Enumerated(EnumType.STRING)
-	private ParticipantRole role;
+    @Enumerated(EnumType.STRING)
+    private ParticipantRole role;
 
-	@Builder(access = AccessLevel.PRIVATE)
-	private Participant(Member member, Team team, ParticipantRole role) {
-		this.member = member;
-		this.team = team;
-		this.role = role;
-	}
+    @Builder(access = AccessLevel.PRIVATE)
+    private Participant(Member member, Team team, ParticipantRole role) {
+        this.member = member;
+        this.team = team;
+        this.role = role;
+    }
 
-	public static Participant createParticipant(Member member, Team team, ParticipantRole role) {
-		return Participant.builder()
-			.member(member)
-			.team(team)
-			.role(role)
-			.build();
-	}
+    public static Participant createParticipant(Member member, Team team, ParticipantRole role) {
+        return Participant.builder().member(member).team(team).role(role).build();
+    }
 }

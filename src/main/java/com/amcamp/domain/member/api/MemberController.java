@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/members")
 public class MemberController {
 
-	private final CookieUtil cookieUtil;
-	private final MemberService memberService;
+    private final CookieUtil cookieUtil;
+    private final MemberService memberService;
 
 	@Operation(summary = "회원 탈퇴", description = "회원 탈퇴를 진행합니다.")
 	@DeleteMapping("/withdrawal")

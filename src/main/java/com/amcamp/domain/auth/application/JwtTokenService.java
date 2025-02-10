@@ -1,5 +1,7 @@
 package com.amcamp.domain.auth.application;
 
+import static com.amcamp.global.common.constants.SecurityConstants.TOKEN_ROLE_NAME;
+
 import com.amcamp.domain.auth.dao.RefreshTokenRepository;
 import com.amcamp.domain.auth.domain.RefreshToken;
 import com.amcamp.domain.auth.dto.AccessTokenDto;
@@ -7,12 +9,9 @@ import com.amcamp.domain.auth.dto.RefreshTokenDto;
 import com.amcamp.domain.member.domain.MemberRole;
 import com.amcamp.global.util.JwtUtil;
 import io.jsonwebtoken.ExpiredJwtException;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
-
-import static com.amcamp.global.common.constants.SecurityConstants.TOKEN_ROLE_NAME;
 
 @Service
 @RequiredArgsConstructor
@@ -72,8 +71,8 @@ public class JwtTokenService {
 
         Optional<RefreshToken> refreshToken = getRefreshToken(refreshTokenDto.memberId());
 
-        if (refreshToken.isPresent() &&
-                refreshTokenDto.refreshTokenValue().equals(refreshToken.get().getToken())) {
+        if (refreshToken.isPresent()
+                && refreshTokenDto.refreshTokenValue().equals(refreshToken.get().getToken())) {
             return refreshTokenDto;
         }
 
@@ -86,7 +85,8 @@ public class JwtTokenService {
             return null;
         } catch (ExpiredJwtException e) {
             Long memberId = Long.parseLong(e.getClaims().getSubject());
-            MemberRole memberRole = MemberRole.valueOf(e.getClaims().get(TOKEN_ROLE_NAME, String.class));
+            MemberRole memberRole =
+                    MemberRole.valueOf(e.getClaims().get(TOKEN_ROLE_NAME, String.class));
 
             return createAccessTokenDto(memberId, memberRole);
         }

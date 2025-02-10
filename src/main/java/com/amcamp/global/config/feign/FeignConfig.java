@@ -12,7 +12,8 @@ public class FeignConfig {
     @Bean
     public RequestInterceptor requestInterceptor() {
         return requestTemplate -> {
-            requestTemplate.header("Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
+            requestTemplate.header(
+                    "Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
 
             if (requestTemplate.body() == null) {
                 requestTemplate.body("");

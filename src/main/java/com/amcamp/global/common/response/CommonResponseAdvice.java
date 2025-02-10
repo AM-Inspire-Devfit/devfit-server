@@ -12,25 +12,32 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 @RestControllerAdvice(basePackages = "com.amcamp")
 public class CommonResponseAdvice implements ResponseBodyAdvice {
-	@Override
-	public boolean supports(MethodParameter returnType, Class converterType) {
-		return true; //어떤 응답을 가로채서 반환할 것인지 -> 모든 응답 가로채기
-	}
+    @Override
+    public boolean supports(MethodParameter returnType, Class converterType) {
+        return true; // 어떤 응답을 가로채서 반환할 것인지 -> 모든 응답 가로채기
+    }
 
-	@Override
-	public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType, Class selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
-		HttpServletResponse httpServletResponse = ((ServletServerHttpResponse) response).getServletResponse();
-		int status = httpServletResponse.getStatus();
-		HttpStatus resolve = HttpStatus.resolve(status);
+    @Override
+    public Object beforeBodyWrite(
+            Object body,
+            MethodParameter returnType,
+            MediaType selectedContentType,
+            Class selectedConverterType,
+            ServerHttpRequest request,
+            ServerHttpResponse response) {
+        HttpServletResponse httpServletResponse =
+                ((ServletServerHttpResponse) response).getServletResponse();
+        int status = httpServletResponse.getStatus();
+        HttpStatus resolve = HttpStatus.resolve(status);
 
-		if (resolve == null || body instanceof String) {
-			return body;
-		}
+        if (resolve == null || body instanceof String) {
+            return body;
+        }
 
-		if (resolve.is2xxSuccessful()) {
-			return CommonResponse.onSuccess(status, body);
-		}
+        if (resolve.is2xxSuccessful()) {
+            return CommonResponse.onSuccess(status, body);
+        }
 
-		return body;
-	}
+        return body;
+    }
 }

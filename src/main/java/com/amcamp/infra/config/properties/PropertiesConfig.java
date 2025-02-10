@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
         GoogleProperties.class,
         KakaoProperties.class,
         JwtProperties.class,
-		S3Properties.class
+		    S3Properties.class
 })
 @Configuration
 public class PropertiesConfig {}

@@ -7,13 +7,12 @@ import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.domain.MemberStatus;
 import com.amcamp.domain.member.domain.OauthInfo;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @Transactional
 @Service
@@ -35,9 +34,9 @@ public class AuthService {
         Optional<Member> optionalMember = findByOidcUser(oidcUser);
         Member member = optionalMember.orElseGet(() -> saveMember(oidcUser, provider));
 
-		if (member.getStatus() == MemberStatus.DELETED){
-			member.reEnroll();
-		}
+        if (member.getStatus() == MemberStatus.DELETED) {
+            member.reEnroll();
+        }
 
         return getLoginResponse(member);
     }
@@ -69,8 +68,7 @@ public class AuthService {
     }
 
     private OauthInfo extractOauthInfo(OidcUser oidcUser) {
-        return OauthInfo.createOauthInfo(
-                oidcUser.getSubject(), oidcUser.getIssuer().toString());
+        return OauthInfo.createOauthInfo(oidcUser.getSubject(), oidcUser.getIssuer().toString());
     }
 
     private String getDisplayName(OidcUser oidcUser, OauthProvider provider) {

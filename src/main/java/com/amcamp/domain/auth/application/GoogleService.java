@@ -14,12 +14,13 @@ public class GoogleService {
     private final GoogleProperties googleProperties;
 
     public String getIdToken(String code) {
-        IdTokenResponse response = googleOauthClient.getIdToken(
-                googleProperties.grantType(),
-                googleProperties.clientId(),
-                googleProperties.redirectUri(),
-                code,
-                googleProperties.clientSecret());
+        IdTokenResponse response =
+                googleOauthClient.getIdToken(
+                        googleProperties.grantType(),
+                        googleProperties.clientId(),
+                        googleProperties.redirectUri(),
+                        code,
+                        googleProperties.clientSecret());
 
         return response.id_token();
     }
