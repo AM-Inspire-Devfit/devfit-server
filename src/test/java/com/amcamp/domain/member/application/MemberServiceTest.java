@@ -6,10 +6,12 @@ import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.domain.MemberStatus;
 import com.amcamp.domain.member.domain.OauthInfo;
+import com.amcamp.domain.member.dto.request.NicknameUpdateRequest;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.MemberErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
-import com.amcamp.global.util.MemberUtil;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.Set;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -26,8 +30,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @ActiveProfiles("test")
 class MemberServiceTest {
 
-	@Autowired
-	private MemberUtil memberUtil;
 	@Autowired
 	private MemberService memberService;
 	@Autowired
@@ -78,6 +80,39 @@ class MemberServiceTest {
 			assertThatThrownBy(() -> memberService.withdrawalMember())
 				.isInstanceOf(CommonException.class)
 				.hasMessage(MemberErrorCode.MEMBER_ALREADY_DELETED.getMessage());
+		}
+	}
+
+	@Nested
+	class 회원_닉네임_변경_시 {
+		@Test
+		void 닉네임이_NULL_이면_예외가_발생한다() {
+			// given
+			registerAuthenticatedMember();
+			NicknameUpdateRequest request = new NicknameUpdateRequest(null);
+
+			// when
+			memberService.updateMemberNickname(request);
+			Set<ConstraintViolation<NicknameUpdateRequest>> violations =
+				Validation.buildDefaultValidatorFactory().getValidator().validate(request);
+
+			// then
+			assertThat(violations).isNotEmpty();
+			assertThat(violations.iterator().next().getMessage()).isEqualTo("닉네임은 비워둘 수 없습니다.");
+		}
+
+		@Test
+		void 유효한_입력값이면_닉네임이_변경된다() {
+			// given
+			Member member = registerAuthenticatedMember();
+			NicknameUpdateRequest request = new NicknameUpdateRequest("현태 최");
+
+			// when
+			memberService.updateMemberNickname(request);
+			Member currentMember = memberRepository.findById(member.getId()).get();
+
+			// then
+			assertThat(currentMember.getNickname()).isEqualTo("현태 최");
 		}
 	}
 }
