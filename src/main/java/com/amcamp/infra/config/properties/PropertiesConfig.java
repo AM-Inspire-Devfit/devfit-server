@@ -9,11 +9,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration;
 
 @EnableConfigurationProperties({
-        RedisProperties.class,
-        GoogleProperties.class,
-        KakaoProperties.class,
-        JwtProperties.class,
-		    S3Properties.class
+    RedisProperties.class,
+    GoogleProperties.class,
+    KakaoProperties.class,
+    JwtProperties.class,
+    S3Properties.class
 })
 @Configuration
 public class PropertiesConfig {}

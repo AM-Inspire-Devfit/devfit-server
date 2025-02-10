@@ -64,15 +64,15 @@ public class Member extends BaseTimeEntity {
         this.status = MemberStatus.DELETED;
     }
 
-	public void reEnroll() {
-		this.status = MemberStatus.NORMAL;
-	}
+    public void reEnroll() {
+        this.status = MemberStatus.NORMAL;
+    }
 
-	public void updateProfileImageUrl(String profileImageUrl) {
-		this.profileImageUrl = profileImageUrl;
-	}
+    public void updateProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+    }
 
-	public void updateNickname(String nickname) {
-		this.nickname = nickname;
-	}
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
 }

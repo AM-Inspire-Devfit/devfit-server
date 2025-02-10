@@ -17,13 +17,12 @@ import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.ImageErrorCode;
 import com.amcamp.global.util.MemberUtil;
 import com.amcamp.infra.config.s3.S3Properties;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 @Service
@@ -39,17 +38,18 @@ public class ImageService {
         final Member currentMember = memberUtil.getCurrentMember();
 
         String imageKey = generateUUID();
-        String imageName = createImageFileName(currentMember.getId(), imageKey, request.imageFileExtension());
+        String imageName =
+                createImageFileName(currentMember.getId(), imageKey, request.imageFileExtension());
         GeneratePresignedUrlRequest generatePresignedUrlRequest =
-                generatePresignedUrlRequest(s3Properties.bucket(), imageName, request.imageFileExtension().getExtension());
+                generatePresignedUrlRequest(
+                        s3Properties.bucket(),
+                        imageName,
+                        request.imageFileExtension().getExtension());
 
         String presignedUrl = amazonS3.generatePresignedUrl(generatePresignedUrlRequest).toString();
 
         imageRepository.save(
-                Image.createImage(
-                        currentMember.getId(),
-                        imageKey,
-                        request.imageFileExtension()));
+                Image.createImage(currentMember.getId(), imageKey, request.imageFileExtension()));
 
         return new PresignedUrlResponse(presignedUrl);
     }
@@ -60,7 +60,11 @@ public class ImageService {
         String imageUrl = null;
         if (request.imageFileExtension() != null) {
             Image image = findImage(currentMember.getId(), request.imageFileExtension());
-            imageUrl = createReadImageUrl(currentMember.getId(), image.getImageKey(), image.getImageFileExtension());
+            imageUrl =
+                    createReadImageUrl(
+                            currentMember.getId(),
+                            image.getImageKey(),
+                            image.getImageFileExtension());
         }
 
         currentMember.updateProfileImageUrl(imageUrl);
@@ -84,7 +88,8 @@ public class ImageService {
         return UUID.randomUUID().toString();
     }
 
-    private String createImageFileName(Long memberId, String imageKey, ImageFileExtension imageFileExtension) {
+    private String createImageFileName(
+            Long memberId, String imageKey, ImageFileExtension imageFileExtension) {
         return memberId + "/" + imageKey + "." + imageFileExtension.getExtension();
     }
 
@@ -98,11 +103,15 @@ public class ImageService {
     }
 
     private Image findImage(Long memberId, ImageFileExtension imageFileExtension) {
-        return imageRepository.findLatestByMemberIdAndExtension(memberId, imageFileExtension)
+        return imageRepository
+                .findLatestByMemberIdAndExtension(memberId, imageFileExtension)
                 .orElseThrow(() -> new CommonException(ImageErrorCode.IMAGE_NOT_FOUND));
     }
 
-    private String createReadImageUrl(Long memberId, String imageKey, ImageFileExtension imageFileExtension) {
-        return UrlConstants.IMAGE_URL + "/" + createImageFileName(memberId, imageKey, imageFileExtension);
+    private String createReadImageUrl(
+            Long memberId, String imageKey, ImageFileExtension imageFileExtension) {
+        return UrlConstants.IMAGE_URL
+                + "/"
+                + createImageFileName(memberId, imageKey, imageFileExtension);
     }
 }

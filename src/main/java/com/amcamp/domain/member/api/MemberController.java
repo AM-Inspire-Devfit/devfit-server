@@ -19,18 +19,18 @@ public class MemberController {
     private final CookieUtil cookieUtil;
     private final MemberService memberService;
 
-	@Operation(summary = "회원 탈퇴", description = "회원 탈퇴를 진행합니다.")
-	@DeleteMapping("/withdrawal")
-	public ResponseEntity<Void> memberWithdrawal() {
-		memberService.withdrawalMember();
-		return ResponseEntity.ok().headers(cookieUtil.deleteRefreshTokenCookie()).build();
-	}
+    @Operation(summary = "회원 탈퇴", description = "회원 탈퇴를 진행합니다.")
+    @DeleteMapping("/withdrawal")
+    public ResponseEntity<Void> memberWithdrawal() {
+        memberService.withdrawalMember();
+        return ResponseEntity.ok().headers(cookieUtil.deleteRefreshTokenCookie()).build();
+    }
 
-	@Operation(summary = "회원 닉네임 변경", description = "회원 닉네임을 변경합니다.")
-	@PostMapping("/me/nickname")
-	public ResponseEntity<Void> memberNicknameUpdate(
-			@Valid @RequestBody NicknameUpdateRequest request) {
-		memberService.updateMemberNickname(request);
-		return ResponseEntity.ok().build();
-	}
+    @Operation(summary = "회원 닉네임 변경", description = "회원 닉네임을 변경합니다.")
+    @PostMapping("/me/nickname")
+    public ResponseEntity<Void> memberNicknameUpdate(
+            @Valid @RequestBody NicknameUpdateRequest request) {
+        memberService.updateMemberNickname(request);
+        return ResponseEntity.ok().build();
+    }
 }

@@ -15,6 +15,7 @@ import com.amcamp.global.exception.errorcode.MemberErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
+import java.util.Set;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,21 +25,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 @SpringBootTest
 @ActiveProfiles("test")
 class MemberServiceTest {
 
-	@Autowired
-	private MemberService memberService;
-	@Autowired
-	private MemberRepository memberRepository;
-	@Autowired
-	private RefreshTokenRepository refreshTokenRepository;
+    @Autowired private MemberService memberService;
+    @Autowired private MemberRepository memberRepository;
+    @Autowired private RefreshTokenRepository refreshTokenRepository;
 
     private Member registerAuthenticatedMember() {
         Member member =
@@ -86,43 +79,43 @@ class MemberServiceTest {
             registerAuthenticatedMember();
             memberService.withdrawalMember();
 
-			      // when & then
-			      assertThatThrownBy(() -> memberService.withdrawalMember())
-				      .isInstanceOf(CommonException.class)
-				      .hasMessage(MemberErrorCode.MEMBER_ALREADY_DELETED.getMessage());
-	    }
-	}
+            // when & then
+            assertThatThrownBy(() -> memberService.withdrawalMember())
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(MemberErrorCode.MEMBER_ALREADY_DELETED.getMessage());
+        }
+    }
 
-	@Nested
-	class 회원_닉네임_변경_시 {
-		@Test
-		void 닉네임이_NULL_이면_예외가_발생한다() {
-			// given
-			registerAuthenticatedMember();
-			NicknameUpdateRequest request = new NicknameUpdateRequest(null);
+    @Nested
+    class 회원_닉네임_변경_시 {
+        @Test
+        void 닉네임이_NULL_이면_예외가_발생한다() {
+            // given
+            registerAuthenticatedMember();
+            NicknameUpdateRequest request = new NicknameUpdateRequest(null);
 
-			// when
-			memberService.updateMemberNickname(request);
-			Set<ConstraintViolation<NicknameUpdateRequest>> violations =
-				Validation.buildDefaultValidatorFactory().getValidator().validate(request);
+            // when
+            memberService.updateMemberNickname(request);
+            Set<ConstraintViolation<NicknameUpdateRequest>> violations =
+                    Validation.buildDefaultValidatorFactory().getValidator().validate(request);
 
-			// then
-			assertThat(violations).isNotEmpty();
-			assertThat(violations.iterator().next().getMessage()).isEqualTo("닉네임은 비워둘 수 없습니다.");
-		}
+            // then
+            assertThat(violations).isNotEmpty();
+            assertThat(violations.iterator().next().getMessage()).isEqualTo("닉네임은 비워둘 수 없습니다.");
+        }
 
-		@Test
-		void 유효한_입력값이면_닉네임이_변경된다() {
-			// given
-			Member member = registerAuthenticatedMember();
-			NicknameUpdateRequest request = new NicknameUpdateRequest("현태 최");
+        @Test
+        void 유효한_입력값이면_닉네임이_변경된다() {
+            // given
+            Member member = registerAuthenticatedMember();
+            NicknameUpdateRequest request = new NicknameUpdateRequest("현태 최");
 
-			// when
-			memberService.updateMemberNickname(request);
-			Member currentMember = memberRepository.findById(member.getId()).get();
+            // when
+            memberService.updateMemberNickname(request);
+            Member currentMember = memberRepository.findById(member.getId()).get();
 
-			// then
-			assertThat(currentMember.getNickname()).isEqualTo("현태 최");
-		}
-	}
+            // then
+            assertThat(currentMember.getNickname()).isEqualTo("현태 최");
+        }
+    }
 }

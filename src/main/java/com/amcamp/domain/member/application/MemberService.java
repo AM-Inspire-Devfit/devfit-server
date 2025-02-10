@@ -23,12 +23,12 @@ public class MemberService {
                 .findById(currentMember.getId())
                 .ifPresent(refreshTokenRepository::delete);
 
-		currentMember.withdrawal();
-	}
+        currentMember.withdrawal();
+    }
 
-	public void updateMemberNickname(NicknameUpdateRequest request) {
-		Member currentMember = memberUtil.getCurrentMember();
+    public void updateMemberNickname(NicknameUpdateRequest request) {
+        Member currentMember = memberUtil.getCurrentMember();
 
-		currentMember.updateNickname(request.nickname());
-	}
+        currentMember.updateNickname(request.nickname());
+    }
 }
