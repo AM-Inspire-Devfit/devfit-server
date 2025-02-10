@@ -1,5 +1,7 @@
 package com.amcamp.global.util;
 
+import static com.amcamp.global.common.constants.SecurityConstants.TOKEN_ROLE_NAME;
+
 import com.amcamp.domain.auth.dto.AccessTokenDto;
 import com.amcamp.domain.auth.dto.RefreshTokenDto;
 import com.amcamp.domain.member.domain.MemberRole;
@@ -9,13 +11,10 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
-
 import java.security.Key;
 import java.util.Date;
-
-import static com.amcamp.global.common.constants.SecurityConstants.TOKEN_ROLE_NAME;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
@@ -43,7 +42,8 @@ public class JwtUtil {
         Date expiredAt =
                 new Date(issuedAt.getTime() + jwtProperties.refreshTokenExpirationMilliTime());
         String refreshTokenValue = buildRefreshToken(memberId, issuedAt, expiredAt);
-        return RefreshTokenDto.of(memberId, refreshTokenValue, jwtProperties.refreshTokenExpirationTime());
+        return RefreshTokenDto.of(
+                memberId, refreshTokenValue, jwtProperties.refreshTokenExpirationTime());
     }
 
     public String generateRefreshToken(Long memberId) {
@@ -115,8 +115,7 @@ public class JwtUtil {
                 .compact();
     }
 
-    private String buildRefreshToken(
-            Long memberId, Date issuedAt, Date expiredAt) {
+    private String buildRefreshToken(Long memberId, Date issuedAt, Date expiredAt) {
         return Jwts.builder()
                 .setIssuer(jwtProperties.issuer())
                 .setSubject(memberId.toString())

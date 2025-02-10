@@ -10,9 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ErrorDetail {
-	private String field;
-	private String given;
-	private ErrorMsg reasonMessage;
-
+    private String field;
+    private String given;
+    private ErrorMsg reasonMessage;
 }
-

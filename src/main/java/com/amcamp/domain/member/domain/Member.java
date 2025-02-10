@@ -23,8 +23,7 @@ public class Member extends BaseTimeEntity {
 
     private String profileImageUrl;
 
-    @Embedded
-    private OauthInfo oauthInfo;
+    @Embedded private OauthInfo oauthInfo;
 
     @Enumerated(EnumType.STRING)
     private MemberStatus status;
@@ -34,7 +33,11 @@ public class Member extends BaseTimeEntity {
 
     @Builder(access = AccessLevel.PRIVATE)
     private Member(
-            String nickname, String profileImageUrl, OauthInfo oauthInfo, MemberStatus status, MemberRole role) {
+            String nickname,
+            String profileImageUrl,
+            OauthInfo oauthInfo,
+            MemberStatus status,
+            MemberRole role) {
         this.nickname = nickname;
         this.profileImageUrl = profileImageUrl;
         this.oauthInfo = oauthInfo;
@@ -42,7 +45,8 @@ public class Member extends BaseTimeEntity {
         this.role = role;
     }
 
-    public static Member createMember(String nickname, String profileImageUrl, OauthInfo oauthInfo) {
+    public static Member createMember(
+            String nickname, String profileImageUrl, OauthInfo oauthInfo) {
         return Member.builder()
                 .nickname(nickname)
                 .profileImageUrl(profileImageUrl)
@@ -52,15 +56,15 @@ public class Member extends BaseTimeEntity {
                 .build();
     }
 
-	public void withdrawal() {
-		if (this.status == MemberStatus.DELETED) {
-			throw new CommonException(MemberErrorCode.MEMBER_ALREADY_DELETED);
-		}
+    public void withdrawal() {
+        if (this.status == MemberStatus.DELETED) {
+            throw new CommonException(MemberErrorCode.MEMBER_ALREADY_DELETED);
+        }
 
-		this.status = MemberStatus.DELETED;
-	}
+        this.status = MemberStatus.DELETED;
+    }
 
-	public void reEnroll() {
-		this.status = MemberStatus.NORMAL;
-	}
+    public void reEnroll() {
+        this.status = MemberStatus.NORMAL;
+    }
 }

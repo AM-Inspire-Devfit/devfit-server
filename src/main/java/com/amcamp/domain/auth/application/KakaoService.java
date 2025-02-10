@@ -14,12 +14,13 @@ public class KakaoService {
     private final KakaoProperties kakaoProperties;
 
     public String getIdToken(String code) {
-        IdTokenResponse response = kakaoOauthClient.getIdToken(
-                kakaoProperties.grantType(),
-                kakaoProperties.clientId(),
-                kakaoProperties.redirectUri(),
-                code,
-                kakaoProperties.clientSecret());
+        IdTokenResponse response =
+                kakaoOauthClient.getIdToken(
+                        kakaoProperties.grantType(),
+                        kakaoProperties.clientId(),
+                        kakaoProperties.redirectUri(),
+                        code,
+                        kakaoProperties.clientSecret());
 
         return response.id_token();
     }

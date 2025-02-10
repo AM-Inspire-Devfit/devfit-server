@@ -1,11 +1,11 @@
 package com.amcamp.global.util;
 
+import static com.amcamp.global.common.constants.SecurityConstants.REFRESH_TOKEN_COOKIE_NAME;
+
 import org.springframework.boot.web.server.Cookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
-
-import static com.amcamp.global.common.constants.SecurityConstants.REFRESH_TOKEN_COOKIE_NAME;
 
 @Component
 public class CookieUtil {
@@ -25,19 +25,19 @@ public class CookieUtil {
         return headers;
     }
 
-	public HttpHeaders deleteRefreshTokenCookie() {
-		ResponseCookie refreshTokenCookie =
-			ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, "")
-				.path("/")
-				.maxAge(0)
-				.secure(false)
-				.sameSite(Cookie.SameSite.NONE.attributeValue())
-				.httpOnly(true)
-				.build();
+    public HttpHeaders deleteRefreshTokenCookie() {
+        ResponseCookie refreshTokenCookie =
+                ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, "")
+                        .path("/")
+                        .maxAge(0)
+                        .secure(false)
+                        .sameSite(Cookie.SameSite.NONE.attributeValue())
+                        .httpOnly(true)
+                        .build();
 
-		HttpHeaders headers = new HttpHeaders();
-		headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
-		return headers;
-	}
+        return headers;
+    }
 }
