@@ -10,17 +10,18 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @RestControllerAdvice(basePackages = "com.amcamp")
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-	@ExceptionHandler(CommonException.class)
-	public ResponseEntity<CommonResponse<ErrorDetail>> commonExceptionHandler(CommonException e) {
-		final BaseErrorCode errorCode = e.getErrorCode();
-		final ErrorDetail errorDetail = ErrorDetail.builder()
-			.field(e.getErrorField())
-			.given(e.getErrorGiven())
-			.reasonMessage(errorCode.getErrorMsg())
-			.build();
-		final CommonResponse<ErrorDetail> response =
-			CommonResponse.onFailure(errorCode.getHttpStatus().value(), errorDetail);
+    @ExceptionHandler(CommonException.class)
+    public ResponseEntity<CommonResponse<ErrorDetail>> commonExceptionHandler(CommonException e) {
+        final BaseErrorCode errorCode = e.getErrorCode();
+        final ErrorDetail errorDetail =
+                ErrorDetail.builder()
+                        .field(e.getErrorField())
+                        .given(e.getErrorGiven())
+                        .reasonMessage(errorCode.getErrorMsg())
+                        .build();
+        final CommonResponse<ErrorDetail> response =
+                CommonResponse.onFailure(errorCode.getHttpStatus().value(), errorDetail);
 
-		return ResponseEntity.status(errorCode.getHttpStatus()).body(response);
-	}
+        return ResponseEntity.status(errorCode.getHttpStatus()).body(response);
+    }
 }

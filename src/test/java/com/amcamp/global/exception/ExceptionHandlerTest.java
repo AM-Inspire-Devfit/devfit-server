@@ -1,77 +1,77 @@
 package com.amcamp.global.exception;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+
 import com.amcamp.global.common.response.CommonResponse;
 import com.amcamp.global.exception.errorcode.AuthErrorCode;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.Optional;
-
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-
 public class ExceptionHandlerTest {
 
-	AuthErrorCode authErrorCode = AuthErrorCode.ID_TOKEN_VERIFICATION_FAILED;
-	ProjectErrorCode projectErrorCode = ProjectErrorCode.PROJECT_NOT_FOUND;
-	void throwExceptionWithAuthErrorCode(Object o){
-		Optional<Object> mockObject = Optional.ofNullable(o);
-		if(!mockObject.isPresent()){
-			throw new CommonException(authErrorCode);
-		}
-	}
-	void throwExceptionWithProjectErrorCode(Object o){
-		Optional<Object> mockObject = Optional.ofNullable(o);
-		if(!mockObject.isPresent()){
-			throw new CommonException(projectErrorCode);
-		}
-	}
-	@Test
-	@DisplayName("authError Test")
-	void commonExceptionWithAuthErrorTest() {
-		assertThatThrownBy(()-> throwExceptionWithAuthErrorCode(null))
-			.isInstanceOf(CommonException.class)
-			.hasMessageContaining(authErrorCode.getMessage());
-	}
+    AuthErrorCode authErrorCode = AuthErrorCode.ID_TOKEN_VERIFICATION_FAILED;
+    ProjectErrorCode projectErrorCode = ProjectErrorCode.PROJECT_NOT_FOUND;
 
-	@Test
-	@DisplayName("projectError Test")
-	void commonExceptionWithProjectErrorTest() {
-		assertThatThrownBy(()-> throwExceptionWithProjectErrorCode(null))
-			.isInstanceOf(CommonException.class)
-			.hasMessageContaining(projectErrorCode.getMessage());
+    void throwExceptionWithAuthErrorCode(Object o) {
+        Optional<Object> mockObject = Optional.ofNullable(o);
+        if (!mockObject.isPresent()) {
+            throw new CommonException(authErrorCode);
+        }
+    }
 
-	}
+    void throwExceptionWithProjectErrorCode(Object o) {
+        Optional<Object> mockObject = Optional.ofNullable(o);
+        if (!mockObject.isPresent()) {
+            throw new CommonException(projectErrorCode);
+        }
+    }
 
-	@Test
-	@DisplayName("ExceptionHandler Test")
-	void globalExceptionHandlerTest() {
+    @Test
+    @DisplayName("authError Test")
+    void commonExceptionWithAuthErrorTest() {
+        assertThatThrownBy(() -> throwExceptionWithAuthErrorCode(null))
+                .isInstanceOf(CommonException.class)
+                .hasMessageContaining(authErrorCode.getMessage());
+    }
 
-		//given: 예외 핸들러와 예외 생성
-		GlobalExceptionHandler globalExceptionHandler = new GlobalExceptionHandler();
-		CommonException exception = new CommonException(ProjectErrorCode.PROJECT_NOT_FOUND, "project_id", null);
+    @Test
+    @DisplayName("projectError Test")
+    void commonExceptionWithProjectErrorTest() {
+        assertThatThrownBy(() -> throwExceptionWithProjectErrorCode(null))
+                .isInstanceOf(CommonException.class)
+                .hasMessageContaining(projectErrorCode.getMessage());
+    }
 
-		//when: 예외 핸들러 실행
-		CommonResponse<?> response = globalExceptionHandler.commonExceptionHandler(exception).getBody();
+    @Test
+    @DisplayName("ExceptionHandler Test")
+    void globalExceptionHandlerTest() {
 
-		//then: 응답 객체 검증
-		assertThat(response).isNotNull();
-		assertThat(response.getStatus()).isEqualTo(400);
-		assertThat(response.getData()).isInstanceOf(ErrorDetail.class);
+        // given: 예외 핸들러와 예외 생성
+        GlobalExceptionHandler globalExceptionHandler = new GlobalExceptionHandler();
+        CommonException exception =
+                new CommonException(ProjectErrorCode.PROJECT_NOT_FOUND, "project_id", null);
 
-		//ErrorMsg 객체 세부 검증
-		ObjectMapper objectMapper = new ObjectMapper();
+        // when: 예외 핸들러 실행
+        CommonResponse<?> response =
+                globalExceptionHandler.commonExceptionHandler(exception).getBody();
 
-		ErrorDetail errorDetail = objectMapper.convertValue(response.getData(), ErrorDetail.class);
-		ErrorMsg errorMsg = objectMapper.convertValue(errorDetail.getReasonMessage(), ErrorMsg.class);
+        // then: 응답 객체 검증
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(400);
+        assertThat(response.getData()).isInstanceOf(ErrorDetail.class);
 
-		assertThat(errorMsg.getReason()).isEqualTo(projectErrorCode.getErrorMsg().getReason());
-		assertThat(errorMsg.getCode()).isEqualTo(projectErrorCode.getErrorMsg().getCode());
+        // ErrorMsg 객체 세부 검증
+        ObjectMapper objectMapper = new ObjectMapper();
 
+        ErrorDetail errorDetail = objectMapper.convertValue(response.getData(), ErrorDetail.class);
+        ErrorMsg errorMsg =
+                objectMapper.convertValue(errorDetail.getReasonMessage(), ErrorMsg.class);
 
-
-	}
-
+        assertThat(errorMsg.getReason()).isEqualTo(projectErrorCode.getErrorMsg().getReason());
+        assertThat(errorMsg.getCode()).isEqualTo(projectErrorCode.getErrorMsg().getCode());
+    }
 }

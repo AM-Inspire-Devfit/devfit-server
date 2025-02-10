@@ -18,16 +18,16 @@ public class MemberUtil {
     private final MemberRepository memberRepository;
 
     public Member getCurrentMember() {
-		Member member =
-			memberRepository
-				.findById(getCurrentMemberId())
-				.orElseThrow(() -> new CommonException(MemberErrorCode.MEMBER_NOT_FOUND));
+        Member member =
+                memberRepository
+                        .findById(getCurrentMemberId())
+                        .orElseThrow(() -> new CommonException(MemberErrorCode.MEMBER_NOT_FOUND));
 
-		if (member.getStatus() == MemberStatus.DELETED){
-			throw new CommonException(MemberErrorCode.MEMBER_ALREADY_DELETED);
-		}
+        if (member.getStatus() == MemberStatus.DELETED) {
+            throw new CommonException(MemberErrorCode.MEMBER_ALREADY_DELETED);
+        }
 
-		return member;
+        return member;
     }
 
     private Long getCurrentMemberId() {

@@ -10,13 +10,11 @@ import org.springframework.data.redis.core.TimeToLive;
 @RedisHash(value = "refreshToken")
 public class RefreshToken {
 
-    @Id
-    private Long memberId;
+    @Id private Long memberId;
 
     private String token;
 
-    @TimeToLive
-    private long ttl;
+    @TimeToLive private long ttl;
 
     @Builder
     private RefreshToken(Long memberId, String token, long ttl) {

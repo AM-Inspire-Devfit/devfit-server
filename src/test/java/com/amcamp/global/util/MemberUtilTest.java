@@ -1,5 +1,7 @@
 package com.amcamp.global.util;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.domain.OauthInfo;
@@ -12,41 +14,41 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ActiveProfiles;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 @SpringBootTest
 @ActiveProfiles("test")
 public class MemberUtilTest {
 
-	@Autowired
-	private MemberUtil memberUtil;
-	@Autowired
-	private MemberRepository memberRepository;
+    @Autowired private MemberUtil memberUtil;
+    @Autowired private MemberRepository memberRepository;
 
-	private Member registerAuthenticatedMember() {
-		Member member = Member.createMember("testNickName", "testProfileImageUrl",
-			OauthInfo.createOauthInfo("testOauthId", "testOauthProvider"));
-		memberRepository.save(member);
+    private Member registerAuthenticatedMember() {
+        Member member =
+                Member.createMember(
+                        "testNickName",
+                        "testProfileImageUrl",
+                        OauthInfo.createOauthInfo("testOauthId", "testOauthProvider"));
+        memberRepository.save(member);
 
-		UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());
-		UsernamePasswordAuthenticationToken token =
-			new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-		SecurityContextHolder.getContext().setAuthentication(token);
+        UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());
+        UsernamePasswordAuthenticationToken token =
+                new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(token);
 
-		return member;
-	}
+        return member;
+    }
 
-	@Test
-	void 로그인한_멤버의_정보를_조회한다() {
+    @Test
+    void 로그인한_멤버의_정보를_조회한다() {
 
-		// given
-		Member member = registerAuthenticatedMember();
+        // given
+        Member member = registerAuthenticatedMember();
 
-		// when
-		Member currentMember = memberUtil.getCurrentMember();
+        // when
+        Member currentMember = memberUtil.getCurrentMember();
 
-		// then
-		assertThat(member.getId()).isEqualTo(currentMember.getId());
-		assertThat(member.getRole()).isEqualTo(currentMember.getRole());
-	}
+        // then
+        assertThat(member.getId()).isEqualTo(currentMember.getId());
+        assertThat(member.getRole()).isEqualTo(currentMember.getRole());
+    }
 }
