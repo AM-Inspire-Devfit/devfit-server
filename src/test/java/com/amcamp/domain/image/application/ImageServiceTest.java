@@ -1,6 +1,5 @@
 package com.amcamp.domain.image.application;
 
-import com.amcamp.domain.image.controller.ImageService;
 import com.amcamp.domain.image.dao.ImageRepository;
 import com.amcamp.domain.image.domain.Image;
 import com.amcamp.domain.image.domain.ImageFileExtension;

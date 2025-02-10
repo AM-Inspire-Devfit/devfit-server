@@ -1,6 +1,6 @@
 package com.amcamp.domain.image.api;
 
-import com.amcamp.domain.image.controller.ImageService;
+import com.amcamp.domain.image.application.ImageService;
 import com.amcamp.domain.image.dto.request.MemberImageUploadCompleteRequest;
 import com.amcamp.domain.image.dto.request.MemberImageUploadRequest;
 import com.amcamp.domain.image.dto.response.PresignedUrlResponse;
