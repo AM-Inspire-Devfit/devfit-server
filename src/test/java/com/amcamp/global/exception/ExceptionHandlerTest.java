@@ -57,7 +57,7 @@ public class ExceptionHandlerTest {
 
         // when: 예외 핸들러 실행
         CommonResponse<?> response =
-                globalExceptionHandler.commonExceptionHandler(exception).getBody();
+                globalExceptionHandler.handleCustomException(exception).getBody();
 
         // then: 응답 객체 검증
         assertThat(response).isNotNull();
