@@ -25,4 +25,8 @@ public class RedisUtil {
 
         return Optional.ofNullable(value);
     }
+
+    public <T> void deleteData(final String key) {
+        redisTemplate.unlink(key);
+    }
 }

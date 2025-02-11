@@ -1,6 +1,7 @@
 package com.amcamp.domain.team.domain;
 
 import com.amcamp.domain.common.model.BaseTimeEntity;
+import com.amcamp.domain.team.dto.request.TeamUpdateRequest;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -27,5 +28,11 @@ public class Team extends BaseTimeEntity {
 
     public static Team createTeam(String teamName, String teamDescription) {
         return Team.builder().teamName(teamName).teamDescription(teamDescription).build();
+    }
+
+    public void updateTeam(TeamUpdateRequest teamUpdateRequest) {
+
+        this.teamName = teamUpdateRequest.teamName();
+        this.teamDescription = teamUpdateRequest.teamDescription();
     }
 }
