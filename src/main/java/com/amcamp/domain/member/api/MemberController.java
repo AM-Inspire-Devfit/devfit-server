@@ -2,6 +2,7 @@ package com.amcamp.domain.member.api;
 
 import com.amcamp.domain.member.application.MemberService;
 import com.amcamp.domain.member.dto.request.NicknameUpdateRequest;
+import com.amcamp.domain.member.dto.response.MemberInfoResponse;
 import com.amcamp.global.util.CookieUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,5 +33,11 @@ public class MemberController {
             @Valid @RequestBody NicknameUpdateRequest request) {
         memberService.updateMemberNickname(request);
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "회원 정보 조회", description = "로그인한 회원 정보를 조회합니다.")
+    @GetMapping("/me")
+    public MemberInfoResponse memberInfo() {
+        return memberService.getMemberInfo();
     }
 }
