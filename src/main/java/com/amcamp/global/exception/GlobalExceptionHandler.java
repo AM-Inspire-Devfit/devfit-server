@@ -18,7 +18,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(CommonException.class)
-    public ResponseEntity<CommonResponse<ErrorDetail>> commonExceptionHandler(CommonException e) {
+    public ResponseEntity<CommonResponse<ErrorDetail>> handleCustomException(CommonException e) {
         final BaseErrorCode errorCode = e.getErrorCode();
         final ErrorDetail errorDetail =
                 ErrorDetail.builder()
