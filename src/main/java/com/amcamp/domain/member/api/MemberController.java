@@ -19,6 +19,13 @@ public class MemberController {
     private final CookieUtil cookieUtil;
     private final MemberService memberService;
 
+    @Operation(summary = "로그아웃", description = "로그아웃을 진행합니다.")
+    @PostMapping("/logout")
+    public ResponseEntity<Void> memberLogout() {
+        memberService.logoutMember();
+        return ResponseEntity.ok().headers(cookieUtil.deleteRefreshTokenCookie()).build();
+    }
+
     @Operation(summary = "회원 탈퇴", description = "회원 탈퇴를 진행합니다.")
     @DeleteMapping("/withdrawal")
     public ResponseEntity<Void> memberWithdrawal() {
