@@ -11,20 +11,22 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class SprintContribution extends BaseTimeEntity {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "sprint_contribution_id")
-	private Long Id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "sprint_contribution_id")
+    private Long Id;
 
-	@ManyToOne
-	private Sprint sprint;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "participant_id")
+    private Sprint sprint;
 
-	//기여한 멤버
-	@ManyToOne
-	@JoinColumn(name = "participant_id")
-	private ProjectParticipant participant;
+    // 기여한 멤버
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "participant_id")
+    private ProjectParticipant participant;
 
-	private Integer placement;
-	// 기여도 점수/비율
-	private Double contribution;
+    // 등위
+    private Integer placement;
+    // 기여도 점수/비율
+    private Double contribution;
 }
