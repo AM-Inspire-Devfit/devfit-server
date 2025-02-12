@@ -14,6 +14,7 @@ import com.amcamp.domain.participant.domain.ParticipantRole;
 import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.domain.team.dao.TeamRepository;
 import com.amcamp.domain.team.domain.Team;
+import com.amcamp.domain.team.dto.request.TeamEmojiUpdateRequest;
 import com.amcamp.domain.team.dto.request.TeamUpdateRequest;
 import com.amcamp.domain.team.dto.response.TeamCheckResponse;
 import com.amcamp.domain.team.dto.response.TeamInfoResponse;
@@ -76,6 +77,24 @@ public class TeamServiceTest {
             assertThat(inviteCodeResponse).isNotNull();
             assertThat(inviteCodeResponse.inviteCode()).isNotNull();
             assertThat(inviteCodeResponse.inviteCode()).hasSize(8);
+
+            // 생성 시 자동으로 설정되는 정보 확인
+            TeamCheckResponse teamCheckResponse =
+                    teamService.getTeamByCode(inviteCodeResponse.inviteCode());
+            Team savedTeam =
+                    teamRepository
+                            .findById(teamCheckResponse.teamId())
+                            .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_NOT_FOUND));
+            Participant participant =
+                    participantRepository
+                            .findByMemberAndTeam(member, savedTeam)
+                            .orElseThrow(
+                                    () ->
+                                            new CommonException(
+                                                    TeamErrorCode.TEAM_PARTICIPANT_NOT_FOUND));
+
+            assertThat(participant.getRole()).isEqualTo(ParticipantRole.ADMIN);
+            assertThat(savedTeam.getTeamEmoji()).isEqualTo("🍇");
         }
     }
 
@@ -286,6 +305,85 @@ public class TeamServiceTest {
                             () ->
                                     teamService.editTeam(
                                             teamId, new TeamUpdateRequest("새 팀 이름", "새 팀 설명")))
+                    .isInstanceOf(CommonException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(TeamErrorCode.UNAUTHORIZED_ACCESS); // 팀 관리자 권한이 없을 경우
+        }
+    }
+
+    class 팀_이모지_수정_시 {
+        @Test
+        void 팀이모지를_수정한다() {
+            // given
+            String inviteCode = inviteCodeResponse.inviteCode();
+            TeamCheckResponse teamCheckResponse = teamService.getTeamByCode(inviteCode);
+            Long teamId = teamCheckResponse.teamId();
+
+            // when
+            TeamEmojiUpdateRequest teamEmojiUpdateRequest = new TeamEmojiUpdateRequest("⭐️");
+            TeamInfoResponse teamInfoResponse =
+                    teamService.editTeamEmoji(teamId, teamEmojiUpdateRequest);
+
+            // then
+            assertThat(teamInfoResponse).isNotNull();
+            assertThat(teamInfoResponse.teamEmoji()).isEqualTo("⭐️");
+        }
+
+        @Test
+        void 팀이_유효하지않는_경우에는_예외를_반환한다() {
+            // given
+            Long invalidTeamId = -999L;
+
+            // when & then
+            assertThatThrownBy(
+                            () ->
+                                    teamService.editTeamEmoji(
+                                            invalidTeamId, new TeamEmojiUpdateRequest("⭐️")))
+                    .isInstanceOf(CommonException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(TeamErrorCode.TEAM_NOT_FOUND);
+        }
+
+        @Test
+        void 로그인된_회원이_팀_참가자가_아닌_경우에는_예외를_반환한다() {
+            // given
+            String inviteCode = inviteCodeResponse.inviteCode();
+            TeamCheckResponse teamCheckResponse = teamService.getTeamByCode(inviteCode);
+            Long teamId = teamCheckResponse.teamId();
+
+            Member nonMember =
+                    memberRepository.save(
+                            Member.createMember("nonMember", "testProfileImageUrl", null));
+            loginAs(nonMember);
+
+            // when & then
+            assertThatThrownBy(
+                            () ->
+                                    teamService.editTeamEmoji(
+                                            teamId, new TeamEmojiUpdateRequest("⭐️")))
+                    .isInstanceOf(CommonException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(TeamErrorCode.TEAM_PARTICIPANT_NOT_FOUND); // 사용자 권한이 없을 때
+        }
+
+        @Test
+        void 로그인된_회원이_팀_관리자가_아닌_경우에는_예외를_반환한다() {
+            // given
+            String inviteCode = inviteCodeResponse.inviteCode();
+            TeamCheckResponse teamCheckResponse = teamService.getTeamByCode(inviteCode);
+            Long teamId = teamCheckResponse.teamId();
+
+            // 일반 사용자 로그인 및 팀 참가
+            Member userMember =
+                    memberRepository.save(Member.createMember("user", "testProfileImageUrl", null));
+            loginAs(userMember);
+            teamService.joinTeam(inviteCode);
+
+            // when & then
+            assertThatThrownBy(
+                            () ->
+                                    teamService.editTeamEmoji(
+                                            teamId, new TeamEmojiUpdateRequest("⭐️")))
                     .isInstanceOf(CommonException.class)
                     .extracting("errorCode")
                     .isEqualTo(TeamErrorCode.UNAUTHORIZED_ACCESS); // 팀 관리자 권한이 없을 경우
