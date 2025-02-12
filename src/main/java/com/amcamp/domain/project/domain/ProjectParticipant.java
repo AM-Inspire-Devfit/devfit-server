@@ -3,6 +3,8 @@ package com.amcamp.domain.project.domain;
 import com.amcamp.domain.common.model.BaseTimeEntity;
 import com.amcamp.domain.team.domain.TeamParticipant;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.lang.Nullable;
@@ -32,4 +34,21 @@ public class ProjectParticipant extends BaseTimeEntity {
     @Nullable
     @Column(name = "position")
     private String ProjectPosition;
+
+    @Builder(access = AccessLevel.PRIVATE)
+    private ProjectParticipant(
+            Participant participant, Project project, ProjectParticipantRole projectRole) {
+        this.participant = participant;
+        this.project = project;
+        this.projectRole = projectRole;
+    }
+
+    public static ProjectParticipant createProjectParticipant(
+            Participant participant, Project project, ProjectParticipantRole projectRole) {
+        return ProjectParticipant.builder()
+                .participant(participant)
+                .project(project)
+                .projectRole(projectRole)
+                .build();
+    }
 }

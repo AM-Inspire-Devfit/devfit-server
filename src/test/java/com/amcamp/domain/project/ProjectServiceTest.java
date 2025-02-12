@@ -3,37 +3,65 @@ package com.amcamp.domain.project;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.amcamp.domain.member.dao.MemberRepository;
+import com.amcamp.domain.member.domain.Member;
+import com.amcamp.domain.member.domain.OauthInfo;
 import com.amcamp.domain.project.application.ProjectService;
+import com.amcamp.domain.project.dao.ProjectParticipantRepository;
 import com.amcamp.domain.project.dao.ProjectRepository;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
-import com.amcamp.domain.team.dao.TeamRepository;
-import com.amcamp.domain.team.domain.Team;
+import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.global.exception.CommonException;
+import com.amcamp.global.security.PrincipalDetails;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @ActiveProfiles("test")
 public class ProjectServiceTest {
     @Autowired private ProjectService projectService;
+    @Autowired private TeamService teamService;
+    @Autowired private MemberRepository memberRepository;
+    @Autowired private ProjectParticipantRepository projectParticipantRepository;
     @Autowired private ProjectRepository projectRepository;
-    @Autowired private TeamRepository teamRepository;
 
     private ProjectCreateRequest request;
+    private Member member;
+
+    private void loginAs(Member member) {
+        UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());
+        UsernamePasswordAuthenticationToken token =
+                new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(token);
+    }
 
     @BeforeEach
-    private void setTeam() {
-        Team team = teamRepository.save(Team.createTeam("teamName", "teamDescription"));
+    private void setUp() {
+        member =
+                Member.createMember(
+                        "testNickName",
+                        "testProfileImageUrl",
+                        OauthInfo.createOauthInfo("testOauthId", "testOauthProvider"));
+        memberRepository.save(member);
+        loginAs(member);
+        Long teamId =
+                teamService
+                        .getTeamByCode(teamService.createTeam("팀 이름", "팀 설명").inviteCode())
+                        .teamId();
         request =
                 new ProjectCreateRequest(
-                        team.getId(),
+                        teamId,
                         "projectTitle",
                         "projectDescription",
                         "projectGoal",
