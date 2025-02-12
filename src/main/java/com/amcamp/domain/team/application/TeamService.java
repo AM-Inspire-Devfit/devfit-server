@@ -8,7 +8,9 @@ import com.amcamp.domain.participant.domain.Participant;
 import com.amcamp.domain.participant.domain.ParticipantRole;
 import com.amcamp.domain.team.dao.TeamRepository;
 import com.amcamp.domain.team.domain.Team;
+import com.amcamp.domain.team.dto.request.TeamCreateRequest;
 import com.amcamp.domain.team.dto.request.TeamEmojiUpdateRequest;
+import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
 import com.amcamp.domain.team.dto.request.TeamUpdateRequest;
 import com.amcamp.domain.team.dto.response.TeamCheckResponse;
 import com.amcamp.domain.team.dto.response.TeamInfoResponse;
@@ -34,9 +36,12 @@ public class TeamService {
     private final RedisUtil redisUtil;
     private final RandomUtil randomUtil;
 
-    public TeamInviteCodeResponse createTeam(String teamName, String teamDescription) {
+    public TeamInviteCodeResponse createTeam(TeamCreateRequest teamCreateRequest) {
         Member member = memberUtil.getCurrentMember();
-        Team team = Team.createTeam(normalizeTeamName(teamName), teamDescription);
+        Team team =
+                Team.createTeam(
+                        normalizeTeamName(teamCreateRequest.teamName()),
+                        teamCreateRequest.teamDescription());
         teamRepository.save(team);
 
         Participant participant =
@@ -58,14 +63,14 @@ public class TeamService {
         return new TeamInviteCodeResponse(code);
     }
 
-    public TeamCheckResponse getTeamByCode(String inviteCode) {
-        Team team = searchTeamByCode(inviteCode);
+    public TeamCheckResponse getTeamByCode(TeamInviteCodeRequest teamInviteCodeRequest) {
+        Team team = searchTeamByCode(teamInviteCodeRequest.inviteCode());
         return new TeamCheckResponse(team.getId(), team.getTeamName());
     }
 
-    public void joinTeam(String inviteCode) {
+    public void joinTeam(TeamInviteCodeRequest teamInviteCodeRequest) {
         Member member = memberUtil.getCurrentMember();
-        Team team = searchTeamByCode(inviteCode);
+        Team team = searchTeamByCode(teamInviteCodeRequest.inviteCode());
         validateTeamJoin(member, team);
 
         Participant participant = Participant.createParticipant(member, team, ParticipantRole.USER);
@@ -136,7 +141,7 @@ public class TeamService {
     }
 
     private String normalizeTeamName(String name) {
-        return name.replaceAll("[^0-9a-zA-Z가-힣 ]", "_");
+        return name.trim().replaceAll("[^0-9a-zA-Z가-힣 ]", "_");
     }
 
     private Team validateTeam(Long teamId) {

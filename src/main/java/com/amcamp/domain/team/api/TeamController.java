@@ -26,8 +26,7 @@ public class TeamController {
     @PostMapping("/create")
     public TeamInviteCodeResponse teamCreate(
             @Valid @RequestBody TeamCreateRequest teamCreateRequest) {
-        return teamService.createTeam(
-                teamCreateRequest.teamName(), teamCreateRequest.teamDescription());
+        return teamService.createTeam(teamCreateRequest);
     }
 
     @Operation(summary = "코드 확인", description = "팀 가입을 위한 초대 코드를 확인합니다.")
@@ -40,14 +39,14 @@ public class TeamController {
     @PostMapping("/check")
     public TeamCheckResponse teamCheck(
             @Valid @RequestBody TeamInviteCodeRequest teamInviteCodeRequest) {
-        return teamService.getTeamByCode(teamInviteCodeRequest.inviteCode());
+        return teamService.getTeamByCode(teamInviteCodeRequest);
     }
 
     @Operation(summary = "팀 참가", description = "팀 정보를 확인 후 팀에 참가합니다.")
     @PostMapping("/join")
     public ResponseEntity<Void> teamJoin(
             @Valid @RequestBody TeamInviteCodeRequest teamInviteCodeRequest) {
-        teamService.joinTeam(teamInviteCodeRequest.inviteCode());
+        teamService.joinTeam(teamInviteCodeRequest);
         return ResponseEntity.ok().build();
     }
 
