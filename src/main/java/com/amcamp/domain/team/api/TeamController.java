@@ -9,9 +9,11 @@ import com.amcamp.domain.team.dto.response.TeamCheckResponse;
 import com.amcamp.domain.team.dto.response.TeamInfoResponse;
 import com.amcamp.domain.team.dto.response.TeamInviteCodeResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -76,5 +78,16 @@ public class TeamController {
     @GetMapping("/{teamId}")
     public TeamInfoResponse teamInfo(@PathVariable Long teamId) {
         return teamService.getTeamInfo(teamId);
+    }
+
+    @Operation(summary = "팀 목록 조회", description = "회원이 참여한 팀 목록을 조회합니다.")
+    @GetMapping("/list")
+    public Slice<TeamInfoResponse> teamFindAll(
+            @Parameter(description = "이전 페이지의 마지막 팀 ID (첫 페이지는 비워두세요)")
+                    @RequestParam(required = false)
+                    Long lastTeamId,
+            @Parameter(description = "페이지당 팀 수", example = "1") @RequestParam(value = "size")
+                    int pageSize) {
+        return teamService.findAllTeam(lastTeamId, pageSize);
     }
 }
