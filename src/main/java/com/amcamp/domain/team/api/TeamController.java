@@ -30,7 +30,7 @@ public class TeamController {
     }
 
     @Operation(summary = "코드 확인", description = "팀 가입을 위한 초대 코드를 확인합니다.")
-    @GetMapping("{teamId}/invite-code")
+    @GetMapping("/{teamId}/invite-code")
     public TeamInviteCodeResponse teamInvite(@PathVariable Long teamId) {
         return teamService.getInviteCode(teamId);
     }
@@ -51,21 +51,21 @@ public class TeamController {
     }
 
     @Operation(summary = "팀 수정", description = "팀 이름과 설명을 수정합니다.")
-    @PatchMapping("{teamId}")
+    @PatchMapping("/{teamId}")
     public TeamInfoResponse teamEdit(
             @PathVariable Long teamId, @Valid @RequestBody TeamUpdateRequest teamUpdateRequest) {
         return teamService.editTeam(teamId, teamUpdateRequest);
     }
 
     @Operation(summary = "팀 삭제", description = "팀을 삭제합니다.")
-    @DeleteMapping("{teamId}")
+    @DeleteMapping("/{teamId}")
     public ResponseEntity<Void> teamDelete(@PathVariable Long teamId) {
         teamService.deleteTeam(teamId);
         return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "팀 정보", description = "팀 이름과 설명 등 기본 정보를 반환합니다.")
-    @GetMapping("{teamId}")
+    @GetMapping("/{teamId}")
     public TeamInfoResponse teamInfo(@PathVariable Long teamId) {
         return teamService.getTeamInfo(teamId);
     }
