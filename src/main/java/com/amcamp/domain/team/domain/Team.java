@@ -1,6 +1,7 @@
 package com.amcamp.domain.team.domain;
 
 import com.amcamp.domain.common.model.BaseTimeEntity;
+import com.amcamp.domain.team.dto.request.TeamEmojiUpdateRequest;
 import com.amcamp.domain.team.dto.request.TeamUpdateRequest;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -19,20 +20,30 @@ public class Team extends BaseTimeEntity {
 
     private String teamName;
     private String teamDescription;
+    private String teamEmoji;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private Team(String teamName, String teamDescription) {
+    private Team(String teamName, String teamDescription, String teamEmoji) {
         this.teamName = teamName;
         this.teamDescription = teamDescription;
+        this.teamEmoji = teamEmoji;
     }
 
     public static Team createTeam(String teamName, String teamDescription) {
-        return Team.builder().teamName(teamName).teamDescription(teamDescription).build();
+        return Team.builder()
+                .teamName(teamName)
+                .teamDescription(teamDescription)
+                .teamEmoji("🍇")
+                .build();
     }
 
     public void updateTeam(TeamUpdateRequest teamUpdateRequest) {
 
         this.teamName = teamUpdateRequest.teamName();
         this.teamDescription = teamUpdateRequest.teamDescription();
+    }
+
+    public void updateTeamEmoji(TeamEmojiUpdateRequest teamEmojiUpdateRequest) {
+        this.teamEmoji = teamEmojiUpdateRequest.teamEmoji();
     }
 }

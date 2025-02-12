@@ -8,6 +8,7 @@ import com.amcamp.domain.participant.domain.Participant;
 import com.amcamp.domain.participant.domain.ParticipantRole;
 import com.amcamp.domain.team.dao.TeamRepository;
 import com.amcamp.domain.team.domain.Team;
+import com.amcamp.domain.team.dto.request.TeamEmojiUpdateRequest;
 import com.amcamp.domain.team.dto.request.TeamUpdateRequest;
 import com.amcamp.domain.team.dto.response.TeamCheckResponse;
 import com.amcamp.domain.team.dto.response.TeamInfoResponse;
@@ -83,7 +84,16 @@ public class TeamService {
 
         team.updateTeam(normalizedTeamUpdateRequest);
 
-        return new TeamInfoResponse(team.getId(), team.getTeamName(), team.getTeamDescription());
+        return TeamInfoResponse.from(team);
+    }
+
+    public TeamInfoResponse editTeamEmoji(
+            Long teamId, TeamEmojiUpdateRequest teamEmojiUpdateRequest) {
+        Member member = memberUtil.getCurrentMember();
+        Team team = validateTeam(teamId);
+        validateAdminParticipant(member, team);
+        team.updateTeamEmoji(teamEmojiUpdateRequest);
+        return TeamInfoResponse.from(team);
     }
 
     public void deleteTeam(Long teamId) {
@@ -110,7 +120,7 @@ public class TeamService {
         Team team = validateTeam(teamId);
         validateParticipant(member, team);
 
-        return new TeamInfoResponse(team.getId(), team.getTeamName(), team.getTeamDescription());
+        return TeamInfoResponse.from(team);
     }
 
     private Team searchTeamByCode(String inviteCode) {
