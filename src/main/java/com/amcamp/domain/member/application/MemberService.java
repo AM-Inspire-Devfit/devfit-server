@@ -3,6 +3,7 @@ package com.amcamp.domain.member.application;
 import com.amcamp.domain.auth.dao.RefreshTokenRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.dto.request.NicknameUpdateRequest;
+import com.amcamp.domain.member.dto.response.MemberInfoResponse;
 import com.amcamp.global.util.MemberUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,5 +31,11 @@ public class MemberService {
         Member currentMember = memberUtil.getCurrentMember();
 
         currentMember.updateNickname(request.nickname());
+    }
+
+    @Transactional(readOnly = true)
+    public MemberInfoResponse getMemberInfo() {
+        Member currentMember = memberUtil.getCurrentMember();
+        return MemberInfoResponse.from(currentMember);
     }
 }

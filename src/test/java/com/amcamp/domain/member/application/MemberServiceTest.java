@@ -7,9 +7,11 @@ import com.amcamp.domain.auth.dao.RefreshTokenRepository;
 import com.amcamp.domain.auth.domain.RefreshToken;
 import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
+import com.amcamp.domain.member.domain.MemberRole;
 import com.amcamp.domain.member.domain.MemberStatus;
 import com.amcamp.domain.member.domain.OauthInfo;
 import com.amcamp.domain.member.dto.request.NicknameUpdateRequest;
+import com.amcamp.domain.member.dto.response.MemberInfoResponse;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.MemberErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
@@ -36,7 +38,7 @@ class MemberServiceTest {
     private Member registerAuthenticatedMember() {
         Member member =
                 Member.createMember(
-                        "testNickName",
+                        "testNickname",
                         "testProfileImageUrl",
                         OauthInfo.createOauthInfo("testOauthId", "testOauthProvider"));
         memberRepository.save(member);
@@ -117,5 +119,20 @@ class MemberServiceTest {
             // then
             assertThat(currentMember.getNickname()).isEqualTo("현태 최");
         }
+    }
+
+    @Test
+    void 회원_정보를_조회한다() {
+        // given
+        registerAuthenticatedMember();
+
+        // when
+        MemberInfoResponse response = memberService.getMemberInfo();
+
+        // then
+        assertThat(response.nickname()).isEqualTo("testNickname");
+        assertThat(response.profileImageUrl()).isEqualTo("testProfileImageUrl");
+        assertThat(response.role()).isEqualTo(MemberRole.USER);
+        assertThat(response.status()).isEqualTo(MemberStatus.NORMAL);
     }
 }
