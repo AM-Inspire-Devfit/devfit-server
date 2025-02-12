@@ -43,19 +43,12 @@ public class Project extends BaseTimeEntity {
 
     // 캘린더
     @Builder(access = AccessLevel.PRIVATE)
-    private Project(
-            Team team,
-            String title,
-            String description,
-            String goal,
-            ToDoInfo toDoInfo,
-            List<Sprint> sprints) {
+    private Project(Team team, String title, String description, String goal, ToDoInfo toDoInfo) {
         this.team = team;
         this.title = title;
         this.description = description;
         this.goal = goal;
         this.toDoInfo = toDoInfo;
-        this.sprints = sprints;
     }
 
     public static Project createProject(
@@ -71,7 +64,6 @@ public class Project extends BaseTimeEntity {
                 .description(description)
                 .goal(goal)
                 .toDoInfo(ToDoInfo.createToDoInfo(startDt, dueDt))
-                .sprints(new ArrayList<>())
                 .build();
     }
 }

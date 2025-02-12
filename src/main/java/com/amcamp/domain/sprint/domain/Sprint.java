@@ -39,17 +39,10 @@ public class Sprint extends BaseTimeEntity {
     private List<SprintContribution> contributions = new ArrayList<>();
 
     @Builder(access = AccessLevel.PRIVATE)
-    private Sprint(
-            Project project,
-            String description,
-            ToDoInfo toDoInfo,
-            List<SprintContribution> contributions,
-            List<Task> tasks) {
+    private Sprint(Project project, String description, ToDoInfo toDoInfo) {
         this.project = project;
         this.description = description;
         this.toDoInfo = toDoInfo;
-        this.contributions = contributions;
-        this.tasks = tasks;
     }
 
     public static Sprint createSprint(
@@ -58,8 +51,6 @@ public class Sprint extends BaseTimeEntity {
                 .project(project)
                 .description(description)
                 .toDoInfo(ToDoInfo.createToDoInfo(startDt, dueDt))
-                .contributions(new ArrayList<>())
-                .tasks(new ArrayList<>())
                 .build();
     }
 }
