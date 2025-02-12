@@ -11,4 +11,8 @@ public record TeamCreateRequest(
                 String teamName,
         @Size(max = 100, message = "팀 설명은 최대 100자까지 입력 가능합니다.")
                 @Schema(description = "팀 설명", example = "Lg cns am camp 1기 개발 스터디")
-                String teamDescription) {}
+                String teamDescription) {
+    public static TeamCreateRequest of(String teamName, String teamDescription) {
+        return new TeamCreateRequest(teamName, teamDescription);
+    }
+}
