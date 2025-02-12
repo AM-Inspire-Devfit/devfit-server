@@ -17,6 +17,13 @@ public class MemberService {
     private final MemberUtil memberUtil;
     private final RefreshTokenRepository refreshTokenRepository;
 
+    public void logoutMember() {
+        Member currentMember = memberUtil.getCurrentMember();
+        refreshTokenRepository
+                .findById(currentMember.getId())
+                .ifPresent(refreshTokenRepository::delete);
+    }
+
     public void withdrawalMember() {
         Member currentMember = memberUtil.getCurrentMember();
 

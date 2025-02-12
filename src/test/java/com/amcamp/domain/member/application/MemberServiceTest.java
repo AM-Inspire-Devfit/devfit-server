@@ -53,6 +53,28 @@ class MemberServiceTest {
     }
 
     @Nested
+    class 로그아웃_시 {
+        @Test
+        void 로그아웃하면_리프레시_토큰이_삭제된다() {
+            // given
+            Member member = registerAuthenticatedMember();
+
+            RefreshToken refreshToken =
+                    RefreshToken.builder()
+                            .memberId(member.getId())
+                            .token("testRefreshToken")
+                            .build();
+            refreshTokenRepository.save(refreshToken);
+
+            // when
+            memberService.logoutMember();
+
+            // then
+            assertThat(refreshTokenRepository.findById(member.getId())).isEmpty();
+        }
+    }
+
+    @Nested
     class 회원_탈퇴_시 {
         @Test
         void 탈퇴하지_않은_유저면_성공한다() {
