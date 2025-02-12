@@ -11,6 +11,6 @@ public record TeamInfoResponse(
 
     public static TeamInfoResponse from(Team team) {
         return new TeamInfoResponse(
-                team.getId(), team.getTeamName(), team.getTeamDescription(), team.getTeamEmoji());
+                team.getId(), team.getName(), team.getDescription(), team.getEmoji());
     }
 }

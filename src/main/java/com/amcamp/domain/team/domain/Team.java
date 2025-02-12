@@ -18,32 +18,27 @@ public class Team extends BaseTimeEntity {
     @Column(name = "team_id")
     private Long id;
 
-    private String teamName;
-    private String teamDescription;
-    private String teamEmoji;
+    private String name;
+    private String description;
+    private String emoji;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private Team(String teamName, String teamDescription, String teamEmoji) {
-        this.teamName = teamName;
-        this.teamDescription = teamDescription;
-        this.teamEmoji = teamEmoji;
+    private Team(String name, String description, String emoji) {
+        this.name = name;
+        this.description = description;
+        this.emoji = emoji;
     }
 
-    public static Team createTeam(String teamName, String teamDescription) {
-        return Team.builder()
-                .teamName(teamName)
-                .teamDescription(teamDescription)
-                .teamEmoji("🍇")
-                .build();
+    public static Team createTeam(String name, String description) {
+        return Team.builder().name(name).description(description).emoji("🍇").build();
     }
 
     public void updateTeam(TeamUpdateRequest teamUpdateRequest) {
-
-        this.teamName = teamUpdateRequest.teamName();
-        this.teamDescription = teamUpdateRequest.teamDescription();
+        this.name = teamUpdateRequest.teamName();
+        this.description = teamUpdateRequest.teamDescription();
     }
 
     public void updateTeamEmoji(TeamEmojiUpdateRequest teamEmojiUpdateRequest) {
-        this.teamEmoji = teamEmojiUpdateRequest.teamEmoji();
+        this.emoji = teamEmojiUpdateRequest.teamEmoji();
     }
 }
