@@ -2,6 +2,7 @@ package com.amcamp.domain.team.api;
 
 import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.domain.team.dto.request.TeamCreateRequest;
+import com.amcamp.domain.team.dto.request.TeamEmojiUpdateRequest;
 import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
 import com.amcamp.domain.team.dto.request.TeamUpdateRequest;
 import com.amcamp.domain.team.dto.response.TeamCheckResponse;
@@ -25,8 +26,7 @@ public class TeamController {
     @PostMapping("/create")
     public TeamInviteCodeResponse teamCreate(
             @Valid @RequestBody TeamCreateRequest teamCreateRequest) {
-        return teamService.createTeam(
-                teamCreateRequest.teamName(), teamCreateRequest.teamDescription());
+        return teamService.createTeam(teamCreateRequest);
     }
 
     @Operation(summary = "코드 확인", description = "팀 가입을 위한 초대 코드를 확인합니다.")
@@ -39,14 +39,14 @@ public class TeamController {
     @PostMapping("/check")
     public TeamCheckResponse teamCheck(
             @Valid @RequestBody TeamInviteCodeRequest teamInviteCodeRequest) {
-        return teamService.getTeamByCode(teamInviteCodeRequest.inviteCode());
+        return teamService.getTeamByCode(teamInviteCodeRequest);
     }
 
     @Operation(summary = "팀 참가", description = "팀 정보를 확인 후 팀에 참가합니다.")
     @PostMapping("/join")
     public ResponseEntity<Void> teamJoin(
             @Valid @RequestBody TeamInviteCodeRequest teamInviteCodeRequest) {
-        teamService.joinTeam(teamInviteCodeRequest.inviteCode());
+        teamService.joinTeam(teamInviteCodeRequest);
         return ResponseEntity.ok().build();
     }
 
@@ -55,6 +55,14 @@ public class TeamController {
     public TeamInfoResponse teamEdit(
             @PathVariable Long teamId, @Valid @RequestBody TeamUpdateRequest teamUpdateRequest) {
         return teamService.editTeam(teamId, teamUpdateRequest);
+    }
+
+    @Operation(summary = "팀 이모지 수정", description = "팀 이모지를 수정합니다.")
+    @PatchMapping("/{teamId}/emoji")
+    public TeamInfoResponse teamEmojiEdit(
+            @PathVariable Long teamId,
+            @Valid @RequestBody TeamEmojiUpdateRequest teamEmojiUpdateRequest) {
+        return teamService.editTeamEmoji(teamId, teamEmojiUpdateRequest);
     }
 
     @Operation(summary = "팀 삭제", description = "팀을 삭제합니다.")

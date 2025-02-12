@@ -14,6 +14,9 @@ import com.amcamp.domain.participant.domain.ParticipantRole;
 import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.domain.team.dao.TeamRepository;
 import com.amcamp.domain.team.domain.Team;
+import com.amcamp.domain.team.dto.request.TeamCreateRequest;
+import com.amcamp.domain.team.dto.request.TeamEmojiUpdateRequest;
+import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
 import com.amcamp.domain.team.dto.request.TeamUpdateRequest;
 import com.amcamp.domain.team.dto.response.TeamCheckResponse;
 import com.amcamp.domain.team.dto.response.TeamInfoResponse;
@@ -21,6 +24,7 @@ import com.amcamp.domain.team.dto.response.TeamInviteCodeResponse;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
+import com.amcamp.global.util.MemberUtil;
 import com.amcamp.global.util.RedisUtil;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,9 +46,7 @@ public class TeamServiceTest {
     @Autowired private ParticipantRepository participantRepository;
     @Autowired private TeamService teamService;
     @Autowired private RedisUtil redisUtil;
-
-    private Member member;
-    private TeamInviteCodeResponse inviteCodeResponse;
+    @Autowired private MemberUtil memberUtil;
 
     private void loginAs(Member member) {
         UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());
@@ -56,26 +58,52 @@ public class TeamServiceTest {
 
     @BeforeEach
     void setUp() {
-        // given
-        member =
-                Member.createMember(
-                        "testNickName",
-                        "testProfileImageUrl",
-                        OauthInfo.createOauthInfo("testOauthId", "testOauthProvider"));
-        memberRepository.save(member);
-        loginAs(member);
+        Member member =
+                memberRepository.save(
+                        Member.createMember(
+                                "testNickname",
+                                "testProfileImageUrl",
+                                OauthInfo.createOauthInfo("testOauthId", "testOauthProvider")));
 
-        inviteCodeResponse = teamService.createTeam("팀 이름", "팀 설명");
+        UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());
+        UsernamePasswordAuthenticationToken token =
+                new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(token);
     }
 
     @Nested
     class 팀_생성_시 {
         @Test
         void 초대코드를_반환한다() {
+            // when
+            Member currentMember = memberUtil.getCurrentMember();
+            TeamInviteCodeResponse inviteCodeResponse =
+                    teamService.createTeam(new TeamCreateRequest("팀 이름", "팀 설명"));
+
             // then
             assertThat(inviteCodeResponse).isNotNull();
             assertThat(inviteCodeResponse.inviteCode()).isNotNull();
             assertThat(inviteCodeResponse.inviteCode()).hasSize(8);
+
+            // 생성 시 자동으로 설정되는 정보 확인
+            TeamCheckResponse teamCheckResponse =
+                    teamService.getTeamByCode(
+                            new TeamInviteCodeRequest(inviteCodeResponse.inviteCode()));
+            Team savedTeam =
+                    teamRepository
+                            .findById(teamCheckResponse.teamId())
+                            .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_NOT_FOUND));
+            Participant participant =
+                    participantRepository
+                            .findByMemberAndTeam(currentMember, savedTeam)
+                            .orElseThrow(
+                                    () ->
+                                            new CommonException(
+                                                    TeamErrorCode.TEAM_PARTICIPANT_NOT_FOUND));
+
+            assertThat(participant.getRole()).isEqualTo(ParticipantRole.ADMIN);
+            assertThat(savedTeam.getTeamEmoji()).isEqualTo("🍇");
         }
     }
 
@@ -84,7 +112,13 @@ public class TeamServiceTest {
         @Test
         void 팀이_유효한_경우에는_초대코드를_반환한다() {
             // given
-            Long teamId = teamService.getTeamByCode(inviteCodeResponse.inviteCode()).teamId();
+            TeamInviteCodeResponse inviteCodeResponse =
+                    teamService.createTeam(new TeamCreateRequest("팀 이름", "팀 설명"));
+            Long teamId =
+                    teamService
+                            .getTeamByCode(
+                                    new TeamInviteCodeRequest(inviteCodeResponse.inviteCode()))
+                            .teamId();
 
             // when
             TeamInviteCodeResponse response = teamService.getInviteCode(teamId);
@@ -109,9 +143,13 @@ public class TeamServiceTest {
         @Test
         void 팀_참가자가_아닌_경우에는_에러를_반환한다() {
             // given
-            String inviteCode = inviteCodeResponse.inviteCode();
-            TeamCheckResponse teamCheckResponse = teamService.getTeamByCode(inviteCode);
-            Long teamId = teamCheckResponse.teamId();
+            TeamInviteCodeResponse inviteCodeResponse =
+                    teamService.createTeam(new TeamCreateRequest("팀 이름", "팀 설명"));
+            Long teamId =
+                    teamService
+                            .getTeamByCode(
+                                    new TeamInviteCodeRequest(inviteCodeResponse.inviteCode()))
+                            .teamId();
 
             Member nonMember =
                     memberRepository.save(
@@ -131,10 +169,15 @@ public class TeamServiceTest {
         @Test
         void 이미_팀에_참가한_경우에는_예외가_발생한다() {
             // given
-            String inviteCode = inviteCodeResponse.inviteCode();
+            TeamInviteCodeResponse inviteCodeResponse =
+                    teamService.createTeam(new TeamCreateRequest("팀 이름", "팀 설명"));
 
             // when & then
-            assertThatThrownBy(() -> teamService.joinTeam(inviteCode))
+            assertThatThrownBy(
+                            () ->
+                                    teamService.joinTeam(
+                                            new TeamInviteCodeRequest(
+                                                    inviteCodeResponse.inviteCode())))
                     .isInstanceOf(CommonException.class)
                     .extracting("errorCode")
                     .isEqualTo(TeamErrorCode.MEMBER_ALREADY_JOINED);
@@ -144,6 +187,9 @@ public class TeamServiceTest {
         @Transactional
         void 새롭게_참여하는_경우에는_팀에_USER로_등록된다() {
             // given
+            TeamInviteCodeResponse inviteCodeResponse =
+                    teamService.createTeam(new TeamCreateRequest("팀 이름", "팀 설명"));
+
             String inviteCode = inviteCodeResponse.inviteCode();
 
             // savedMember 로그인 처리 후 팀 참여
@@ -151,10 +197,11 @@ public class TeamServiceTest {
             loginAs(newMember);
 
             // when
-            teamService.joinTeam(inviteCode);
+            teamService.joinTeam(new TeamInviteCodeRequest(inviteCodeResponse.inviteCode()));
 
             // then
-            TeamCheckResponse teamCheckResponse = teamService.getTeamByCode(inviteCode);
+            TeamCheckResponse teamCheckResponse =
+                    teamService.getTeamByCode(new TeamInviteCodeRequest(inviteCode));
             Team savedTeam =
                     teamRepository
                             .findById(teamCheckResponse.teamId())
@@ -179,10 +226,13 @@ public class TeamServiceTest {
         @Test
         void 코드가_유효한_경우에는_팀_정보를_반환한다() {
             // given
-            String validInviteCode = inviteCodeResponse.inviteCode();
+            TeamInviteCodeResponse inviteCodeResponse =
+                    teamService.createTeam(new TeamCreateRequest("팀 이름", "팀 설명"));
 
             // when
-            TeamCheckResponse teamCheckResponse = teamService.getTeamByCode(validInviteCode);
+            TeamCheckResponse teamCheckResponse =
+                    teamService.getTeamByCode(
+                            new TeamInviteCodeRequest(inviteCodeResponse.inviteCode()));
 
             // then
             assertThat(teamCheckResponse).isNotNull();
@@ -200,10 +250,16 @@ public class TeamServiceTest {
         @Test
         void 코드가_유효하지않는_경우에는_예외를_반환한다() {
             // given
+            TeamInviteCodeResponse inviteCodeResponse =
+                    teamService.createTeam(new TeamCreateRequest("팀 이름", "팀 설명"));
+
             String invalidInviteCode = "invalidCode";
 
             // when & then
-            assertThatThrownBy(() -> teamService.getTeamByCode(invalidInviteCode))
+            assertThatThrownBy(
+                            () ->
+                                    teamService.getTeamByCode(
+                                            new TeamInviteCodeRequest(invalidInviteCode)))
                     .isInstanceOf(CommonException.class)
                     .extracting("errorCode")
                     .isEqualTo(TeamErrorCode.INVALID_INVITE_CODE);
@@ -216,8 +272,12 @@ public class TeamServiceTest {
         @Test
         void 팀이름과_팀설명을_수정한다() {
             // given
-            String inviteCode = inviteCodeResponse.inviteCode();
-            TeamCheckResponse teamCheckResponse = teamService.getTeamByCode(inviteCode);
+            TeamInviteCodeResponse inviteCodeResponse =
+                    teamService.createTeam(new TeamCreateRequest("팀 이름", "팀 설명"));
+
+            TeamCheckResponse teamCheckResponse =
+                    teamService.getTeamByCode(
+                            new TeamInviteCodeRequest(inviteCodeResponse.inviteCode()));
             Long teamId = teamCheckResponse.teamId();
 
             // when
@@ -233,6 +293,8 @@ public class TeamServiceTest {
         @Test
         void 팀이_유효하지않는_경우에는_예외를_반환한다() {
             // given
+            TeamInviteCodeResponse inviteCodeResponse =
+                    teamService.createTeam(new TeamCreateRequest("팀 이름", "팀 설명"));
             Long invalidTeamId = -999L;
 
             // when & then
@@ -249,8 +311,12 @@ public class TeamServiceTest {
         @Test
         void 로그인된_회원이_팀_참가자가_아닌_경우에는_예외를_반환한다() {
             // given
-            String inviteCode = inviteCodeResponse.inviteCode();
-            TeamCheckResponse teamCheckResponse = teamService.getTeamByCode(inviteCode);
+            TeamInviteCodeResponse inviteCodeResponse =
+                    teamService.createTeam(new TeamCreateRequest("팀 이름", "팀 설명"));
+
+            TeamCheckResponse teamCheckResponse =
+                    teamService.getTeamByCode(
+                            new TeamInviteCodeRequest(inviteCodeResponse.inviteCode()));
             Long teamId = teamCheckResponse.teamId();
 
             Member nonMember =
@@ -271,15 +337,19 @@ public class TeamServiceTest {
         @Test
         void 로그인된_회원이_팀_관리자가_아닌_경우에는_예외를_반환한다() {
             // given
-            String inviteCode = inviteCodeResponse.inviteCode();
-            TeamCheckResponse teamCheckResponse = teamService.getTeamByCode(inviteCode);
+            TeamInviteCodeResponse inviteCodeResponse =
+                    teamService.createTeam(new TeamCreateRequest("팀 이름", "팀 설명"));
+
+            TeamCheckResponse teamCheckResponse =
+                    teamService.getTeamByCode(
+                            new TeamInviteCodeRequest(inviteCodeResponse.inviteCode()));
             Long teamId = teamCheckResponse.teamId();
 
             // 일반 사용자 로그인 및 팀 참가
             Member userMember =
                     memberRepository.save(Member.createMember("user", "testProfileImageUrl", null));
             loginAs(userMember);
-            teamService.joinTeam(inviteCode);
+            teamService.joinTeam(new TeamInviteCodeRequest(inviteCodeResponse.inviteCode()));
 
             // when & then
             assertThatThrownBy(
@@ -292,20 +362,122 @@ public class TeamServiceTest {
         }
     }
 
+    class 팀_이모지_수정_시 {
+        @Test
+        void 팀이모지를_수정한다() {
+            // given
+            TeamInviteCodeResponse inviteCodeResponse =
+                    teamService.createTeam(new TeamCreateRequest("팀 이름", "팀 설명"));
+
+            TeamCheckResponse teamCheckResponse =
+                    teamService.getTeamByCode(
+                            new TeamInviteCodeRequest(inviteCodeResponse.inviteCode()));
+            Long teamId = teamCheckResponse.teamId();
+
+            // when
+            TeamEmojiUpdateRequest teamEmojiUpdateRequest = new TeamEmojiUpdateRequest("⭐️");
+            TeamInfoResponse teamInfoResponse =
+                    teamService.editTeamEmoji(teamId, teamEmojiUpdateRequest);
+
+            // then
+            assertThat(teamInfoResponse).isNotNull();
+            assertThat(teamInfoResponse.teamEmoji()).isEqualTo("⭐️");
+        }
+
+        @Test
+        void 팀이_유효하지않는_경우에는_예외를_반환한다() {
+            // given
+            TeamInviteCodeResponse inviteCodeResponse =
+                    teamService.createTeam(new TeamCreateRequest("팀 이름", "팀 설명"));
+
+            Long invalidTeamId = -999L;
+
+            // when & then
+            assertThatThrownBy(
+                            () ->
+                                    teamService.editTeamEmoji(
+                                            invalidTeamId, new TeamEmojiUpdateRequest("⭐️")))
+                    .isInstanceOf(CommonException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(TeamErrorCode.TEAM_NOT_FOUND);
+        }
+
+        @Test
+        void 로그인된_회원이_팀_참가자가_아닌_경우에는_예외를_반환한다() {
+            // given
+            TeamInviteCodeResponse inviteCodeResponse =
+                    teamService.createTeam(new TeamCreateRequest("팀 이름", "팀 설명"));
+
+            TeamCheckResponse teamCheckResponse =
+                    teamService.getTeamByCode(
+                            new TeamInviteCodeRequest(inviteCodeResponse.inviteCode()));
+            Long teamId = teamCheckResponse.teamId();
+
+            Member nonMember =
+                    memberRepository.save(
+                            Member.createMember("nonMember", "testProfileImageUrl", null));
+            loginAs(nonMember);
+
+            // when & then
+            assertThatThrownBy(
+                            () ->
+                                    teamService.editTeamEmoji(
+                                            teamId, new TeamEmojiUpdateRequest("⭐️")))
+                    .isInstanceOf(CommonException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(TeamErrorCode.TEAM_PARTICIPANT_NOT_FOUND); // 사용자 권한이 없을 때
+        }
+
+        @Test
+        void 로그인된_회원이_팀_관리자가_아닌_경우에는_예외를_반환한다() {
+            // given
+            TeamInviteCodeResponse inviteCodeResponse =
+                    teamService.createTeam(new TeamCreateRequest("팀 이름", "팀 설명"));
+
+            TeamCheckResponse teamCheckResponse =
+                    teamService.getTeamByCode(
+                            new TeamInviteCodeRequest(inviteCodeResponse.inviteCode()));
+            Long teamId = teamCheckResponse.teamId();
+
+            // 일반 사용자 로그인 및 팀 참가
+            Member userMember =
+                    memberRepository.save(Member.createMember("user", "testProfileImageUrl", null));
+            loginAs(userMember);
+            teamService.joinTeam(new TeamInviteCodeRequest(inviteCodeResponse.inviteCode()));
+
+            // when & then
+            assertThatThrownBy(
+                            () ->
+                                    teamService.editTeamEmoji(
+                                            teamId, new TeamEmojiUpdateRequest("⭐️")))
+                    .isInstanceOf(CommonException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(TeamErrorCode.UNAUTHORIZED_ACCESS); // 팀 관리자 권한이 없을 경우
+        }
+    }
+
     @Nested
     class 팀_삭제_시 {
         @Test
         void 팀을_삭제한다() {
             // given
-            String inviteCode = inviteCodeResponse.inviteCode();
-            TeamCheckResponse teamCheckResponse = teamService.getTeamByCode(inviteCode);
+            TeamInviteCodeResponse inviteCodeResponse =
+                    teamService.createTeam(new TeamCreateRequest("팀 이름", "팀 설명"));
+
+            TeamCheckResponse teamCheckResponse =
+                    teamService.getTeamByCode(
+                            new TeamInviteCodeRequest(inviteCodeResponse.inviteCode()));
             Long teamId = teamCheckResponse.teamId();
 
             // when
             teamService.deleteTeam(teamId);
 
             // then
-            assertThatThrownBy(() -> teamService.getTeamByCode(inviteCode))
+            assertThatThrownBy(
+                            () ->
+                                    teamService.getTeamByCode(
+                                            new TeamInviteCodeRequest(
+                                                    inviteCodeResponse.inviteCode())))
                     .isInstanceOf(CommonException.class)
                     .extracting("errorCode")
                     .isEqualTo(TeamErrorCode.INVALID_INVITE_CODE);
@@ -318,7 +490,8 @@ public class TeamServiceTest {
             Optional<String> inviteCodeInRedisAfterDelete =
                     redisUtil.getData(TEAM_ID_PREFIX.formatted(teamId));
             Optional<String> teamIdInRedisAfterDelete =
-                    redisUtil.getData(INVITE_CODE_PREFIX.formatted(inviteCode));
+                    redisUtil.getData(
+                            INVITE_CODE_PREFIX.formatted(inviteCodeResponse.inviteCode()));
             assertThat(inviteCodeInRedisAfterDelete).isEmpty();
             assertThat(teamIdInRedisAfterDelete).isEmpty();
         }
@@ -326,6 +499,9 @@ public class TeamServiceTest {
         @Test
         void 팀이_유효하지않는_경우에는_예외를_반환한다() {
             // given
+            TeamInviteCodeResponse inviteCodeResponse =
+                    teamService.createTeam(new TeamCreateRequest("팀 이름", "팀 설명"));
+
             Long invalidTeamId = -999L;
 
             // when & then
@@ -338,8 +514,12 @@ public class TeamServiceTest {
         @Test
         void 로그인된_회원이_팀_참가자가_아닌_경우에는_예외를_반환한다() {
             // given
-            String inviteCode = inviteCodeResponse.inviteCode();
-            TeamCheckResponse teamCheckResponse = teamService.getTeamByCode(inviteCode);
+            TeamInviteCodeResponse inviteCodeResponse =
+                    teamService.createTeam(new TeamCreateRequest("팀 이름", "팀 설명"));
+
+            TeamCheckResponse teamCheckResponse =
+                    teamService.getTeamByCode(
+                            new TeamInviteCodeRequest(inviteCodeResponse.inviteCode()));
             Long teamId = teamCheckResponse.teamId();
 
             Member nonMember =
@@ -357,14 +537,18 @@ public class TeamServiceTest {
         @Test
         void 로그인된_회원이_팀_관리자가_아닌_경우에는_예외를_반환한다() {
             // given
-            String inviteCode = inviteCodeResponse.inviteCode();
-            TeamCheckResponse teamCheckResponse = teamService.getTeamByCode(inviteCode);
+            TeamInviteCodeResponse inviteCodeResponse =
+                    teamService.createTeam(new TeamCreateRequest("팀 이름", "팀 설명"));
+
+            TeamCheckResponse teamCheckResponse =
+                    teamService.getTeamByCode(
+                            new TeamInviteCodeRequest(inviteCodeResponse.inviteCode()));
             Long teamId = teamCheckResponse.teamId();
 
             Member userMember =
                     memberRepository.save(Member.createMember("user", "testProfileImageUrl", null));
             loginAs(userMember);
-            teamService.joinTeam(inviteCode);
+            teamService.joinTeam(new TeamInviteCodeRequest(inviteCodeResponse.inviteCode()));
 
             // when & then
             assertThatThrownBy(() -> teamService.deleteTeam(teamId))
@@ -379,8 +563,12 @@ public class TeamServiceTest {
         @Test
         void 팀이름과_팀설명을_반환한다() {
             // given
-            String inviteCode = inviteCodeResponse.inviteCode();
-            TeamCheckResponse teamCheckResponse = teamService.getTeamByCode(inviteCode);
+            TeamInviteCodeResponse inviteCodeResponse =
+                    teamService.createTeam(new TeamCreateRequest("팀 이름", "팀 설명"));
+
+            TeamCheckResponse teamCheckResponse =
+                    teamService.getTeamByCode(
+                            new TeamInviteCodeRequest(inviteCodeResponse.inviteCode()));
             Long teamId = teamCheckResponse.teamId();
 
             // when
@@ -395,6 +583,9 @@ public class TeamServiceTest {
         @Test
         void 팀이_유효하지않는_경우에는_예외를_반환한다() {
             // given
+            TeamInviteCodeResponse inviteCodeResponse =
+                    teamService.createTeam(new TeamCreateRequest("팀 이름", "팀 설명"));
+
             Long invalidTeamId = -999L;
 
             // when & then
@@ -407,8 +598,12 @@ public class TeamServiceTest {
         @Test
         void 로그인된_회원이_팀_참가자가_아닌_경우에는_예외를_반환한다() {
             // given
-            String inviteCode = inviteCodeResponse.inviteCode();
-            TeamCheckResponse teamCheckResponse = teamService.getTeamByCode(inviteCode);
+            TeamInviteCodeResponse inviteCodeResponse =
+                    teamService.createTeam(new TeamCreateRequest("팀 이름", "팀 설명"));
+
+            TeamCheckResponse teamCheckResponse =
+                    teamService.getTeamByCode(
+                            new TeamInviteCodeRequest(inviteCodeResponse.inviteCode()));
             Long teamId = teamCheckResponse.teamId();
 
             Member nonMember =
