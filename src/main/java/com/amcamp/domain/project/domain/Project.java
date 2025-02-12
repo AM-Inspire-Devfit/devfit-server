@@ -11,7 +11,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.lang.Nullable;
 
 @Entity
 @Getter
@@ -39,7 +38,6 @@ public class Project extends BaseTimeEntity {
 
     @Embedded private ToDoInfo toDoInfo;
 
-    @Nullable
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Sprint> sprints = new ArrayList<>();
 
@@ -66,15 +64,14 @@ public class Project extends BaseTimeEntity {
             String description,
             String goal,
             LocalDateTime startDt,
-            LocalDateTime dueDt,
-            @Nullable List<Sprint> sprints) {
+            LocalDateTime dueDt) {
         return Project.builder()
                 .team(team)
                 .title(title)
                 .description(description)
                 .goal(goal)
                 .toDoInfo(ToDoInfo.createToDoInfo(startDt, dueDt))
-                .sprints(sprints != null ? sprints : new ArrayList<>())
+                .sprints(new ArrayList<>())
                 .build();
     }
 }

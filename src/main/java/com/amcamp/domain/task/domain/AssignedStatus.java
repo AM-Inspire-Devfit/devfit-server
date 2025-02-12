@@ -6,8 +6,8 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum AssignedStatus {
-	ASSIGNED("TASK_STATUS_ASSIGNED"),
-	NOT_ASSIGNED("TASK_STATUS_NOT_ASSIGNED");
+    ASSIGNED("TASK_STATUS_ASSIGNED"),
+    NOT_ASSIGNED("TASK_STATUS_NOT_ASSIGNED");
 
-	private final String taskStatus;
+    private final String taskStatus;
 }

@@ -6,9 +6,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ProjectParticipantRole {
+    ADMIN("PROJECT_ADMIN"),
+    USER("PROJECT_USER");
 
-	ADMIN("PROJECT_ADMIN"),
-	USER("PROJECT_USER");
-
-	private final String projectRole;
+    private final String projectRole;
 }

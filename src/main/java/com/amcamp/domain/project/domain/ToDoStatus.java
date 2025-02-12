@@ -6,10 +6,9 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum ToDoStatus {
+    NOT_STARTED("STATUS_NOT_STARTED"),
+    ON_GOING("STATUS_ON_GOING"),
+    COMPLETED("STATUS_COMPLETED");
 
-	NOT_STARTED("STATUS_NOT_STARTED"),
-	ON_GOING("STATUS_ON_GOING"),
-	COMPLETED("STATUS_COMPLETED");
-
-	private final String status;
+    private final String status;
 }

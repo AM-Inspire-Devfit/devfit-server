@@ -12,7 +12,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.lang.Nullable;
 
 @Entity
 @Getter
@@ -54,18 +53,13 @@ public class Sprint extends BaseTimeEntity {
     }
 
     public static Sprint createSprint(
-            Project project,
-            String description,
-            LocalDateTime startDt,
-            LocalDateTime dueDt,
-            @Nullable List<SprintContribution> contributions,
-            @Nullable List<Task> tasks) {
+            Project project, String description, LocalDateTime startDt, LocalDateTime dueDt) {
         return Sprint.builder()
                 .project(project)
                 .description(description)
                 .toDoInfo(ToDoInfo.createToDoInfo(startDt, dueDt))
-                .contributions(contributions != null ? contributions : new ArrayList<>())
-                .tasks(tasks != null ? tasks : new ArrayList<>())
+                .contributions(new ArrayList<>())
+                .tasks(new ArrayList<>())
                 .build();
     }
 }
