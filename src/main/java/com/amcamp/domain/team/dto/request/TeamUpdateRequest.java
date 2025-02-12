@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public record TeamCreateRequest(
+public record TeamUpdateRequest(
         @NotBlank(message = "팀 이름은 필수 사항입니다.")
                 @Size(max = 15, message = "팀 이름은 최대 25자까지 입력 가능합니다.")
                 @Schema(description = "팀 이름", example = "Side Effect")
