@@ -17,7 +17,7 @@ public class ProjectParticipant extends BaseTimeEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "participant_id")
+    @JoinColumn(name = "team_participant_id")
     private Participant participant;
 
     @ManyToOne(fetch = FetchType.LAZY)

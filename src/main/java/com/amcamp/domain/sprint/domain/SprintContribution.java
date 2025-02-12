@@ -17,7 +17,7 @@ public class SprintContribution extends BaseTimeEntity {
     private Long Id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "participant_id")
+    @JoinColumn(name = "sprint_id")
     private Sprint sprint;
 
     // 기여한 멤버
