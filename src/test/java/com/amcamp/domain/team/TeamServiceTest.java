@@ -365,6 +365,7 @@ public class TeamServiceTest {
         }
     }
 
+    @Nested
     class 팀_이모지_수정_시 {
         @Test
         void 팀이모지를_수정한다() {
