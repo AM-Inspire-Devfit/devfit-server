@@ -17,7 +17,6 @@ import com.amcamp.domain.team.domain.Team;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.TeamErrorCode;
-import com.amcamp.global.util.DateCheckUtil;
 import com.amcamp.global.util.MemberUtil;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +41,6 @@ public class ProjectService {
         Member member = memberUtil.getCurrentMember();
         Team team = getTeam(request.TeamId());
         Participant participant = getParticipant(member, team);
-        DateCheckUtil.checkStartDtAndDueDt(request.startDt(), request.dueDt());
         Project project =
                 projectRepository.save(
                         Project.createProject(

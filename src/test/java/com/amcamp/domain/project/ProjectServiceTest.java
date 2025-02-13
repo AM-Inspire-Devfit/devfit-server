@@ -37,6 +37,9 @@ public class ProjectServiceTest {
     private Member member;
     private Member anotherMember;
 
+    private LocalDateTime startDt = LocalDateTime.of(2026, 1, 1, 1, 00);
+    private LocalDateTime dueDt = LocalDateTime.of(2026, 12, 1, 1, 00);
+
     private void loginAs(Member member) {
         UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());
         UsernamePasswordAuthenticationToken token =
@@ -80,8 +83,8 @@ public class ProjectServiceTest {
                         "projectTitle",
                         "projectDescription",
                         "projectGoal",
-                        LocalDateTime.of(2025, 1, 1, 1, 00),
-                        LocalDateTime.of(2025, 1, 1, 1, 00));
+                        startDt,
+                        dueDt);
 
         ProjectInfoResponse response = projectService.createProject(request);
         Project project = projectRepository.findById(response.projectId()).get();
@@ -101,16 +104,16 @@ public class ProjectServiceTest {
                             "project1",
                             "projectDescription",
                             "projectGoal",
-                            LocalDateTime.of(2025, 1, 1, 1, 00),
-                            LocalDateTime.of(2025, 1, 1, 1, 00));
+                            startDt,
+                            dueDt);
             ProjectCreateRequest request2 =
                     new ProjectCreateRequest(
                             teamId,
                             "project2",
                             "projectDescription",
                             "projectGoal",
-                            LocalDateTime.of(2025, 1, 1, 1, 00),
-                            LocalDateTime.of(2025, 1, 1, 1, 00));
+                            startDt,
+                            dueDt);
 
             ProjectCreateRequest request3 =
                     new ProjectCreateRequest(
@@ -118,8 +121,8 @@ public class ProjectServiceTest {
                             "project3",
                             "projectDescription",
                             "projectGoal",
-                            LocalDateTime.of(2025, 1, 1, 1, 00),
-                            LocalDateTime.of(2025, 1, 1, 1, 00));
+                            startDt,
+                            dueDt);
 
             ProjectCreateRequest request4 =
                     new ProjectCreateRequest(
@@ -127,8 +130,8 @@ public class ProjectServiceTest {
                             "project4",
                             "projectDescription",
                             "projectGoal",
-                            LocalDateTime.of(2025, 1, 1, 1, 00),
-                            LocalDateTime.of(2025, 1, 1, 1, 00));
+                            startDt,
+                            dueDt);
 
             ProjectInfoResponse response1 = projectService.createProject(request1);
             ProjectInfoResponse response2 = projectService.createProject(request2);
@@ -161,8 +164,8 @@ public class ProjectServiceTest {
                             "projectTitle",
                             "projectDescription",
                             "projectGoal",
-                            LocalDateTime.of(2025, 1, 1, 1, 00),
-                            LocalDateTime.of(2025, 1, 1, 1, 00));
+                            startDt,
+                            dueDt);
 
             ProjectInfoResponse response = projectService.createProject(request);
             Project project = projectRepository.findById(response.projectId()).get();

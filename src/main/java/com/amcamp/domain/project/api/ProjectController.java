@@ -22,10 +22,10 @@ public class ProjectController {
 
     @Operation(summary = "프로젝트 생성", description = "새로운 프로젝트를 생성합니다.")
     @PostMapping("/create")
-    public ResponseEntity<ProjectInfoResponse> projectCreate(
+    public ResponseEntity<Void> projectCreate(
             @RequestBody ProjectCreateRequest projectCreateRequest) {
-        ProjectInfoResponse response = projectService.createProject(projectCreateRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        projectService.createProject(projectCreateRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @Operation(
