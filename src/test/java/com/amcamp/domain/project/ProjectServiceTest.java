@@ -7,11 +7,11 @@ import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.domain.OauthInfo;
 import com.amcamp.domain.project.application.ProjectService;
-import com.amcamp.domain.project.dao.ProjectParticipantRepository;
 import com.amcamp.domain.project.dao.ProjectRepository;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
+import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
 import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.security.PrincipalDetails;
@@ -32,11 +32,10 @@ public class ProjectServiceTest {
     @Autowired private ProjectService projectService;
     @Autowired private TeamService teamService;
     @Autowired private MemberRepository memberRepository;
-    @Autowired private ProjectParticipantRepository projectParticipantRepository;
     @Autowired private ProjectRepository projectRepository;
 
-    private ProjectCreateRequest request;
     private Member member;
+    private Member anotherMember;
 
     private void loginAs(Member member) {
         UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());
@@ -46,20 +45,36 @@ public class ProjectServiceTest {
         SecurityContextHolder.getContext().setAuthentication(token);
     }
 
+    private void logout() {
+        SecurityContextHolder.clearContext();
+    }
+
     @BeforeEach
     private void setUp() {
         member =
                 Member.createMember(
-                        "testNickName",
+                        "member",
                         "testProfileImageUrl",
                         OauthInfo.createOauthInfo("testOauthId", "testOauthProvider"));
         memberRepository.save(member);
         loginAs(member);
+
+        anotherMember =
+                Member.createMember(
+                        "anotherMember",
+                        "testProfileImageUrl",
+                        OauthInfo.createOauthInfo("testOauthId", "testOauthProvider"));
+        memberRepository.save(anotherMember);
+    }
+
+    @Test
+    void 프로젝트를_생성하면_정상적으로_저장된다() {
         Long teamId =
                 teamService
                         .getTeamByCode(teamService.createTeam("팀 이름", "팀 설명").inviteCode())
                         .teamId();
-        request =
+
+        ProjectCreateRequest request =
                 new ProjectCreateRequest(
                         teamId,
                         "projectTitle",
@@ -67,10 +82,7 @@ public class ProjectServiceTest {
                         "projectGoal",
                         LocalDateTime.of(2025, 1, 1, 1, 00),
                         LocalDateTime.of(2025, 1, 1, 1, 00));
-    }
 
-    @Test
-    void 프로젝트를_생성하면_정상적으로_저장된다() {
         ProjectInfoResponse response = projectService.createProject(request);
         Project project = projectRepository.findById(response.projectId()).get();
         assertThat(project.getId()).isEqualTo(response.projectId());
@@ -79,7 +91,79 @@ public class ProjectServiceTest {
     @Nested
     class 프로젝트_조회 {
         @Test
+        void 팀_ID로_조회하면_전체_프로젝트가_정상적으로_반환된다() {
+            String inviteCode = teamService.createTeam("팀 이름", "팀 설명").inviteCode();
+            Long teamId = teamService.getTeamByCode(inviteCode).teamId();
+
+            ProjectCreateRequest request1 =
+                    new ProjectCreateRequest(
+                            teamId,
+                            "project1",
+                            "projectDescription",
+                            "projectGoal",
+                            LocalDateTime.of(2025, 1, 1, 1, 00),
+                            LocalDateTime.of(2025, 1, 1, 1, 00));
+            ProjectCreateRequest request2 =
+                    new ProjectCreateRequest(
+                            teamId,
+                            "project2",
+                            "projectDescription",
+                            "projectGoal",
+                            LocalDateTime.of(2025, 1, 1, 1, 00),
+                            LocalDateTime.of(2025, 1, 1, 1, 00));
+
+            ProjectCreateRequest request3 =
+                    new ProjectCreateRequest(
+                            teamId,
+                            "project3",
+                            "projectDescription",
+                            "projectGoal",
+                            LocalDateTime.of(2025, 1, 1, 1, 00),
+                            LocalDateTime.of(2025, 1, 1, 1, 00));
+
+            ProjectCreateRequest request4 =
+                    new ProjectCreateRequest(
+                            teamId,
+                            "project4",
+                            "projectDescription",
+                            "projectGoal",
+                            LocalDateTime.of(2025, 1, 1, 1, 00),
+                            LocalDateTime.of(2025, 1, 1, 1, 00));
+
+            ProjectInfoResponse response1 = projectService.createProject(request1);
+            ProjectInfoResponse response2 = projectService.createProject(request2);
+            // member logout 후 anotherMember 로그인
+            logout();
+            loginAs(anotherMember);
+            // 팀 참가
+            teamService.joinTeam(inviteCode);
+            // anotherMember 새 프로젝트 생성
+            ProjectInfoResponse response3 = projectService.createProject(request1);
+            ProjectInfoResponse response4 = projectService.createProject(request2);
+
+            ProjectListInfoResponse foundResponse = projectService.getProjectListInfo(teamId);
+            assertThat(foundResponse.participatingProjects().contains(response3));
+            assertThat(foundResponse.participatingProjects().contains(response4));
+            assertThat(foundResponse.nonParticipatingProjects().contains(response1));
+            assertThat(foundResponse.nonParticipatingProjects().contains(response2));
+        }
+
+        @Test
         void 프로젝트를_ID로_조회하면_정상적으로_반환된다() {
+
+            Long teamId =
+                    teamService
+                            .getTeamByCode(teamService.createTeam("팀 이름", "팀 설명").inviteCode())
+                            .teamId();
+            ProjectCreateRequest request =
+                    new ProjectCreateRequest(
+                            teamId,
+                            "projectTitle",
+                            "projectDescription",
+                            "projectGoal",
+                            LocalDateTime.of(2025, 1, 1, 1, 00),
+                            LocalDateTime.of(2025, 1, 1, 1, 00));
+
             ProjectInfoResponse response = projectService.createProject(request);
             Project project = projectRepository.findById(response.projectId()).get();
             ProjectInfoResponse foundResponse = projectService.getProjectInfo(project.getId());

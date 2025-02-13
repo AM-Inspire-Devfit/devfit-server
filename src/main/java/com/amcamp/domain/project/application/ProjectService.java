@@ -5,17 +5,22 @@ import com.amcamp.domain.participant.dao.ParticipantRepository;
 import com.amcamp.domain.participant.domain.Participant;
 import com.amcamp.domain.project.dao.ProjectParticipantRepository;
 import com.amcamp.domain.project.dao.ProjectRepository;
+import com.amcamp.domain.project.dao.ProjectRepositoryCustom;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.project.domain.ProjectParticipantRole;
 import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
+import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
 import com.amcamp.domain.team.dao.TeamRepository;
 import com.amcamp.domain.team.domain.Team;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.util.MemberUtil;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,29 +35,13 @@ public class ProjectService {
     private final MemberUtil memberUtil;
     private final ParticipantRepository participantRepository;
     private final ProjectParticipantRepository projectParticipantRepository;
-
-    public ProjectInfoResponse getProjectInfo(Long projectId) {
-        return ProjectInfoResponse.from(getProjectById(projectId));
-    }
+    private final ProjectRepositoryCustom projectRepositoryCustom;
 
     public ProjectInfoResponse createProject(ProjectCreateRequest request) {
-        // Team 불러오기
         Member member = memberUtil.getCurrentMember();
-        Team team =
-                teamRepository
-                        .findById(request.TeamId())
-                        .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_NOT_FOUND));
+        Team team = getTeam(request.TeamId());
+        Participant participant = getParticipant(member, team);
 
-        // 팀에 속한 사용자 정보 가져오기
-        Participant participant =
-                participantRepository
-                        .findByMemberAndTeam(member, team)
-                        .orElseThrow(
-                                () ->
-                                        new CommonException(
-                                                TeamErrorCode.TEAM_PARTICIPANT_NOT_FOUND));
-
-        // 프로젝트 생성
         Project project =
                 projectRepository.save(
                         Project.createProject(
@@ -63,18 +52,59 @@ public class ProjectService {
                                 request.startDt(),
                                 request.dueDt()));
 
-        // 사용자를 프로젝트 참가자(프로젝트 관리자)로 등록
         projectParticipantRepository.save(
                 ProjectParticipant.createProjectParticipant(
                         participant, project, ProjectParticipantRole.ADMIN));
-        // 생성된 프로젝트 저장
-
         return ProjectInfoResponse.from(project);
+    }
+
+    @Transactional(readOnly = true)
+    public ProjectInfoResponse getProjectInfo(Long projectId) {
+        return ProjectInfoResponse.from(getProjectById(projectId));
+    }
+
+    @Transactional(readOnly = true)
+    public ProjectListInfoResponse getProjectListInfo(Long teamId) {
+        List<Project> projectList = projectRepositoryCustom.findAllByTeamId(teamId);
+        Member member = memberUtil.getCurrentMember();
+        Team team = getTeam(teamId);
+
+        Participant participant = getParticipant(member, team);
+
+        Map<Boolean, List<ProjectInfoResponse>> partitionedProjects =
+                projectList.stream()
+                        .collect(
+                                Collectors.partitioningBy(
+                                        project -> isParticipant(project, participant),
+                                        Collectors.mapping(
+                                                ProjectInfoResponse::from, Collectors.toList())));
+
+        return new ProjectListInfoResponse(
+                partitionedProjects.get(true), partitionedProjects.get(false));
     }
 
     private Project getProjectById(Long projectId) {
         return projectRepository
                 .findById(projectId)
                 .orElseThrow(() -> new CommonException(ProjectErrorCode.PROJECT_NOT_FOUND));
+    }
+
+    // util methods
+    private Participant getParticipant(Member member, Team team) {
+        return participantRepository
+                .findByMemberAndTeam(member, team)
+                .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_NOT_FOUND));
+    }
+
+    private Team getTeam(Long teamId) {
+        return teamRepository
+                .findById(teamId)
+                .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_NOT_FOUND));
+    }
+
+    private Boolean isParticipant(Project project, Participant participant) {
+        return projectParticipantRepository
+                .findByProjectAndParticipant(project, participant)
+                .isPresent();
     }
 }
