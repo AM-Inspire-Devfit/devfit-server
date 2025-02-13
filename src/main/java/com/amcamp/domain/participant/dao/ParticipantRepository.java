@@ -6,7 +6,8 @@ import com.amcamp.domain.team.domain.Team;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ParticipantRepository extends JpaRepository<Participant, Long> {
+public interface ParticipantRepository
+        extends JpaRepository<Participant, Long>, ParticipantRepositoryCustom {
     Optional<Participant> findByMemberAndTeam(Member member, Team team);
 
     void deleteByTeam(Team team);

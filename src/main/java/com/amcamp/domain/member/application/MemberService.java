@@ -4,8 +4,11 @@ import com.amcamp.domain.auth.dao.RefreshTokenRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.dto.request.NicknameUpdateRequest;
 import com.amcamp.domain.member.dto.response.MemberInfoResponse;
+import com.amcamp.domain.member.dto.response.SelectedMemberResponse;
+import com.amcamp.domain.participant.dao.ParticipantRepository;
 import com.amcamp.global.util.MemberUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +19,7 @@ public class MemberService {
 
     private final MemberUtil memberUtil;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final ParticipantRepository participantRepository;
 
     public void logoutMember() {
         Member currentMember = memberUtil.getCurrentMember();
@@ -44,5 +48,12 @@ public class MemberService {
     public MemberInfoResponse getMemberInfo() {
         Member currentMember = memberUtil.getCurrentMember();
         return MemberInfoResponse.from(currentMember);
+    }
+
+    @Transactional(readOnly = true)
+    public Slice<SelectedMemberResponse> findThreeMembers(Long teamId, int pageSize) {
+        Member currentMember = memberUtil.getCurrentMember();
+        return participantRepository.findMemberByTeamExceptMember(
+                teamId, currentMember.getId(), pageSize);
     }
 }
