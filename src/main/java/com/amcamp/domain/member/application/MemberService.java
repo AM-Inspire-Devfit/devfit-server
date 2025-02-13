@@ -51,7 +51,7 @@ public class MemberService {
     }
 
     @Transactional(readOnly = true)
-    public Slice<SelectedMemberResponse> findThreeMembers(Long teamId, int pageSize) {
+    public Slice<SelectedMemberResponse> findSelectedMembers(Long teamId, int pageSize) {
         Member currentMember = memberUtil.getCurrentMember();
         return participantRepository.findMemberByTeamExceptMember(
                 teamId, currentMember.getId(), pageSize);

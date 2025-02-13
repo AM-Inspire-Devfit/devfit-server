@@ -58,6 +58,6 @@ public class MemberController {
             @Parameter(description = "페이지당 멤버 수", example = "1")
                     @RequestParam(value = "size", defaultValue = "3")
                     int pageSize) {
-        return memberService.findThreeMembers(teamId, pageSize);
+        return memberService.findSelectedMembers(teamId, pageSize);
     }
 }

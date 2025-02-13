@@ -1,7 +1,7 @@
 package com.amcamp.domain.member.application;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 
 import com.amcamp.domain.auth.dao.RefreshTokenRepository;
 import com.amcamp.domain.auth.domain.RefreshToken;
@@ -12,16 +12,24 @@ import com.amcamp.domain.member.domain.MemberStatus;
 import com.amcamp.domain.member.domain.OauthInfo;
 import com.amcamp.domain.member.dto.request.NicknameUpdateRequest;
 import com.amcamp.domain.member.dto.response.MemberInfoResponse;
+import com.amcamp.domain.member.dto.response.SelectedMemberResponse;
+import com.amcamp.domain.team.application.TeamService;
+import com.amcamp.domain.team.dto.request.TeamCreateRequest;
+import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
+import com.amcamp.domain.team.dto.response.TeamCheckResponse;
+import com.amcamp.domain.team.dto.response.TeamInviteCodeResponse;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.MemberErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
+import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Slice;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -32,6 +40,7 @@ import org.springframework.test.context.ActiveProfiles;
 class MemberServiceTest {
 
     @Autowired private MemberService memberService;
+    @Autowired private TeamService teamService;
     @Autowired private MemberRepository memberRepository;
     @Autowired private RefreshTokenRepository refreshTokenRepository;
 
@@ -50,6 +59,14 @@ class MemberServiceTest {
         SecurityContextHolder.getContext().setAuthentication(token);
 
         return member;
+    }
+
+    private void loginAs(Member member) {
+        UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());
+        UsernamePasswordAuthenticationToken token =
+                new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(token);
     }
 
     @Nested
@@ -156,5 +173,62 @@ class MemberServiceTest {
         assertThat(response.profileImageUrl()).isEqualTo("testProfileImageUrl");
         assertThat(response.role()).isEqualTo(MemberRole.USER);
         assertThat(response.status()).isEqualTo(MemberStatus.NORMAL);
+    }
+
+    @Nested
+    class 내가_속한_팀의_멤버를_조회_시 {
+        @Test
+        void 나를_포함한_멤버가_1명() {
+            // given
+            registerAuthenticatedMember();
+            TeamInviteCodeResponse teamInviteCodeResponse =
+                    teamService.createTeam(TeamCreateRequest.of("MyTeam", "This is my team"));
+            String inviteCode = teamInviteCodeResponse.inviteCode();
+            TeamCheckResponse teamCheckResponse =
+                    teamService.getTeamByCode(new TeamInviteCodeRequest(inviteCode));
+
+            // when
+            Slice<SelectedMemberResponse> results =
+                    memberService.findSelectedMembers(teamCheckResponse.teamId(), 3);
+
+            // then
+            assertThat(results.getContent()).hasSize(0);
+        }
+
+        @Test
+        void 나를_제외한_멤버가_3명() {
+            // given
+            registerAuthenticatedMember();
+            TeamInviteCodeResponse teamInviteCodeResponse =
+                    teamService.createTeam(TeamCreateRequest.of("MyTeam", "This is my team"));
+            String inviteCode = teamInviteCodeResponse.inviteCode();
+            TeamCheckResponse teamCheckResponse =
+                    teamService.getTeamByCode(new TeamInviteCodeRequest(inviteCode));
+
+            List<Member> requests =
+                    List.of(
+                            Member.createMember("member1", "url1", null), // 2L
+                            Member.createMember("member2", "url2", null), // 3L
+                            Member.createMember("member3", "url3", null), // 4L
+                            Member.createMember("member4", "url4", null), // 5L
+                            Member.createMember("member5", "url5", null)); // 6L
+
+            for (Member member : requests) {
+                memberRepository.save(member);
+                loginAs(member);
+                teamService.joinTeam(new TeamInviteCodeRequest(inviteCode));
+            }
+
+            // when
+            Slice<SelectedMemberResponse> results =
+                    memberService.findSelectedMembers(teamCheckResponse.teamId(), 2);
+
+            // then
+            assertThat(results.getContent()).hasSize(2);
+            assertThat(results)
+                    .extracting("memberId", "nickname", "profileImageUrl")
+                    .containsExactlyInAnyOrder(
+                            tuple(5L, "member4", "url4"), tuple(4L, "member3", "url3"));
+        }
     }
 }
