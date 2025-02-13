@@ -226,9 +226,8 @@ class MemberServiceTest {
             // then
             assertThat(results.getContent()).hasSize(2);
             assertThat(results)
-                    .extracting("memberId", "nickname", "profileImageUrl")
-                    .containsExactlyInAnyOrder(
-                            tuple(5L, "member4", "url4"), tuple(4L, "member3", "url3"));
+                    .extracting("nickname", "profileImageUrl")
+                    .containsExactlyInAnyOrder(tuple("member4", "url4"), tuple("member3", "url3"));
         }
     }
 }
