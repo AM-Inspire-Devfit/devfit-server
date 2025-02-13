@@ -22,6 +22,7 @@ import com.amcamp.global.util.RandomUtil;
 import com.amcamp.global.util.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,7 +66,7 @@ public class TeamService {
 
     public TeamCheckResponse getTeamByCode(TeamInviteCodeRequest teamInviteCodeRequest) {
         Team team = searchTeamByCode(teamInviteCodeRequest.inviteCode());
-        return new TeamCheckResponse(team.getId(), team.getTeamName());
+        return new TeamCheckResponse(team.getId(), team.getName());
     }
 
     public void joinTeam(TeamInviteCodeRequest teamInviteCodeRequest) {
@@ -176,5 +177,11 @@ public class TeamService {
         if (participant.getRole() != ParticipantRole.ADMIN) {
             throw new CommonException(TeamErrorCode.UNAUTHORIZED_ACCESS);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public Slice<TeamInfoResponse> findAllTeam(Long lastTeamId, int pageSize) {
+        Member currentMember = memberUtil.getCurrentMember();
+        return teamRepository.findAllTeamByMemberId(currentMember.getId(), lastTeamId, pageSize);
     }
 }
