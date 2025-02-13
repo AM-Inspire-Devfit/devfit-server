@@ -1,4 +1,4 @@
-package com.amcamp.domain.participant.dao;
+package com.amcamp.domain.member.dao;
 
 import static com.amcamp.domain.member.domain.QMember.member;
 import static com.amcamp.domain.participant.domain.QParticipant.participant;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
-public class ParticipantRepositoryImpl implements ParticipantRepositoryCustom {
+public class MemberRepositoryImpl implements MemberRepositoryCustom {
 
     private final JPAQueryFactory jpaQueryFactory;
 

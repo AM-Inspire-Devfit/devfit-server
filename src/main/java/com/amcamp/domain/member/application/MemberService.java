@@ -1,11 +1,11 @@
 package com.amcamp.domain.member.application;
 
 import com.amcamp.domain.auth.dao.RefreshTokenRepository;
+import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.dto.request.NicknameUpdateRequest;
 import com.amcamp.domain.member.dto.response.MemberInfoResponse;
 import com.amcamp.domain.member.dto.response.SelectedMemberResponse;
-import com.amcamp.domain.participant.dao.ParticipantRepository;
 import com.amcamp.global.util.MemberUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
@@ -19,7 +19,7 @@ public class MemberService {
 
     private final MemberUtil memberUtil;
     private final RefreshTokenRepository refreshTokenRepository;
-    private final ParticipantRepository participantRepository;
+    private final MemberRepository memberRepository;
 
     public void logoutMember() {
         Member currentMember = memberUtil.getCurrentMember();
@@ -53,7 +53,7 @@ public class MemberService {
     @Transactional(readOnly = true)
     public Slice<SelectedMemberResponse> findSelectedMembers(Long teamId, int pageSize) {
         Member currentMember = memberUtil.getCurrentMember();
-        return participantRepository.findMemberByTeamExceptMember(
+        return memberRepository.findMemberByTeamExceptMember(
                 teamId, currentMember.getId(), pageSize);
     }
 }
