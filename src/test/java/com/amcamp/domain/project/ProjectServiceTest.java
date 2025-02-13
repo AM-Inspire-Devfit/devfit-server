@@ -13,6 +13,8 @@ import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
 import com.amcamp.domain.team.application.TeamService;
+import com.amcamp.domain.team.dto.request.TeamCreateRequest;
+import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.security.PrincipalDetails;
 import java.time.LocalDateTime;
@@ -72,11 +74,10 @@ public class ProjectServiceTest {
 
     @Test
     void 프로젝트를_생성하면_정상적으로_저장된다() {
-        Long teamId =
-                teamService
-                        .getTeamByCode(teamService.createTeam("팀 이름", "팀 설명").inviteCode())
-                        .teamId();
-
+        TeamCreateRequest teamCreateRequest = new TeamCreateRequest("팀 이름", "팀 설명");
+        String inviteCode = teamService.createTeam(teamCreateRequest).inviteCode();
+        TeamInviteCodeRequest teamInviteCodeRequest = new TeamInviteCodeRequest(inviteCode);
+        Long teamId = teamService.getTeamByCode(teamInviteCodeRequest).teamId();
         ProjectCreateRequest request =
                 new ProjectCreateRequest(
                         teamId,
@@ -95,8 +96,10 @@ public class ProjectServiceTest {
     class 프로젝트_조회 {
         @Test
         void 팀_ID로_조회하면_전체_프로젝트가_정상적으로_반환된다() {
-            String inviteCode = teamService.createTeam("팀 이름", "팀 설명").inviteCode();
-            Long teamId = teamService.getTeamByCode(inviteCode).teamId();
+            TeamCreateRequest teamCreateRequest = new TeamCreateRequest("팀 이름", "팀 설명");
+            String inviteCode = teamService.createTeam(teamCreateRequest).inviteCode();
+            TeamInviteCodeRequest teamInviteCodeRequest = new TeamInviteCodeRequest(inviteCode);
+            Long teamId = teamService.getTeamByCode(teamInviteCodeRequest).teamId();
 
             ProjectCreateRequest request1 =
                     new ProjectCreateRequest(
@@ -139,7 +142,7 @@ public class ProjectServiceTest {
             logout();
             loginAs(anotherMember);
             // 팀 참가
-            teamService.joinTeam(inviteCode);
+            teamService.joinTeam(teamInviteCodeRequest);
             // anotherMember 새 프로젝트 생성
             ProjectInfoResponse response3 = projectService.createProject(request1);
             ProjectInfoResponse response4 = projectService.createProject(request2);
@@ -153,11 +156,11 @@ public class ProjectServiceTest {
 
         @Test
         void 프로젝트를_ID로_조회하면_정상적으로_반환된다() {
+            TeamCreateRequest teamCreateRequest = new TeamCreateRequest("팀 이름", "팀 설명");
+            String inviteCode = teamService.createTeam(teamCreateRequest).inviteCode();
+            TeamInviteCodeRequest teamInviteCodeRequest = new TeamInviteCodeRequest(inviteCode);
+            Long teamId = teamService.getTeamByCode(teamInviteCodeRequest).teamId();
 
-            Long teamId =
-                    teamService
-                            .getTeamByCode(teamService.createTeam("팀 이름", "팀 설명").inviteCode())
-                            .teamId();
             ProjectCreateRequest request =
                     new ProjectCreateRequest(
                             teamId,
