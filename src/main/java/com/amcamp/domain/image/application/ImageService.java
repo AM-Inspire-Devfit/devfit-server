@@ -114,4 +114,8 @@ public class ImageService {
                 + "/"
                 + createImageFileName(memberId, imageKey, imageFileExtension);
     }
+
+    public void deleteAllImage() {
+        imageRepository.deleteAll();
+    }
 }
