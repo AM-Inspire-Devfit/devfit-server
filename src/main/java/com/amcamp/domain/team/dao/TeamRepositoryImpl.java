@@ -1,7 +1,7 @@
 package com.amcamp.domain.team.dao;
 
-import static com.amcamp.domain.participant.domain.QParticipant.participant;
 import static com.amcamp.domain.team.domain.QTeam.team;
+import static com.amcamp.domain.team.domain.QTeamParticipant.teamParticipant;
 
 import com.amcamp.domain.team.dto.response.TeamInfoResponse;
 import com.amcamp.global.exception.CommonException;
@@ -34,11 +34,11 @@ public class TeamRepositoryImpl implements TeamRepositoryCustom {
                                         team.name,
                                         team.description,
                                         team.emoji))
-                        .from(participant)
-                        .leftJoin(participant.team, team)
-                        .on(team.id.eq(participant.team.id))
-                        .where(lastTeamId(lastTeamId), participant.member.id.eq(memberId))
-                        .orderBy(participant.createdDt.desc())
+                        .from(teamParticipant)
+                        .leftJoin(teamParticipant.team, team)
+                        .on(team.id.eq(teamParticipant.team.id))
+                        .where(lastTeamId(lastTeamId), teamParticipant.member.id.eq(memberId))
+                        .orderBy(teamParticipant.createdDt.desc())
                         .limit(pageSize + 1)
                         .fetch();
 

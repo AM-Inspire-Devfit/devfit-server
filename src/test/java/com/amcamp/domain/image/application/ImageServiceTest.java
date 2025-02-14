@@ -3,6 +3,7 @@ package com.amcamp.domain.image.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.amcamp.IntegrationTest;
 import com.amcamp.domain.image.dao.ImageRepository;
 import com.amcamp.domain.image.domain.Image;
 import com.amcamp.domain.image.domain.ImageFileExtension;
@@ -20,15 +21,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest
-@ActiveProfiles("test")
-class ImageServiceTest {
+class ImageServiceTest extends IntegrationTest {
 
     @Autowired private ImageService imageService;
     @Autowired private ImageRepository imageRepository;

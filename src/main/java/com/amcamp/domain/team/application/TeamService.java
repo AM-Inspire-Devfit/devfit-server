@@ -3,11 +3,11 @@ package com.amcamp.domain.team.application;
 import static com.amcamp.global.common.constants.RedisConstants.*;
 
 import com.amcamp.domain.member.domain.Member;
-import com.amcamp.domain.participant.dao.ParticipantRepository;
-import com.amcamp.domain.participant.domain.Participant;
-import com.amcamp.domain.participant.domain.ParticipantRole;
+import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.dao.TeamRepository;
 import com.amcamp.domain.team.domain.Team;
+import com.amcamp.domain.team.domain.TeamParticipant;
+import com.amcamp.domain.team.domain.TeamParticipantRole;
 import com.amcamp.domain.team.dto.request.TeamCreateRequest;
 import com.amcamp.domain.team.dto.request.TeamEmojiUpdateRequest;
 import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
@@ -33,7 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class TeamService {
     private final MemberUtil memberUtil;
     private final TeamRepository teamRepository;
-    private final ParticipantRepository participantRepository;
+    private final TeamParticipantRepository teamParticipantRepository;
     private final RedisUtil redisUtil;
     private final RandomUtil randomUtil;
 
@@ -45,9 +45,9 @@ public class TeamService {
                         teamCreateRequest.teamDescription());
         teamRepository.save(team);
 
-        Participant participant =
-                Participant.createParticipant(member, team, ParticipantRole.ADMIN);
-        participantRepository.save(participant);
+        TeamParticipant teamParticipant =
+                TeamParticipant.createParticipant(member, team, TeamParticipantRole.ADMIN);
+        teamParticipantRepository.save(teamParticipant);
 
         String code = randomUtil.generateCode(team.getId());
 
@@ -74,8 +74,9 @@ public class TeamService {
         Team team = searchTeamByCode(teamInviteCodeRequest.inviteCode());
         validateTeamJoin(member, team);
 
-        Participant participant = Participant.createParticipant(member, team, ParticipantRole.USER);
-        participantRepository.save(participant);
+        TeamParticipant teamParticipant =
+                TeamParticipant.createParticipant(member, team, TeamParticipantRole.USER);
+        teamParticipantRepository.save(teamParticipant);
     }
 
     public TeamInfoResponse editTeam(Long teamId, TeamUpdateRequest teamUpdateRequest) {
@@ -107,7 +108,7 @@ public class TeamService {
         Team team = validateTeam(teamId);
         validateAdminParticipant(member, team);
 
-        participantRepository.deleteByTeam(team);
+        teamParticipantRepository.deleteByTeam(team);
 
         redisUtil
                 .getData(TEAM_ID_PREFIX.formatted(teamId))
@@ -154,27 +155,27 @@ public class TeamService {
     }
 
     private void validateTeamJoin(Member member, Team team) {
-        if (participantRepository.findByMemberAndTeam(member, team).isPresent()) {
+        if (teamParticipantRepository.findByMemberAndTeam(member, team).isPresent()) {
             throw new CommonException(TeamErrorCode.MEMBER_ALREADY_JOINED);
         }
     }
 
     private void validateParticipant(Member member, Team team) {
-        if (!participantRepository.findByMemberAndTeam(member, team).isPresent()) {
+        if (!teamParticipantRepository.findByMemberAndTeam(member, team).isPresent()) {
             throw new CommonException(TeamErrorCode.TEAM_PARTICIPANT_NOT_FOUND);
         }
     }
 
     private void validateAdminParticipant(Member member, Team team) {
-        Participant participant =
-                participantRepository
+        TeamParticipant teamParticipant =
+                teamParticipantRepository
                         .findByMemberAndTeam(member, team)
                         .orElseThrow(
                                 () ->
                                         new CommonException(
                                                 TeamErrorCode.TEAM_PARTICIPANT_NOT_FOUND));
 
-        if (participant.getRole() != ParticipantRole.ADMIN) {
+        if (teamParticipant.getRole() != TeamParticipantRole.ADMIN) {
             throw new CommonException(TeamErrorCode.UNAUTHORIZED_ACCESS);
         }
     }

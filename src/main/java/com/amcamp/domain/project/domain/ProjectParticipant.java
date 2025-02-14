@@ -1,7 +1,7 @@
 package com.amcamp.domain.project.domain;
 
 import com.amcamp.domain.common.model.BaseTimeEntity;
-import com.amcamp.domain.participant.domain.Participant;
+import com.amcamp.domain.team.domain.TeamParticipant;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,7 +18,7 @@ public class ProjectParticipant extends BaseTimeEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_participant_id")
-    private Participant participant;
+    private TeamParticipant teamParticipant;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")

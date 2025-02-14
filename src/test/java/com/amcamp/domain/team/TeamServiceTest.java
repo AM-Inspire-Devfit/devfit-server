@@ -6,15 +6,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 
+import com.amcamp.IntegrationTest;
 import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.domain.OauthInfo;
-import com.amcamp.domain.participant.dao.ParticipantRepository;
-import com.amcamp.domain.participant.domain.Participant;
-import com.amcamp.domain.participant.domain.ParticipantRole;
 import com.amcamp.domain.team.application.TeamService;
+import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.dao.TeamRepository;
 import com.amcamp.domain.team.domain.Team;
+import com.amcamp.domain.team.domain.TeamParticipant;
+import com.amcamp.domain.team.domain.TeamParticipantRole;
 import com.amcamp.domain.team.dto.request.TeamCreateRequest;
 import com.amcamp.domain.team.dto.request.TeamEmojiUpdateRequest;
 import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
@@ -33,20 +34,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Slice;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-@SpringBootTest
-@ActiveProfiles("test")
-public class TeamServiceTest {
+public class TeamServiceTest extends IntegrationTest {
+
     @Autowired private TeamRepository teamRepository;
     @Autowired private MemberRepository memberRepository;
-    @Autowired private ParticipantRepository participantRepository;
+    @Autowired private TeamParticipantRepository teamParticipantRepository;
     @Autowired private TeamService teamService;
     @Autowired private RedisUtil redisUtil;
     @Autowired private MemberUtil memberUtil;
@@ -97,15 +95,15 @@ public class TeamServiceTest {
                     teamRepository
                             .findById(teamCheckResponse.teamId())
                             .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_NOT_FOUND));
-            Participant participant =
-                    participantRepository
+            TeamParticipant teamParticipant =
+                    teamParticipantRepository
                             .findByMemberAndTeam(currentMember, savedTeam)
                             .orElseThrow(
                                     () ->
                                             new CommonException(
                                                     TeamErrorCode.TEAM_PARTICIPANT_NOT_FOUND));
 
-            assertThat(participant.getRole()).isEqualTo(ParticipantRole.ADMIN);
+            assertThat(teamParticipant.getRole()).isEqualTo(TeamParticipantRole.ADMIN);
             assertThat(savedTeam.getEmoji()).isEqualTo("🍇");
         }
     }
@@ -210,17 +208,17 @@ public class TeamServiceTest {
                             .findById(teamCheckResponse.teamId())
                             .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_NOT_FOUND));
 
-            Participant participant =
-                    participantRepository
+            TeamParticipant teamParticipant =
+                    teamParticipantRepository
                             .findByMemberAndTeam(newMember, savedTeam)
                             .orElseThrow(
                                     () ->
                                             new CommonException(
                                                     TeamErrorCode.TEAM_PARTICIPANT_NOT_FOUND));
 
-            assertThat(participant.getMember()).isEqualTo(newMember);
-            assertThat(participant.getRole()).isEqualTo(ParticipantRole.USER);
-            assertThat(participant.getTeam()).isEqualTo(savedTeam);
+            assertThat(teamParticipant.getMember()).isEqualTo(newMember);
+            assertThat(teamParticipant.getRole()).isEqualTo(TeamParticipantRole.USER);
+            assertThat(teamParticipant.getTeam()).isEqualTo(savedTeam);
         }
     }
 
@@ -489,7 +487,7 @@ public class TeamServiceTest {
             // 1. 팀 삭제 확인
             assertThat(teamRepository.findById(teamId)).isEmpty();
             // 2. 팀 참가자 삭제 확인
-            assertThat(participantRepository.findByTeamId(teamId)).isEmpty();
+            assertThat(teamParticipantRepository.findByTeamId(teamId)).isEmpty();
             // 3. 초대 코드가 Redis에서 삭제되었는지 확인
             Optional<String> inviteCodeInRedisAfterDelete =
                     redisUtil.getData(TEAM_ID_PREFIX.formatted(teamId));
