@@ -1,8 +1,7 @@
-package com.amcamp.domain.participant.domain;
+package com.amcamp.domain.team.domain;
 
 import com.amcamp.domain.common.model.BaseTimeEntity;
 import com.amcamp.domain.member.domain.Member;
-import com.amcamp.domain.team.domain.Team;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -12,10 +11,10 @@ import lombok.NoArgsConstructor;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Participant extends BaseTimeEntity {
+public class TeamParticipant extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "participant_id")
+    @Column(name = "team_participant_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -27,16 +26,17 @@ public class Participant extends BaseTimeEntity {
     private Team team;
 
     @Enumerated(EnumType.STRING)
-    private ParticipantRole role;
+    private TeamParticipantRole role;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private Participant(Member member, Team team, ParticipantRole role) {
+    private TeamParticipant(Member member, Team team, TeamParticipantRole role) {
         this.member = member;
         this.team = team;
         this.role = role;
     }
 
-    public static Participant createParticipant(Member member, Team team, ParticipantRole role) {
-        return Participant.builder().member(member).team(team).role(role).build();
+    public static TeamParticipant createParticipant(
+            Member member, Team team, TeamParticipantRole role) {
+        return TeamParticipant.builder().member(member).team(team).role(role).build();
     }
 }
