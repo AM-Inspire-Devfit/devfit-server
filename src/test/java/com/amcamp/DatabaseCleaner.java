@@ -2,11 +2,11 @@ package com.amcamp;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.metamodel.EntityType;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.hibernate.Session;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
@@ -23,11 +23,11 @@ public class DatabaseCleaner implements InitializingBean {
         entityManager.unwrap(Session.class).doWork(this::extractTableNames);
     }
 
-    private void extractTableNames(Connection connection) throws SQLException {
+    private void extractTableNames(Connection conn) {
         tableNames =
                 entityManager.getMetamodel().getEntities().stream()
-                        .map(EntityType::getName)
-                        .toList();
+                        .map(e -> e.getName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase())
+                        .collect(Collectors.toList());
     }
 
     public void execute() {
