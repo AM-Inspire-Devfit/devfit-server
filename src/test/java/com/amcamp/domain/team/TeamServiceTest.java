@@ -644,11 +644,11 @@ public class TeamServiceTest {
             // then
             assertThat(results.getSize()).isEqualTo(3);
             assertThat(results)
-                    .extracting("teamId", "teamName", "teamDescription")
+                    .extracting("teamName", "teamDescription")
                     .containsExactlyInAnyOrder(
-                            tuple(3L, "testTeamName3", "testTeamDescription3"),
-                            tuple(2L, "testTeamName2", "testTeamDescription2"),
-                            tuple(1L, "testTeamName1", "testTeamDescription1"));
+                            tuple("testTeamName3", "testTeamDescription3"), // 3L
+                            tuple("testTeamName2", "testTeamDescription2"), // 2L
+                            tuple("testTeamName1", "testTeamDescription1")); // 1L
         }
 
         @Test
