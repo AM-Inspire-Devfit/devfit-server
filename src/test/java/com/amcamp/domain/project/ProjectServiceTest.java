@@ -100,10 +100,10 @@ public class ProjectServiceTest extends IntegrationTest {
                 new ProjectCreateRequest(
                         teamId,
                         "testProjectTitle",
-                        "testProjectDescription",
                         "testProjectGoal",
                         startDt,
-                        dueDt);
+                        dueDt,
+                        "testProjectDescription");
 
         // when
         projectService.createProject(request);
@@ -191,11 +191,11 @@ public class ProjectServiceTest extends IntegrationTest {
             ProjectCreateRequest request =
                     new ProjectCreateRequest(
                             teamId,
-                            "projectTitle",
-                            "projectDescription",
-                            "projectGoal",
+                            "testProjectTitle",
+                            "testProjectGoal",
                             startDt,
-                            dueDt);
+                            dueDt,
+                            "testProjectDescription");
 
             projectService.createProject(request);
             Project project = projectRepository.findById(1L).get();

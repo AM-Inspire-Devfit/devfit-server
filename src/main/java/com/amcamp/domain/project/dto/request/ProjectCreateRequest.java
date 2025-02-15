@@ -22,12 +22,12 @@ public record ProjectCreateRequest(
                 String projectGoal,
         @Schema(description = "프로젝트 시작 날짜", example = "2024-01-01T00:00", required = true)
                 @JsonProperty("start_dt")
-                @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+                @JsonFormat(shape = JsonFormat.Shape.STRING)
                 @NotNull
                 LocalDateTime startDt,
         @Schema(description = "프로젝트 마감 날짜", example = "2025-01-01T00:00", required = true)
                 @JsonProperty("due_dt")
-                @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+                @JsonFormat(shape = JsonFormat.Shape.STRING)
                 @NotNull
                 LocalDateTime dueDt,
         @Schema(description = "프로젝트 설명", example = "LG CNS AM Inspire Camp 사이드 프로젝트")

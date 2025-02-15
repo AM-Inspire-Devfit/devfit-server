@@ -39,7 +39,7 @@ public class ProjectService {
 
     public void createProject(ProjectCreateRequest request) {
         Member member = memberUtil.getCurrentMember();
-        Team team = getTeam(request.TeamId());
+        Team team = getTeam(request.teamId());
         TeamParticipant teamParticipant = getTeamParticipant(member, team);
         Project project =
                 projectRepository.save(
