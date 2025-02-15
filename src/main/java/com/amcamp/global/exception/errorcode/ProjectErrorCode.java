@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 public enum ProjectErrorCode implements BaseErrorCode {
-    PROJECT_NOT_FOUND(HttpStatus.BAD_REQUEST, "요청한 project 를 찾을 수 없습니다.");
+    PROJECT_NOT_FOUND(HttpStatus.BAD_REQUEST, "project 를 찾을 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

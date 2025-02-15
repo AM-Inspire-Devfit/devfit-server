@@ -1,5 +1,7 @@
 package com.amcamp.domain.project.domain;
 
+import com.amcamp.global.exception.CommonException;
+import com.amcamp.global.exception.errorcode.GlobalErrorCode;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -28,6 +30,9 @@ public class ToDoInfo {
     }
 
     public static ToDoInfo createToDoInfo(LocalDateTime startDt, LocalDateTime dueDt) {
+        if (startDt.isAfter(dueDt) || startDt.isBefore(LocalDateTime.now())) {
+            throw new CommonException(GlobalErrorCode.INVALID_DATE_ERROR);
+        }
         return ToDoInfo.builder()
                 .startDt(startDt)
                 .dueDt(dueDt)
