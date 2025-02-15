@@ -30,6 +30,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Slice;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -175,7 +176,7 @@ class MemberServiceTest extends IntegrationTest {
     @Nested
     class 내가_속한_팀의_멤버를_조회_시 {
         @Test
-        void 나를_포함한_멤버가_1명() {
+        void 팀장을_포함한_멤버가_1명() {
             // given
             registerAuthenticatedMember();
             TeamInviteCodeResponse teamInviteCodeResponse =
@@ -185,15 +186,15 @@ class MemberServiceTest extends IntegrationTest {
                     teamService.getTeamByCode(new TeamInviteCodeRequest(inviteCode));
 
             // when
-            List<BasicMemberResponse> results =
-                    memberService.findSelectedMembers(teamCheckResponse.teamId(), 3);
+            Slice<BasicMemberResponse> results =
+                    memberService.findAllMembers(teamCheckResponse.teamId(), 3);
 
             // then
-            assertThat(results).hasSize(0);
+            assertThat(results.getContent()).hasSize(0);
         }
 
         @Test
-        void 나를_제외한_멤버가_3명() {
+        void 팀장을_제외한_멤버가_3명() {
             // given
             registerAuthenticatedMember();
             TeamInviteCodeResponse teamInviteCodeResponse =
@@ -217,15 +218,15 @@ class MemberServiceTest extends IntegrationTest {
             }
 
             // when
-            List<BasicMemberResponse> results =
-                    memberService.findSelectedMembers(teamCheckResponse.teamId(), 2);
+            Slice<BasicMemberResponse> results =
+                    memberService.findAllMembers(teamCheckResponse.teamId(), 2);
 
             // then
-            assertThat(results).hasSize(2);
+            assertThat(results.getContent()).hasSize(2);
             assertThat(results)
                     .extracting("memberId", "nickname", "profileImageUrl")
                     .containsExactlyInAnyOrder(
-                            tuple(5L, "member4", "url4"), tuple(4L, "member3", "url3"));
+                            tuple(6L, "member5", "url5"), tuple(5L, "member4", "url4"));
         }
     }
 }

@@ -10,6 +10,7 @@ import com.amcamp.IntegrationTest;
 import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.domain.OauthInfo;
+import com.amcamp.domain.member.dto.response.BasicMemberResponse;
 import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.dao.TeamRepository;
@@ -656,5 +657,39 @@ public class TeamServiceTest extends IntegrationTest {
                     .isInstanceOf(CommonException.class)
                     .hasMessage(TeamErrorCode.TEAM_NOT_EXISTS.getMessage());
         }
+    }
+
+    @Test
+    void 회원이_참여한_팀의_팀장_정보를_반환한다() {
+        // given
+        TeamInviteCodeResponse inviteCodeResponse =
+                teamService.createTeam(new TeamCreateRequest("팀 이름", "팀 설명"));
+
+        TeamCheckResponse teamCheckResponse =
+                teamService.getTeamByCode(
+                        new TeamInviteCodeRequest(inviteCodeResponse.inviteCode()));
+        Long teamId = teamCheckResponse.teamId();
+
+        // when
+        BasicMemberResponse result = teamService.findTeamAdmin(teamId);
+
+        // then
+        assertThat(result)
+                .extracting("memberId", "nickname", "profileImageUrl")
+                .containsExactly(1L, "testNickname", "testProfileImageUrl");
+
+        // 다른 멤버가 팀 참가 후 팀장 정보를 조회했을 때도 동일한지 확인
+        Member userMember =
+                memberRepository.save(Member.createMember("user", "testProfileImageUrl", null));
+        loginAs(userMember);
+        teamService.joinTeam(new TeamInviteCodeRequest(inviteCodeResponse.inviteCode()));
+
+        // when
+        BasicMemberResponse anotherResult = teamService.findTeamAdmin(teamId);
+
+        // then
+        assertThat(result)
+                .extracting("memberId", "nickname", "profileImageUrl")
+                .containsExactly(1L, "testNickname", "testProfileImageUrl");
     }
 }
