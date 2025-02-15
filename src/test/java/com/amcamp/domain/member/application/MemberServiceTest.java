@@ -13,8 +13,8 @@ import com.amcamp.domain.member.domain.MemberRole;
 import com.amcamp.domain.member.domain.MemberStatus;
 import com.amcamp.domain.member.domain.OauthInfo;
 import com.amcamp.domain.member.dto.request.NicknameUpdateRequest;
+import com.amcamp.domain.member.dto.response.BasicMemberResponse;
 import com.amcamp.domain.member.dto.response.MemberInfoResponse;
-import com.amcamp.domain.member.dto.response.SelectedMemberResponse;
 import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.domain.team.dto.request.TeamCreateRequest;
 import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
@@ -186,7 +186,7 @@ class MemberServiceTest extends IntegrationTest {
                     teamService.getTeamByCode(new TeamInviteCodeRequest(inviteCode));
 
             // when
-            Slice<SelectedMemberResponse> results =
+            Slice<BasicMemberResponse> results =
                     memberService.findSelectedMembers(teamCheckResponse.teamId(), 3);
 
             // then
@@ -218,7 +218,7 @@ class MemberServiceTest extends IntegrationTest {
             }
 
             // when
-            Slice<SelectedMemberResponse> results =
+            Slice<BasicMemberResponse> results =
                     memberService.findSelectedMembers(teamCheckResponse.teamId(), 2);
 
             // then
