@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
@@ -52,21 +51,22 @@ public class MemberController {
         return memberService.getMemberInfo();
     }
 
-    @Operation(summary = "팀에 속한 회원 이미지 조회", description = "멤버 페이지에서 팀에 속한 회원을 세 명씩 조회합니다.")
-    @GetMapping("/image")
-    public List<BasicMemberResponse> memberFindSelected(
-            @Parameter(description = "팀 ID") @RequestParam Long teamId,
-            @Parameter(description = "페이지당 멤버 수", example = "1")
-                    @RequestParam(value = "size", defaultValue = "3")
-                    int pageSize) {
-        return memberService.findSelectedMembers(teamId, pageSize);
-    }
+    //    @Operation(summary = "팀에 속한 회원 이미지 조회", description = "멤버 페이지에서 팀에 속한 회원을 세 명씩 조회합니다.")
+    //    @GetMapping("/image")
+    //    public List<BasicMemberResponse> memberFindSelected(
+    //            @Parameter(description = "팀 ID") @RequestParam Long teamId,
+    //            @Parameter(description = "페이지당 멤버 수", example = "1")
+    //                    @RequestParam(value = "size", defaultValue = "3")
+    //                    int pageSize) {
+    //        return memberService.findSelectedMembers(teamId, pageSize);
+    //    }
 
     @Operation(summary = "팀에 속한 회원 목록 조회", description = "멤버 페이지에서 팀장을 제외한 회원을 모두 조회합니다.")
     @GetMapping("/list")
     public Slice<BasicMemberResponse> memberFindAll(
             @Parameter(description = "팀 ID") @RequestParam Long teamId,
-            @Parameter(description = "페이지당 멤버 수", example = "1") @RequestParam(value = "size")
+            @Parameter(description = "페이지당 멤버 수", example = "1")
+                    @RequestParam(value = "size", defaultValue = "3")
                     int pageSize) {
         return memberService.findAllMembers(teamId, pageSize);
     }

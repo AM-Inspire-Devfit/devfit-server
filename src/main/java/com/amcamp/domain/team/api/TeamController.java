@@ -81,6 +81,12 @@ public class TeamController {
         return teamService.getTeamInfo(teamId);
     }
 
+    @Operation(summary = "팀장 조회", description = "멤버 페이지에서 팀장을 제외한 회원을 모두 조회합니다.")
+    @GetMapping("/{teamId}/admin")
+    public BasicMemberResponse teamFindAdmin(@PathVariable Long teamId) {
+        return teamService.findTeamAdmin(teamId);
+    }
+
     @Operation(summary = "팀 목록 조회", description = "회원이 참여한 팀 목록을 조회합니다.")
     @GetMapping("/list")
     public Slice<TeamInfoResponse> teamFindAll(
@@ -90,11 +96,5 @@ public class TeamController {
             @Parameter(description = "페이지당 팀 수", example = "1") @RequestParam(value = "size")
                     int pageSize) {
         return teamService.findAllTeam(lastTeamId, pageSize);
-    }
-
-    @Operation(summary = "팀에 속한 회원 목록 조회", description = "멤버 페이지에서 팀장을 제외한 회원을 모두 조회합니다.")
-    @GetMapping("/{teamId}/admin")
-    public BasicMemberResponse teamFindAdmin(@PathVariable Long teamId) {
-        return teamService.findTeamAdmin(teamId);
     }
 }

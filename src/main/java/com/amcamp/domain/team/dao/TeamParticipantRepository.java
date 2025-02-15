@@ -4,10 +4,11 @@ import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.dto.response.BasicMemberResponse;
 import com.amcamp.domain.team.domain.Team;
 import com.amcamp.domain.team.domain.TeamParticipant;
-import java.util.List;
+import com.amcamp.domain.team.domain.TeamParticipantRole;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface TeamParticipantRepository
         extends JpaRepository<TeamParticipant, Long>, TeamParticipantRepositoryCustom {
@@ -17,25 +18,19 @@ public interface TeamParticipantRepository
 
     Optional<TeamParticipant> findByTeamId(Long teamId);
 
-    @Query(
-            value =
-                    "SELECT m.id, m.nickname, m.profileImageUrl "
-                            + "FROM member m "
-                            + "JOIN team_participant tp ON m.id = tp.member_id "
-                            + "WHERE tp.team_id = :teamId AND m.id != :memberId "
-                            + "ORDER BY tp.created_dt DESC "
-                            + "LIMIT :pageSize",
-            nativeQuery = true)
-    List<BasicMemberResponse> findMemberByTeamExceptMember(
-            Long teamId, Long memberId, int pageSize);
+    //    @Query("SELECT m.id, m.nickname, m.profileImageUrl "
+    //                            + "FROM Member m "
+    //                            + "JOIN TeamParticipant tp ON m.id = tp.member.id "
+    //                            + "WHERE tp.team.id = :teamId "
+    //                            + "AND tp.role = :role")
+    //    BasicMemberResponse findAdmin(Long teamId, TeamParticipantRole role);
 
     @Query(
-            value =
-                    "SELECT m.id, m.nickname, m.profileImageUrl "
-                            + "FROM member m "
-                            + "JOIN team_participant tp ON m.id = tp.member_id "
-                            + "WHERE tp.team_id = :teamId "
-                            + "AND m.id != :memberId "
-                            + "AND tp.role = 'TEAM_LEADER' ")
-    BasicMemberResponse findAdmin(Long teamId);
+            "SELECT new com.amcamp.domain.member.dto.response.BasicMemberResponse(m.id, m.nickname, m.profileImageUrl) "
+                    + "FROM Member m "
+                    + "JOIN TeamParticipant tp ON m.id = tp.member.id "
+                    + "WHERE tp.team.id = :teamId "
+                    + "AND tp.role = :role ")
+    BasicMemberResponse findAdmin(
+            @Param("teamId") Long teamId, @Param("role") TeamParticipantRole role);
 }

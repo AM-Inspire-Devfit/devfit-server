@@ -6,8 +6,8 @@ import com.amcamp.domain.member.dto.request.NicknameUpdateRequest;
 import com.amcamp.domain.member.dto.response.BasicMemberResponse;
 import com.amcamp.domain.member.dto.response.MemberInfoResponse;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
+import com.amcamp.domain.team.domain.TeamParticipantRole;
 import com.amcamp.global.util.MemberUtil;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -51,16 +51,16 @@ public class MemberService {
         return MemberInfoResponse.from(currentMember);
     }
 
-    @Transactional(readOnly = true)
-    public List<BasicMemberResponse> findSelectedMembers(Long teamId, int pageSize) {
-        Member currentMember = memberUtil.getCurrentMember();
-        return teamParticipantRepository.findMemberByTeamExceptMember(
-                teamId, currentMember.getId(), pageSize);
-    }
+    //    @Transactional(readOnly = true)
+    //    public List<BasicMemberResponse> findSelectedMembers(Long teamId, int pageSize) {
+    //        Member currentMember = memberUtil.getCurrentMember();
+    //        return teamParticipantRepositoryr(
+    //                teamId, currentMember.getId(), pageSize);
+    //    }
 
     public Slice<BasicMemberResponse> findAllMembers(Long teamId, int pageSize) {
         Member currentMember = memberUtil.getCurrentMember();
         return teamParticipantRepository.findMemberByTeamExceptAdmin(
-                teamId, currentMember.getId(), pageSize);
+                teamId, currentMember.getId(), pageSize, TeamParticipantRole.ADMIN);
     }
 }

@@ -188,7 +188,6 @@ public class TeamService {
     }
 
     public BasicMemberResponse findTeamAdmin(Long teamId) {
-        Member currentMember = memberUtil.getCurrentMember();
-        return teamParticipantRepository.findAdmin(teamId);
+        return teamParticipantRepository.findAdmin(teamId, TeamParticipantRole.ADMIN);
     }
 }
