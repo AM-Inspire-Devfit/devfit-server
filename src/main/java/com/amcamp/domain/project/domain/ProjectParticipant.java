@@ -37,16 +37,16 @@ public class ProjectParticipant extends BaseTimeEntity {
 
     @Builder(access = AccessLevel.PRIVATE)
     private ProjectParticipant(
-            Participant participant, Project project, ProjectParticipantRole projectRole) {
-        this.participant = participant;
+            TeamParticipant teamParticipant, Project project, ProjectParticipantRole projectRole) {
+        this.teamParticipant = teamParticipant;
         this.project = project;
         this.projectRole = projectRole;
     }
 
     public static ProjectParticipant createProjectParticipant(
-            Participant participant, Project project, ProjectParticipantRole projectRole) {
+            TeamParticipant teamParticipant, Project project, ProjectParticipantRole projectRole) {
         return ProjectParticipant.builder()
-                .participant(participant)
+                .teamParticipant(teamParticipant)
                 .project(project)
                 .projectRole(projectRole)
                 .build();

@@ -3,10 +3,10 @@ package com.amcamp.domain.project;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
+import com.amcamp.IntegrationTest;
 import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.domain.OauthInfo;
-import com.amcamp.domain.participant.dao.ParticipantRepository;
 import com.amcamp.domain.project.application.ProjectService;
 import com.amcamp.domain.project.dao.ProjectParticipantRepository;
 import com.amcamp.domain.project.dao.ProjectRepository;
@@ -15,6 +15,7 @@ import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
 import com.amcamp.domain.team.application.TeamService;
+import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.dao.TeamRepository;
 import com.amcamp.domain.team.dto.request.TeamCreateRequest;
 import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
@@ -33,11 +34,11 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest
 @Transactional
 @ActiveProfiles("test")
-public class ProjectServiceTest {
+public class ProjectServiceTest extends IntegrationTest {
     @Autowired private ProjectService projectService;
     @Autowired private TeamService teamService;
     @Autowired private MemberRepository memberRepository;
-    @Autowired private ParticipantRepository participantRepository;
+    @Autowired private TeamParticipantRepository teamParticipantRepository;
     @Autowired private TeamRepository teamRepository;
     @Autowired private ProjectParticipantRepository projectParticipantRepository;
     @Autowired private ProjectRepository projectRepository;
@@ -83,7 +84,7 @@ public class ProjectServiceTest {
         logout();
         projectParticipantRepository.deleteAll();
         projectRepository.deleteAll();
-        participantRepository.deleteAll();
+        teamParticipantRepository.deleteAll();
         teamRepository.deleteAll();
         memberRepository.deleteAll();
     }

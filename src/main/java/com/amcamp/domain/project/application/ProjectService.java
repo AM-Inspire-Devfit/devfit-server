@@ -1,8 +1,6 @@
 package com.amcamp.domain.project.application;
 
 import com.amcamp.domain.member.domain.Member;
-import com.amcamp.domain.participant.dao.ParticipantRepository;
-import com.amcamp.domain.participant.domain.Participant;
 import com.amcamp.domain.project.dao.ProjectParticipantRepository;
 import com.amcamp.domain.project.dao.ProjectRepository;
 import com.amcamp.domain.project.dao.ProjectRepositoryCustom;
@@ -12,8 +10,10 @@ import com.amcamp.domain.project.domain.ProjectParticipantRole;
 import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
+import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.dao.TeamRepository;
 import com.amcamp.domain.team.domain.Team;
+import com.amcamp.domain.team.domain.TeamParticipant;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.TeamErrorCode;
@@ -33,14 +33,14 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final TeamRepository teamRepository;
     private final MemberUtil memberUtil;
-    private final ParticipantRepository participantRepository;
+    private final TeamParticipantRepository teamParticipantRepository;
     private final ProjectParticipantRepository projectParticipantRepository;
     private final ProjectRepositoryCustom projectRepositoryCustom;
 
     public ProjectInfoResponse createProject(ProjectCreateRequest request) {
         Member member = memberUtil.getCurrentMember();
         Team team = getTeam(request.TeamId());
-        Participant participant = getParticipant(member, team);
+        TeamParticipant teamParticipant = getTeamParticipant(member, team);
         Project project =
                 projectRepository.save(
                         Project.createProject(
@@ -53,7 +53,7 @@ public class ProjectService {
 
         projectParticipantRepository.save(
                 ProjectParticipant.createProjectParticipant(
-                        participant, project, ProjectParticipantRole.ADMIN));
+                        teamParticipant, project, ProjectParticipantRole.ADMIN));
         return ProjectInfoResponse.from(project);
     }
 
@@ -68,13 +68,13 @@ public class ProjectService {
         Member member = memberUtil.getCurrentMember();
         Team team = getTeam(teamId);
 
-        Participant participant = getParticipant(member, team);
+        TeamParticipant teamParticipant = getTeamParticipant(member, team);
 
         Map<Boolean, List<ProjectInfoResponse>> partitionedProjects =
                 projectList.stream()
                         .collect(
                                 Collectors.partitioningBy(
-                                        project -> isParticipant(project, participant),
+                                        project -> isTeamParticipant(project, teamParticipant),
                                         Collectors.mapping(
                                                 ProjectInfoResponse::from, Collectors.toList())));
 
@@ -89,8 +89,8 @@ public class ProjectService {
     }
 
     // util methods
-    private Participant getParticipant(Member member, Team team) {
-        return participantRepository
+    private TeamParticipant getTeamParticipant(Member member, Team team) {
+        return teamParticipantRepository
                 .findByMemberAndTeam(member, team)
                 .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_NOT_FOUND));
     }
@@ -101,9 +101,9 @@ public class ProjectService {
                 .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_NOT_FOUND));
     }
 
-    private Boolean isParticipant(Project project, Participant participant) {
+    private Boolean isTeamParticipant(Project project, TeamParticipant teamParticipant) {
         return projectParticipantRepository
-                .findByProjectAndParticipant(project, participant)
+                .findByProjectAndTeamParticipant(project, teamParticipant)
                 .isPresent();
     }
 }
