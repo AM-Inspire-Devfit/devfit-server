@@ -37,7 +37,7 @@ public class ProjectService {
     private final ProjectParticipantRepository projectParticipantRepository;
     private final ProjectRepositoryCustom projectRepositoryCustom;
 
-    public ProjectInfoResponse createProject(ProjectCreateRequest request) {
+    public void createProject(ProjectCreateRequest request) {
         Member member = memberUtil.getCurrentMember();
         Team team = getTeam(request.TeamId());
         TeamParticipant teamParticipant = getTeamParticipant(member, team);
@@ -54,7 +54,6 @@ public class ProjectService {
         projectParticipantRepository.save(
                 ProjectParticipant.createProjectParticipant(
                         teamParticipant, project, ProjectParticipantRole.ADMIN));
-        return ProjectInfoResponse.from(project);
     }
 
     @Transactional(readOnly = true)
