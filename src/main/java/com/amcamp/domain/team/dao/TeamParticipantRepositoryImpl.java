@@ -37,7 +37,6 @@ public class TeamParticipantRepositoryImpl implements TeamParticipantRepositoryC
                         .on(member.id.eq(teamParticipant.member.id))
                         .where(
                                 team.id.eq(teamId),
-                                member.id.ne(memberId),
                                 teamParticipant.role.eq(TeamParticipantRole.valueOf("TEAM_USER")))
                         .orderBy(teamParticipant.createdDt.desc())
                         .limit(pageSize + 1)

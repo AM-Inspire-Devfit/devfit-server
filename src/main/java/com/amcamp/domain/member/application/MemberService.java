@@ -7,6 +7,7 @@ import com.amcamp.domain.member.dto.response.BasicMemberResponse;
 import com.amcamp.domain.member.dto.response.MemberInfoResponse;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.global.util.MemberUtil;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -51,7 +52,7 @@ public class MemberService {
     }
 
     @Transactional(readOnly = true)
-    public Slice<BasicMemberResponse> findSelectedMembers(Long teamId, int pageSize) {
+    public List<BasicMemberResponse> findSelectedMembers(Long teamId, int pageSize) {
         Member currentMember = memberUtil.getCurrentMember();
         return teamParticipantRepository.findMemberByTeamExceptMember(
                 teamId, currentMember.getId(), pageSize);

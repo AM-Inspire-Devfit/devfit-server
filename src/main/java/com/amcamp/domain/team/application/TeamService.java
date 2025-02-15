@@ -3,6 +3,7 @@ package com.amcamp.domain.team.application;
 import static com.amcamp.global.common.constants.RedisConstants.*;
 
 import com.amcamp.domain.member.domain.Member;
+import com.amcamp.domain.member.dto.response.BasicMemberResponse;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.dao.TeamRepository;
 import com.amcamp.domain.team.domain.Team;
@@ -184,5 +185,10 @@ public class TeamService {
     public Slice<TeamInfoResponse> findAllTeam(Long lastTeamId, int pageSize) {
         Member currentMember = memberUtil.getCurrentMember();
         return teamRepository.findAllTeamByMemberId(currentMember.getId(), lastTeamId, pageSize);
+    }
+
+    public BasicMemberResponse findTeamAdmin(Long teamId) {
+        Member currentMember = memberUtil.getCurrentMember();
+        return teamParticipantRepository.findAdmin(teamId);
     }
 }

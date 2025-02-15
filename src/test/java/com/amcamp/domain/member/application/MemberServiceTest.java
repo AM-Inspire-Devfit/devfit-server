@@ -30,7 +30,6 @@ import java.util.Set;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Slice;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -186,11 +185,11 @@ class MemberServiceTest extends IntegrationTest {
                     teamService.getTeamByCode(new TeamInviteCodeRequest(inviteCode));
 
             // when
-            Slice<BasicMemberResponse> results =
+            List<BasicMemberResponse> results =
                     memberService.findSelectedMembers(teamCheckResponse.teamId(), 3);
 
             // then
-            assertThat(results.getContent()).hasSize(0);
+            assertThat(results).hasSize(0);
         }
 
         @Test
@@ -218,11 +217,11 @@ class MemberServiceTest extends IntegrationTest {
             }
 
             // when
-            Slice<BasicMemberResponse> results =
+            List<BasicMemberResponse> results =
                     memberService.findSelectedMembers(teamCheckResponse.teamId(), 2);
 
             // then
-            assertThat(results.getContent()).hasSize(2);
+            assertThat(results).hasSize(2);
             assertThat(results)
                     .extracting("memberId", "nickname", "profileImageUrl")
                     .containsExactlyInAnyOrder(

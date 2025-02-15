@@ -1,5 +1,6 @@
 package com.amcamp.domain.team.api;
 
+import com.amcamp.domain.member.dto.response.BasicMemberResponse;
 import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.domain.team.dto.request.TeamCreateRequest;
 import com.amcamp.domain.team.dto.request.TeamEmojiUpdateRequest;
@@ -89,5 +90,11 @@ public class TeamController {
             @Parameter(description = "페이지당 팀 수", example = "1") @RequestParam(value = "size")
                     int pageSize) {
         return teamService.findAllTeam(lastTeamId, pageSize);
+    }
+
+    @Operation(summary = "팀에 속한 회원 목록 조회", description = "멤버 페이지에서 팀장을 제외한 회원을 모두 조회합니다.")
+    @GetMapping("/{teamId}/admin")
+    public BasicMemberResponse teamFindAdmin(@PathVariable Long teamId) {
+        return teamService.findTeamAdmin(teamId);
     }
 }
