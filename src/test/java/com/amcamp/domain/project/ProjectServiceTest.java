@@ -20,19 +20,13 @@ import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
-import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest
-@Transactional
-@ActiveProfiles("test")
 public class ProjectServiceTest extends IntegrationTest {
     @Autowired private ProjectService projectService;
     @Autowired private TeamService teamService;
