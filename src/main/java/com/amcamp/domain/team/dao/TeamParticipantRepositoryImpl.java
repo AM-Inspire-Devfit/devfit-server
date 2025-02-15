@@ -22,31 +22,6 @@ public class TeamParticipantRepositoryImpl implements TeamParticipantRepositoryC
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
-    public Slice<BasicMemberResponse> findMemberByTeamExceptMember(
-            Long teamId, Long memberId, int pageSize) {
-        List<BasicMemberResponse> results =
-                jpaQueryFactory
-                        .select(
-                                Projections.constructor(
-                                        BasicMemberResponse.class,
-                                        member.id,
-                                        member.nickname,
-                                        member.profileImageUrl))
-                        .from(teamParticipant)
-                        .leftJoin(teamParticipant.member, member)
-                        .on(member.id.eq(teamParticipant.member.id))
-                        .where(team.id.eq(teamId), member.id.ne(memberId))
-                        .orderBy(teamParticipant.createdDt.desc())
-                        .limit(pageSize + 1)
-                        .fetch();
-
-        PageRequest pageRequest = PageRequest.of(0, pageSize);
-        boolean hasNext = results.size() > pageSize;
-        return new SliceImpl<>(
-                results.subList(0, Math.min(pageSize, results.size())), pageRequest, hasNext);
-    }
-
-    @Override
     public Slice<BasicMemberResponse> findMemberByTeamExceptAdmin(
             Long teamId, Long memberId, int pageSize) {
         List<BasicMemberResponse> results =
