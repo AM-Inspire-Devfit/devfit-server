@@ -189,6 +189,7 @@ public class TeamService {
 
     @Transactional(readOnly = true)
     public TeamAdminResponse findTeamAdmin(Long teamId) {
-        return teamParticipantRepository.findAdmin(teamId, TeamParticipantRole.ADMIN);
+        return TeamAdminResponse.from(
+                teamParticipantRepository.findAdmin(teamId, TeamParticipantRole.ADMIN));
     }
 }
