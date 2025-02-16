@@ -3,7 +3,6 @@ package com.amcamp.domain.team.application;
 import static com.amcamp.global.common.constants.RedisConstants.*;
 
 import com.amcamp.domain.member.domain.Member;
-import com.amcamp.domain.member.dto.response.BasicMemberResponse;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.dao.TeamRepository;
 import com.amcamp.domain.team.domain.Team;
@@ -13,6 +12,7 @@ import com.amcamp.domain.team.dto.request.TeamCreateRequest;
 import com.amcamp.domain.team.dto.request.TeamEmojiUpdateRequest;
 import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
 import com.amcamp.domain.team.dto.request.TeamUpdateRequest;
+import com.amcamp.domain.team.dto.response.TeamAdminResponse;
 import com.amcamp.domain.team.dto.response.TeamCheckResponse;
 import com.amcamp.domain.team.dto.response.TeamInfoResponse;
 import com.amcamp.domain.team.dto.response.TeamInviteCodeResponse;
@@ -187,7 +187,8 @@ public class TeamService {
         return teamRepository.findAllTeamByMemberId(currentMember.getId(), lastTeamId, pageSize);
     }
 
-    public BasicMemberResponse findTeamAdmin(Long teamId) {
+    @Transactional(readOnly = true)
+    public TeamAdminResponse findTeamAdmin(Long teamId) {
         return teamParticipantRepository.findAdmin(teamId, TeamParticipantRole.ADMIN);
     }
 }

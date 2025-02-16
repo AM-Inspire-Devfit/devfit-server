@@ -187,7 +187,7 @@ class MemberServiceTest extends IntegrationTest {
 
             // when
             Slice<BasicMemberResponse> results =
-                    memberService.findAllMembers(teamCheckResponse.teamId(), 3);
+                    memberService.findAllMembers(teamCheckResponse.teamId(), null, 3);
 
             // then
             assertThat(results.getContent()).hasSize(0);
@@ -219,7 +219,7 @@ class MemberServiceTest extends IntegrationTest {
 
             // when
             Slice<BasicMemberResponse> results =
-                    memberService.findAllMembers(teamCheckResponse.teamId(), 2);
+                    memberService.findAllMembers(teamCheckResponse.teamId(), null, 2);
 
             // then
             assertThat(results.getContent()).hasSize(2);

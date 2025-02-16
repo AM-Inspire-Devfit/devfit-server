@@ -1,11 +1,11 @@
 package com.amcamp.domain.team.api;
 
-import com.amcamp.domain.member.dto.response.BasicMemberResponse;
 import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.domain.team.dto.request.TeamCreateRequest;
 import com.amcamp.domain.team.dto.request.TeamEmojiUpdateRequest;
 import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
 import com.amcamp.domain.team.dto.request.TeamUpdateRequest;
+import com.amcamp.domain.team.dto.response.TeamAdminResponse;
 import com.amcamp.domain.team.dto.response.TeamCheckResponse;
 import com.amcamp.domain.team.dto.response.TeamInfoResponse;
 import com.amcamp.domain.team.dto.response.TeamInviteCodeResponse;
@@ -81,9 +81,9 @@ public class TeamController {
         return teamService.getTeamInfo(teamId);
     }
 
-    @Operation(summary = "팀장 조회", description = "멤버 페이지에서 팀장을 제외한 회원을 모두 조회합니다.")
+    @Operation(summary = "팀장 조회", description = "팀 페이지에서 팀장을 조회합니다.")
     @GetMapping("/{teamId}/admin")
-    public BasicMemberResponse teamFindAdmin(@PathVariable Long teamId) {
+    public TeamAdminResponse teamFindAdmin(@PathVariable Long teamId) {
         return teamService.findTeamAdmin(teamId);
     }
 

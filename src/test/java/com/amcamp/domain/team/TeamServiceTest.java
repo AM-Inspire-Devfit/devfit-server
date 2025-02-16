@@ -10,7 +10,6 @@ import com.amcamp.IntegrationTest;
 import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.domain.OauthInfo;
-import com.amcamp.domain.member.dto.response.BasicMemberResponse;
 import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.dao.TeamRepository;
@@ -21,6 +20,7 @@ import com.amcamp.domain.team.dto.request.TeamCreateRequest;
 import com.amcamp.domain.team.dto.request.TeamEmojiUpdateRequest;
 import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
 import com.amcamp.domain.team.dto.request.TeamUpdateRequest;
+import com.amcamp.domain.team.dto.response.TeamAdminResponse;
 import com.amcamp.domain.team.dto.response.TeamCheckResponse;
 import com.amcamp.domain.team.dto.response.TeamInfoResponse;
 import com.amcamp.domain.team.dto.response.TeamInviteCodeResponse;
@@ -671,7 +671,7 @@ public class TeamServiceTest extends IntegrationTest {
         Long teamId = teamCheckResponse.teamId();
 
         // when
-        BasicMemberResponse result = teamService.findTeamAdmin(teamId);
+        TeamAdminResponse result = teamService.findTeamAdmin(teamId);
 
         // then
         assertThat(result)
@@ -685,7 +685,7 @@ public class TeamServiceTest extends IntegrationTest {
         teamService.joinTeam(new TeamInviteCodeRequest(inviteCodeResponse.inviteCode()));
 
         // when
-        BasicMemberResponse anotherResult = teamService.findTeamAdmin(teamId);
+        TeamAdminResponse anotherResult = teamService.findTeamAdmin(teamId);
 
         // then
         assertThat(result)

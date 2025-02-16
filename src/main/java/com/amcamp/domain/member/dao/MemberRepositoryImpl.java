@@ -1,4 +1,4 @@
-package com.amcamp.domain.team.dao;
+package com.amcamp.domain.member.dao;
 
 import static com.amcamp.domain.member.domain.QMember.member;
 import static com.amcamp.domain.team.domain.QTeam.team;
@@ -18,13 +18,13 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
-public class TeamParticipantRepositoryImpl implements TeamParticipantRepositoryCustom {
+public class MemberRepositoryImpl implements MemberRepositoryCustom {
 
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
     public Slice<BasicMemberResponse> findMemberByTeamExceptAdmin(
-            Long teamId, Long memberId, int pageSize, TeamParticipantRole role) {
+            Long teamId, Long lastMemberId, int pageSize, TeamParticipantRole role) {
         List<BasicMemberResponse> results =
                 jpaQueryFactory
                         .select(
@@ -36,7 +36,10 @@ public class TeamParticipantRepositoryImpl implements TeamParticipantRepositoryC
                         .from(teamParticipant)
                         .leftJoin(teamParticipant.member, member)
                         .on(member.id.eq(teamParticipant.member.id))
-                        .where(team.id.eq(teamId), teamParticipant.role.ne(role))
+                        .where(
+                                team.id.eq(teamId),
+                                teamParticipant.role.ne(role),
+                                lastMemberId(lastMemberId))
                         .orderBy(teamParticipant.createdDt.desc())
                         .limit(pageSize + 1)
                         .fetch();
@@ -44,12 +47,12 @@ public class TeamParticipantRepositoryImpl implements TeamParticipantRepositoryC
         return checkLastPage(pageSize, results);
     }
 
-    private BooleanExpression lastTeamId(Long teamId) {
-        if (teamId == null) {
+    private BooleanExpression lastMemberId(Long memberId) {
+        if (memberId == null) {
             return null;
         }
 
-        return team.id.lt(teamId);
+        return member.id.lt(memberId);
     }
 
     private Slice<BasicMemberResponse> checkLastPage(
