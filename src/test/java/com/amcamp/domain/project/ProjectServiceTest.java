@@ -20,7 +20,7 @@ import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -39,8 +39,8 @@ public class ProjectServiceTest extends IntegrationTest {
     private Member member;
     private Member anotherMember;
 
-    private LocalDateTime startDt = LocalDateTime.of(2026, 1, 1, 1, 00);
-    private LocalDateTime dueDt = LocalDateTime.of(2026, 12, 1, 1, 00);
+    private LocalDate startDt = LocalDate.of(2026, 1, 1);
+    private LocalDate dueDt = LocalDate.of(2026, 12, 1);
 
     private void loginAs(Member member) {
         UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());

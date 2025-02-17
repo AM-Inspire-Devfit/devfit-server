@@ -5,7 +5,7 @@ import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.project.domain.ToDoInfo;
 import com.amcamp.domain.sprint.domain.Sprint;
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -58,8 +58,8 @@ public class Task extends BaseTimeEntity {
     public static Task createTask(
             Sprint sprint,
             String description,
-            LocalDateTime startDt,
-            LocalDateTime dueDt,
+            LocalDate startDt,
+            LocalDate dueDt,
             TaskDifficulty taskDifficulty,
             ProjectParticipant assignee) {
         return Task.builder()

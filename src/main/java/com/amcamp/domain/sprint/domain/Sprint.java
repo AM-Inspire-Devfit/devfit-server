@@ -5,7 +5,7 @@ import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ToDoInfo;
 import com.amcamp.domain.task.domain.Task;
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
@@ -46,7 +46,7 @@ public class Sprint extends BaseTimeEntity {
     }
 
     public static Sprint createSprint(
-            Project project, String description, LocalDateTime startDt, LocalDateTime dueDt) {
+            Project project, String description, LocalDate startDt, LocalDate dueDt) {
         return Sprint.builder()
                 .project(project)
                 .description(description)

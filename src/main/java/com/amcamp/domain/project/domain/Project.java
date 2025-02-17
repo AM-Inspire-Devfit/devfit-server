@@ -4,7 +4,7 @@ import com.amcamp.domain.common.model.BaseTimeEntity;
 import com.amcamp.domain.sprint.domain.Sprint;
 import com.amcamp.domain.team.domain.Team;
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
@@ -56,8 +56,8 @@ public class Project extends BaseTimeEntity {
             String title,
             String description,
             String goal,
-            LocalDateTime startDt,
-            LocalDateTime dueDt) {
+            LocalDate startDt,
+            LocalDate dueDt) {
         return Project.builder()
                 .team(team)
                 .title(title)
