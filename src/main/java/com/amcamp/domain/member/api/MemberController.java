@@ -52,10 +52,10 @@ public class MemberController {
     }
 
     @Operation(summary = "팀에 속한 회원 목록 조회", description = "멤버 페이지에서 팀장을 제외한 회원을 모두 조회합니다.")
-    @GetMapping("/list")
+    @GetMapping("/{teamId}/list")
     public Slice<BasicMemberResponse> memberFindAll(
-            @Parameter(description = "팀 ID") @RequestParam Long teamId,
-            @Parameter(description = "이전 페이지의 마지막 팀 ID (첫 페이지는 비워두세요)")
+            @PathVariable Long teamId,
+            @Parameter(description = "이전 페이지의 마지막 멤버 ID (첫 페이지는 비워두세요)")
                     @RequestParam(required = false)
                     Long lastMemberId,
             @RequestParam(value = "size", defaultValue = "3") int pageSize) {
