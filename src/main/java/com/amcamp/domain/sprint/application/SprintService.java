@@ -55,13 +55,11 @@ public class SprintService {
                 teamParticipantRepository
                         .findByMemberAndTeam(currentMember, team)
                         .orElseThrow(
-                                () ->
-                                        new CommonException(
-                                                TeamErrorCode.TEAM_PARTICIPANT_NOT_FOUND));
+                                () -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED));
 
         projectParticipantRepository
                 .findByProjectAndTeamParticipant(project, teamParticipant)
                 .orElseThrow(
-                        () -> new CommonException(ProjectErrorCode.PROJECT_PARTICIPANT_NOT_FOUND));
+                        () -> new CommonException(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED));
     }
 }
