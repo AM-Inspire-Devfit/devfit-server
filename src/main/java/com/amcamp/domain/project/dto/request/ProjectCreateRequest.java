@@ -7,16 +7,15 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 public record ProjectCreateRequest(
-        @Schema(description = "팀 ID", example = "1", required = true) @NotNull Long teamId,
-        @Schema(description = "프로젝트 제목", example = "Devfit", required = true) @NotBlank
-                String projectTitle,
-        @Schema(description = "프로젝트 목표", example = "개발자 건강을 위한 협업 툴 개발", required = true) @NotBlank
+        @Schema(description = "팀 ID", example = "1") @NotNull Long teamId,
+        @Schema(description = "프로젝트 제목", example = "Devfit") @NotBlank String projectTitle,
+        @Schema(description = "프로젝트 목표", example = "개발자 건강을 위한 협업 툴 개발") @NotBlank
                 String projectGoal,
-        @Schema(description = "프로젝트 시작 날짜", example = "2024-01-01", required = true)
+        @Schema(description = "프로젝트 시작 날짜", example = "2024-01-01")
                 @JsonFormat(shape = JsonFormat.Shape.STRING)
                 @NotNull
                 LocalDate startDt,
-        @Schema(description = "프로젝트 마감 날짜", example = "2025-01-01", required = true)
+        @Schema(description = "프로젝트 마감 날짜", example = "2025-01-01")
                 @JsonFormat(shape = JsonFormat.Shape.STRING)
                 @NotNull
                 LocalDate dueDt,
