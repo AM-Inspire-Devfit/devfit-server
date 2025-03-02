@@ -189,6 +189,9 @@ public class TeamService {
 
     @Transactional(readOnly = true)
     public TeamAdminResponse findTeamAdmin(Long teamId) {
+        Member member = memberUtil.getCurrentMember();
+        Team team = validateTeam(teamId);
+        validateParticipant(member, team);
         return TeamAdminResponse.from(
                 teamParticipantRepository.findAdmin(teamId, TeamParticipantRole.ADMIN));
     }
