@@ -5,6 +5,7 @@ import com.amcamp.domain.team.dto.request.TeamCreateRequest;
 import com.amcamp.domain.team.dto.request.TeamEmojiUpdateRequest;
 import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
 import com.amcamp.domain.team.dto.request.TeamUpdateRequest;
+import com.amcamp.domain.team.dto.response.TeamAdminResponse;
 import com.amcamp.domain.team.dto.response.TeamCheckResponse;
 import com.amcamp.domain.team.dto.response.TeamInfoResponse;
 import com.amcamp.domain.team.dto.response.TeamInviteCodeResponse;
@@ -78,6 +79,12 @@ public class TeamController {
     @GetMapping("/{teamId}")
     public TeamInfoResponse teamInfo(@PathVariable Long teamId) {
         return teamService.getTeamInfo(teamId);
+    }
+
+    @Operation(summary = "팀장 조회", description = "팀 페이지에서 팀장을 조회합니다.")
+    @GetMapping("/{teamId}/admin")
+    public TeamAdminResponse teamFindAdmin(@PathVariable Long teamId) {
+        return teamService.findTeamAdmin(teamId);
     }
 
     @Operation(summary = "팀 목록 조회", description = "회원이 참여한 팀 목록을 조회합니다.")

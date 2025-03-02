@@ -12,6 +12,7 @@ import com.amcamp.domain.team.dto.request.TeamCreateRequest;
 import com.amcamp.domain.team.dto.request.TeamEmojiUpdateRequest;
 import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
 import com.amcamp.domain.team.dto.request.TeamUpdateRequest;
+import com.amcamp.domain.team.dto.response.TeamAdminResponse;
 import com.amcamp.domain.team.dto.response.TeamCheckResponse;
 import com.amcamp.domain.team.dto.response.TeamInfoResponse;
 import com.amcamp.domain.team.dto.response.TeamInviteCodeResponse;
@@ -184,5 +185,14 @@ public class TeamService {
     public Slice<TeamInfoResponse> findAllTeam(Long lastTeamId, int pageSize) {
         Member currentMember = memberUtil.getCurrentMember();
         return teamRepository.findAllTeamByMemberId(currentMember.getId(), lastTeamId, pageSize);
+    }
+
+    @Transactional(readOnly = true)
+    public TeamAdminResponse findTeamAdmin(Long teamId) {
+        Member member = memberUtil.getCurrentMember();
+        Team team = validateTeam(teamId);
+        validateParticipant(member, team);
+        return TeamAdminResponse.from(
+                teamParticipantRepository.findAdmin(teamId, TeamParticipantRole.ADMIN));
     }
 }

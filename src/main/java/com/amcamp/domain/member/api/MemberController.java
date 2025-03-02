@@ -2,12 +2,15 @@ package com.amcamp.domain.member.api;
 
 import com.amcamp.domain.member.application.MemberService;
 import com.amcamp.domain.member.dto.request.NicknameUpdateRequest;
+import com.amcamp.domain.member.dto.response.BasicMemberResponse;
 import com.amcamp.domain.member.dto.response.MemberInfoResponse;
 import com.amcamp.global.util.CookieUtil;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,5 +49,16 @@ public class MemberController {
     @GetMapping("/me")
     public MemberInfoResponse memberInfo() {
         return memberService.getMemberInfo();
+    }
+
+    @Operation(summary = "팀에 속한 회원 목록 조회", description = "멤버 페이지에서 팀장을 제외한 회원을 모두 조회합니다.")
+    @GetMapping("/{teamId}/list")
+    public Slice<BasicMemberResponse> memberFindAll(
+            @PathVariable Long teamId,
+            @Parameter(description = "이전 페이지의 마지막 멤버 ID (첫 페이지는 비워두세요)")
+                    @RequestParam(required = false)
+                    Long lastMemberId,
+            @RequestParam(value = "size", defaultValue = "3") int pageSize) {
+        return memberService.findAllMembers(teamId, lastMemberId, pageSize);
     }
 }
