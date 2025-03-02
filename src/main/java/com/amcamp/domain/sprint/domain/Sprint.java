@@ -26,7 +26,9 @@ public class Sprint extends BaseTimeEntity {
     @JoinColumn(name = "project_id")
     private Project project;
 
-    @Lob private String description;
+    private String title;
+
+    @Lob private String goal;
 
     @Embedded private ToDoInfo toDoInfo;
 
@@ -39,17 +41,19 @@ public class Sprint extends BaseTimeEntity {
     private List<SprintContribution> contributions = new ArrayList<>();
 
     @Builder(access = AccessLevel.PRIVATE)
-    private Sprint(Project project, String description, ToDoInfo toDoInfo) {
+    private Sprint(Project project, String title, String goal, ToDoInfo toDoInfo) {
         this.project = project;
-        this.description = description;
+        this.title = title;
+        this.goal = goal;
         this.toDoInfo = toDoInfo;
     }
 
     public static Sprint createSprint(
-            Project project, String description, LocalDate startDt, LocalDate dueDt) {
+            Project project, String title, String goal, LocalDate startDt, LocalDate dueDt) {
         return Sprint.builder()
                 .project(project)
-                .description(description)
+                .title(title)
+                .goal(goal)
                 .toDoInfo(ToDoInfo.createToDoInfo(startDt, dueDt))
                 .build();
     }
