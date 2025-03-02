@@ -5,7 +5,7 @@ import com.amcamp.global.exception.errorcode.GlobalErrorCode;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,21 +16,21 @@ import lombok.NoArgsConstructor;
 @Getter
 public class ToDoInfo {
     // 시작&마감일
-    private LocalDateTime startDt; // 시작 일자
-    private LocalDateTime dueDt; // 마감 일자
+    private LocalDate startDt; // 시작 일자
+    private LocalDate dueDt; // 마감 일자
 
     @Enumerated(value = EnumType.STRING)
     private ToDoStatus toDoStatus; // 진행 상태
 
     @Builder(access = AccessLevel.PRIVATE)
-    private ToDoInfo(LocalDateTime startDt, LocalDateTime dueDt, ToDoStatus toDoStatus) {
+    private ToDoInfo(LocalDate startDt, LocalDate dueDt, ToDoStatus toDoStatus) {
         this.startDt = startDt;
         this.dueDt = dueDt;
         this.toDoStatus = toDoStatus;
     }
 
-    public static ToDoInfo createToDoInfo(LocalDateTime startDt, LocalDateTime dueDt) {
-        if (startDt.isAfter(dueDt) || startDt.isBefore(LocalDateTime.now())) {
+    public static ToDoInfo createToDoInfo(LocalDate startDt, LocalDate dueDt) {
+        if (startDt.isAfter(dueDt) || startDt.isBefore(LocalDate.now())) {
             throw new CommonException(GlobalErrorCode.INVALID_DATE_ERROR);
         }
         return ToDoInfo.builder()
