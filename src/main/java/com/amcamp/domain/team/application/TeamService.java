@@ -163,7 +163,7 @@ public class TeamService {
 
     private void validateParticipant(Member member, Team team) {
         if (!teamParticipantRepository.findByMemberAndTeam(member, team).isPresent()) {
-            throw new CommonException(TeamErrorCode.TEAM_PARTICIPANT_NOT_FOUND);
+            throw new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED);
         }
     }
 
@@ -172,9 +172,7 @@ public class TeamService {
                 teamParticipantRepository
                         .findByMemberAndTeam(member, team)
                         .orElseThrow(
-                                () ->
-                                        new CommonException(
-                                                TeamErrorCode.TEAM_PARTICIPANT_NOT_FOUND));
+                                () -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED));
 
         if (teamParticipant.getRole() != TeamParticipantRole.ADMIN) {
             throw new CommonException(TeamErrorCode.UNAUTHORIZED_ACCESS);

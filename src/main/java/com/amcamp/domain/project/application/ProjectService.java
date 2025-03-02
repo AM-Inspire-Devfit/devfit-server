@@ -91,7 +91,7 @@ public class ProjectService {
     private TeamParticipant getTeamParticipant(Member member, Team team) {
         return teamParticipantRepository
                 .findByMemberAndTeam(member, team)
-                .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_NOT_FOUND));
+                .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED));
     }
 
     private Team getTeam(Long teamId) {

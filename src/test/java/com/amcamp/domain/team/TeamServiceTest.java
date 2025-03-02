@@ -102,7 +102,7 @@ public class TeamServiceTest extends IntegrationTest {
                             .orElseThrow(
                                     () ->
                                             new CommonException(
-                                                    TeamErrorCode.TEAM_PARTICIPANT_NOT_FOUND));
+                                                    TeamErrorCode.TEAM_PARTICIPANT_REQUIRED));
 
             assertThat(teamParticipant.getRole()).isEqualTo(TeamParticipantRole.ADMIN);
             assertThat(savedTeam.getEmoji()).isEqualTo("🍇");
@@ -162,7 +162,7 @@ public class TeamServiceTest extends IntegrationTest {
             assertThatThrownBy(() -> teamService.getInviteCode(teamId))
                     .isInstanceOf(CommonException.class)
                     .extracting("errorCode")
-                    .isEqualTo(TeamErrorCode.TEAM_PARTICIPANT_NOT_FOUND);
+                    .isEqualTo(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED);
         }
     }
 
@@ -215,7 +215,7 @@ public class TeamServiceTest extends IntegrationTest {
                             .orElseThrow(
                                     () ->
                                             new CommonException(
-                                                    TeamErrorCode.TEAM_PARTICIPANT_NOT_FOUND));
+                                                    TeamErrorCode.TEAM_PARTICIPANT_REQUIRED));
 
             assertThat(teamParticipant.getMember()).isEqualTo(newMember);
             assertThat(teamParticipant.getRole()).isEqualTo(TeamParticipantRole.USER);
@@ -333,7 +333,7 @@ public class TeamServiceTest extends IntegrationTest {
                                             teamId, new TeamUpdateRequest("새 팀 이름", "새 팀 설명")))
                     .isInstanceOf(CommonException.class)
                     .extracting("errorCode")
-                    .isEqualTo(TeamErrorCode.TEAM_PARTICIPANT_NOT_FOUND); // 사용자 권한이 없을 때
+                    .isEqualTo(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED); // 사용자 권한이 없을 때
         }
 
         @Test
@@ -428,7 +428,7 @@ public class TeamServiceTest extends IntegrationTest {
                                             teamId, new TeamEmojiUpdateRequest("⭐️")))
                     .isInstanceOf(CommonException.class)
                     .extracting("errorCode")
-                    .isEqualTo(TeamErrorCode.TEAM_PARTICIPANT_NOT_FOUND); // 사용자 권한이 없을 때
+                    .isEqualTo(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED); // 사용자 권한이 없을 때
         }
 
         @Test
@@ -534,7 +534,7 @@ public class TeamServiceTest extends IntegrationTest {
             assertThatThrownBy(() -> teamService.deleteTeam(teamId))
                     .isInstanceOf(CommonException.class)
                     .extracting("errorCode")
-                    .isEqualTo(TeamErrorCode.TEAM_PARTICIPANT_NOT_FOUND);
+                    .isEqualTo(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED);
         }
 
         @Test
@@ -618,7 +618,7 @@ public class TeamServiceTest extends IntegrationTest {
             assertThatThrownBy(() -> teamService.getTeamInfo(teamId))
                     .isInstanceOf(CommonException.class)
                     .extracting("errorCode")
-                    .isEqualTo(TeamErrorCode.TEAM_PARTICIPANT_NOT_FOUND);
+                    .isEqualTo(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED);
         }
     }
 
