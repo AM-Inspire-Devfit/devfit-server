@@ -688,7 +688,7 @@ public class TeamServiceTest extends IntegrationTest {
         TeamAdminResponse anotherResult = teamService.findTeamAdmin(teamId);
 
         // then
-        assertThat(result)
+        assertThat(anotherResult)
                 .extracting("memberId", "nickname", "profileImageUrl")
                 .containsExactly(1L, "testNickname", "testProfileImageUrl");
     }

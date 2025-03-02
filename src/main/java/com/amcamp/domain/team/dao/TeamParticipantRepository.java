@@ -27,11 +27,9 @@ public interface TeamParticipantRepository extends JpaRepository<TeamParticipant
     //            @Param("teamId") Long teamId, @Param("role") TeamParticipantRole role);
 
     @Query(
-            "SELECT m.id as id, m.nickname as nickname, m.profileImageUrl as profileImageUrl "
-                    + "FROM Member m "
+            "SELECT m FROM Member m "
                     + "JOIN TeamParticipant tp ON m.id = tp.member.id "
                     + "WHERE tp.team.id = :teamId "
                     + "AND tp.role = :role")
-    TeamAdminProjection findAdmin(
-            @Param("teamId") Long teamId, @Param("role") TeamParticipantRole role);
+    Member findAdmin(@Param("teamId") Long teamId, @Param("role") TeamParticipantRole role);
 }
