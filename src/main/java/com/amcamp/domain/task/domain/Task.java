@@ -65,8 +65,8 @@ public class Task extends BaseTimeEntity {
         return Task.builder()
                 .sprint(sprint)
                 .description(description)
-                .toDoInfo(ToDoInfo.createToDoInfo(startDt, dueDt))
                 .taskDifficulty(taskDifficulty)
+                .toDoInfo(ToDoInfo.createToDoInfo(startDt, dueDt))
                 .assignedStatus(AssignedStatus.NOT_ASSIGNED)
                 .assignee(null)
                 .build();

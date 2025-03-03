@@ -34,7 +34,7 @@ public class TaskService {
         final Sprint sprint = findBySprintId(request.sprintId());
         final Project project = sprint.getProject();
         sprintService.validateProjectParticipant(project, project.getTeam(), currentMember);
-
+        System.out.println("Yes4");
         taskRepository.save(
                 Task.createTask(
                         sprint,
@@ -42,6 +42,7 @@ public class TaskService {
                         request.startDt(),
                         request.dueDt(),
                         request.taskDifficulty()));
+        System.out.println("Yes3");
     }
 
     public TaskInfoResponse updateTaskInfo(Long taskId, TaskInfoUpdateRequest request) {
@@ -61,14 +62,24 @@ public class TaskService {
     }
 
     private void validateTaskModify(Member member, Task task) {
-        if (task.getAssignedStatus() == AssignedStatus.ASSIGNED)
+        if (task.getAssignedStatus() == AssignedStatus.ASSIGNED) {
             if (!task.getAssignee()
                             .getProjectRole()
                             .equals(ProjectParticipantRole.ADMIN.getProjectRole())
                     || !member.equals(task.getAssignee().getTeamParticipant().getMember())) {
                 throw new CommonException(TaskErrorCode.TASK_MODIFY_PERMISSION_REQUIRED);
             }
+        }
     }
+
+    //	private void validateAssignee(Member member, Task task) {
+    //		if
+    // (!task.getAssignee().getProjectRole().equals(ProjectParticipantRole.ADMIN.getProjectRole())
+    // ||
+    //			!member.equals(task.getAssignee().getTeamParticipant().getMember())) {
+    //			throw new CommonException(TaskErrorCode.TASK_MODIFY_PERMISSION_REQUIRED);
+    //		}
+    //	}
 
     private Sprint findBySprintId(Long sprintId) {
         return sprintRepository
