@@ -43,7 +43,7 @@ public class ProjectController {
 
     // update
     @Operation(summary = "프로젝트 타이틀 업데이트", description = "프로젝트 타이틀을 수정합니다")
-    @PostMapping("/{projectId}/title")
+    @PatchMapping("/{projectId}/title")
     public ResponseEntity<Void> projectTitleUpdate(
             @RequestBody ProjectTextInfoUpdateRequest request) {
         projectService.updateProjectTitle(request);
@@ -51,7 +51,7 @@ public class ProjectController {
     }
 
     @Operation(summary = "프로젝트 목표 업데이트", description = "프로젝트 목표를 수정합니다")
-    @PostMapping("/{projectId}/goal")
+    @PatchMapping("/{projectId}/goal")
     public ResponseEntity<Void> projectGoalUpdate(
             @RequestBody ProjectTextInfoUpdateRequest request) {
         projectService.updateProjectGoal(request);
@@ -59,7 +59,7 @@ public class ProjectController {
     }
 
     @Operation(summary = "프로젝트 상세설명 업데이트", description = "프로젝트 상세설명을 수정합니다")
-    @PostMapping("/{projectId}/desc")
+    @PatchMapping("/{projectId}/desc")
     public ResponseEntity<Void> projectDescriptionUpdate(
             @RequestBody ProjectTextInfoUpdateRequest request) {
         projectService.updateProjectDescription(request);
@@ -67,7 +67,7 @@ public class ProjectController {
     }
 
     @Operation(summary = "프로젝트 시작/마감/진행상태 업데이트", description = "프로젝트 시작/마감/진행상태를 수정합니다")
-    @PostMapping("/{projectId}/todo")
+    @PatchMapping("/{projectId}/todo")
     public ResponseEntity<Void> projectTodoInfoUpdate(
             @RequestBody ProjectTodoInfoUpdateRequest request) {
         projectService.updateProjectTodoInfo(request);
