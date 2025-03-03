@@ -73,6 +73,16 @@ public class SprintService {
         return SprintInfoResponse.from(sprint);
     }
 
+    public void deleteSprint(Long sprintId) {
+        final Member currentMember = memberUtil.getCurrentMember();
+        final Sprint sprint = findBySprintId(sprintId);
+
+        validateProjectParticipant(
+                sprint.getProject(), sprint.getProject().getTeam(), currentMember);
+
+        sprintRepository.deleteById(sprintId);
+    }
+
     private Sprint findBySprintId(Long sprintId) {
         return sprintRepository
                 .findById(sprintId)

@@ -41,4 +41,11 @@ public class SprintController {
             @PathVariable Long sprintId, @Valid @RequestBody SprintToDoUpdateRequest request) {
         return sprintService.updateSprintToDoInfo(sprintId, request);
     }
+
+    @Operation(summary = "스프린트 삭제", description = "스프린트를 삭제합니다.")
+    @DeleteMapping("/{sprintId}")
+    public ResponseEntity<Void> sprintDelete(@PathVariable Long sprintId) {
+        sprintService.deleteSprint(sprintId);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
 }
