@@ -4,6 +4,7 @@ import com.amcamp.domain.common.model.BaseTimeEntity;
 import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.project.domain.ToDoInfo;
 import com.amcamp.domain.sprint.domain.Sprint;
+import com.amcamp.domain.task.dto.request.TaskInfoUpdateRequest;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import lombok.AccessLevel;
@@ -60,15 +61,21 @@ public class Task extends BaseTimeEntity {
             String description,
             LocalDate startDt,
             LocalDate dueDt,
-            TaskDifficulty taskDifficulty,
-            ProjectParticipant assignee) {
+            TaskDifficulty taskDifficulty) {
         return Task.builder()
                 .sprint(sprint)
                 .description(description)
                 .toDoInfo(ToDoInfo.createToDoInfo(startDt, dueDt))
                 .taskDifficulty(taskDifficulty)
-                .assignedStatus(AssignedStatus.ASSIGNED)
-                .assignee(assignee)
+                .assignedStatus(AssignedStatus.NOT_ASSIGNED)
+                .assignee(null)
                 .build();
+    }
+
+    public void updateTask(TaskInfoUpdateRequest request) {
+        this.description = request.description();
+        this.taskDifficulty = request.taskDifficulty();
+        this.toDoInfo.updateToDoInfo(
+                request.startDt(), request.dueDt(), this.getToDoInfo().getToDoStatus());
     }
 }

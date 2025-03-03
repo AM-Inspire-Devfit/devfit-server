@@ -39,4 +39,13 @@ public class ToDoInfo {
                 .toDoStatus(ToDoStatus.NOT_STARTED)
                 .build();
     }
+
+    public void updateToDoInfo(LocalDate startDt, LocalDate dueDt, ToDoStatus toDoStatus) {
+        if (startDt.isAfter(dueDt) || startDt.isBefore(LocalDate.now())) {
+            throw new CommonException(GlobalErrorCode.INVALID_DATE_ERROR);
+        }
+        this.startDt = startDt;
+        this.dueDt = dueDt;
+        this.toDoStatus = toDoStatus;
+    }
 }

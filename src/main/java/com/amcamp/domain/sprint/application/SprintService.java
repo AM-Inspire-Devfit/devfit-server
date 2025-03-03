@@ -50,7 +50,7 @@ public class SprintService {
                 .orElseThrow(() -> new CommonException(ProjectErrorCode.PROJECT_NOT_FOUND));
     }
 
-    private void validateProjectParticipant(Project project, Team team, Member currentMember) {
+    public void validateProjectParticipant(Project project, Team team, Member currentMember) {
         TeamParticipant teamParticipant =
                 teamParticipantRepository
                         .findByMemberAndTeam(currentMember, team)
