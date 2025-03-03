@@ -7,7 +7,8 @@ import com.amcamp.domain.project.dao.ProjectRepositoryCustom;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.project.domain.ProjectParticipantRole;
-import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
+import com.amcamp.domain.project.domain.ToDoInfo;
+import com.amcamp.domain.project.dto.request.*;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
@@ -81,6 +82,33 @@ public class ProjectService {
                 partitionedProjects.get(true), partitionedProjects.get(false));
     }
 
+    // update
+    public void updateProjectTitle(ProjectTextInfoUpdateRequest request) {
+        Project project = getProjectById(request.projectId());
+        project.updateTitle(request.text());
+        projectRepository.save(project);
+    }
+
+    public void updateProjectGoal(ProjectTextInfoUpdateRequest request) {
+        Project project = getProjectById(request.projectId());
+        project.updateGoal(request.text());
+        projectRepository.save(project);
+    }
+
+    public void updateProjectDescription(ProjectTextInfoUpdateRequest request) {
+        Project project = getProjectById(request.projectId());
+        project.updateDescription(request.text());
+        projectRepository.save(project);
+    }
+
+    public void updateProjectTodoInfo(ProjectTodoInfoUpdateRequest request) {
+        Project project = getProjectById(request.projectId());
+        project.updateTodoInfo(
+                ToDoInfo.createTodoInfo(request.startDt(), request.DueDt(), request.toDoStatus()));
+        projectRepository.save(project);
+    }
+
+    // project utils
     private Project getProjectById(Long projectId) {
         return projectRepository
                 .findById(projectId)

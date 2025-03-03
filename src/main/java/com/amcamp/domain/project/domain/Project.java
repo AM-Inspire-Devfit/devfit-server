@@ -11,9 +11,11 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicUpdate;
 
 @Entity
 @Getter
+@DynamicUpdate
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Project extends BaseTimeEntity {
     @Id
@@ -65,5 +67,21 @@ public class Project extends BaseTimeEntity {
                 .goal(goal)
                 .toDoInfo(ToDoInfo.createToDoInfo(startDt, dueDt))
                 .build();
+    }
+
+    public void updateTitle(String title) {
+        this.title = title;
+    }
+
+    public void updateDescription(String description) {
+        this.description = description;
+    }
+
+    public void updateGoal(String goal) {
+        this.goal = goal;
+    }
+
+    public void updateTodoInfo(ToDoInfo toDoInfo) {
+        this.toDoInfo = toDoInfo;
     }
 }
