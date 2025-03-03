@@ -57,4 +57,9 @@ public class Sprint extends BaseTimeEntity {
                 .toDoInfo(ToDoInfo.createToDoInfo(startDt, dueDt))
                 .build();
     }
+
+    public void updateSprintBasic(String title, String goal) {
+        if (title != null) this.title = title;
+        if (goal != null) this.goal = goal;
+    }
 }

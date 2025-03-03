@@ -6,12 +6,15 @@ import com.amcamp.domain.project.dao.ProjectRepository;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.sprint.dao.SprintRepository;
 import com.amcamp.domain.sprint.domain.Sprint;
+import com.amcamp.domain.sprint.dto.request.SprintBasicUpdateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
+import com.amcamp.domain.sprint.dto.response.SprintInfoResponse;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.domain.Team;
 import com.amcamp.domain.team.domain.TeamParticipant;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
+import com.amcamp.global.exception.errorcode.SprintErrorCode;
 import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.util.MemberUtil;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +45,25 @@ public class SprintService {
                         request.goal(),
                         request.startDt(),
                         request.dueDt()));
+    }
+
+    public SprintInfoResponse updateSprintBasicInfo(
+            Long sprintId, SprintBasicUpdateRequest request) {
+        final Member currentMember = memberUtil.getCurrentMember();
+        final Sprint sprint = findBySprintId(sprintId);
+
+        validateProjectParticipant(
+                sprint.getProject(), sprint.getProject().getTeam(), currentMember);
+
+        sprint.updateSprintBasic(request.title(), request.goal());
+
+        return SprintInfoResponse.from(sprint);
+    }
+
+    private Sprint findBySprintId(Long sprintId) {
+        return sprintRepository
+                .findById(sprintId)
+                .orElseThrow(() -> new CommonException(SprintErrorCode.SPRINT_NOT_FOUND));
     }
 
     private Project findByProjectId(Long projectId) {
