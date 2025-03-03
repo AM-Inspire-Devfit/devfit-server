@@ -30,13 +30,30 @@ public class ToDoInfo {
     }
 
     public static ToDoInfo createToDoInfo(LocalDate startDt, LocalDate dueDt) {
-        if (startDt.isAfter(dueDt) || startDt.isBefore(LocalDate.now())) {
-            throw new CommonException(GlobalErrorCode.INVALID_DATE_ERROR);
-        }
+        validateDates(startDt, dueDt);
         return ToDoInfo.builder()
                 .startDt(startDt)
                 .dueDt(dueDt)
                 .toDoStatus(ToDoStatus.NOT_STARTED)
                 .build();
+    }
+
+    public void updateToDoInfo(LocalDate startDt, LocalDate dueDt, ToDoStatus status) {
+        if (startDt != null) {
+            validateDates(startDt, this.dueDt);
+            this.startDt = startDt;
+        }
+        if (dueDt != null) {
+            validateDates(this.startDt, dueDt);
+            this.dueDt = dueDt;
+        }
+        if (status != null) this.toDoStatus = status;
+    }
+
+    private static void validateDates(LocalDate startDt, LocalDate dueDt) {
+        if (startDt == null || dueDt == null) return;
+        if (startDt.isAfter(dueDt) || startDt.isBefore(LocalDate.now())) {
+            throw new CommonException(GlobalErrorCode.INVALID_DATE_ERROR);
+        }
     }
 }

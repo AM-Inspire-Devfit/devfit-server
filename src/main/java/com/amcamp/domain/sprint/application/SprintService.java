@@ -8,6 +8,7 @@ import com.amcamp.domain.sprint.dao.SprintRepository;
 import com.amcamp.domain.sprint.domain.Sprint;
 import com.amcamp.domain.sprint.dto.request.SprintBasicUpdateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
+import com.amcamp.domain.sprint.dto.request.SprintToDoUpdateRequest;
 import com.amcamp.domain.sprint.dto.response.SprintInfoResponse;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.domain.Team;
@@ -56,6 +57,18 @@ public class SprintService {
                 sprint.getProject(), sprint.getProject().getTeam(), currentMember);
 
         sprint.updateSprintBasic(request.title(), request.goal());
+
+        return SprintInfoResponse.from(sprint);
+    }
+
+    public SprintInfoResponse updateSprintToDoInfo(Long sprintId, SprintToDoUpdateRequest request) {
+        final Member currentMember = memberUtil.getCurrentMember();
+        final Sprint sprint = findBySprintId(sprintId);
+
+        validateProjectParticipant(
+                sprint.getProject(), sprint.getProject().getTeam(), currentMember);
+
+        sprint.updateSprintToDo(request.startDt(), request.dueDt(), request.status());
 
         return SprintInfoResponse.from(sprint);
     }

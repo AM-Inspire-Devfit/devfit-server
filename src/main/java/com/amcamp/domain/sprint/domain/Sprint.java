@@ -3,6 +3,7 @@ package com.amcamp.domain.sprint.domain;
 import com.amcamp.domain.common.model.BaseTimeEntity;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ToDoInfo;
+import com.amcamp.domain.project.domain.ToDoStatus;
 import com.amcamp.domain.task.domain.Task;
 import jakarta.persistence.*;
 import java.time.LocalDate;
@@ -61,5 +62,9 @@ public class Sprint extends BaseTimeEntity {
     public void updateSprintBasic(String title, String goal) {
         if (title != null) this.title = title;
         if (goal != null) this.goal = goal;
+    }
+
+    public void updateSprintToDo(LocalDate startDt, LocalDate dueDt, ToDoStatus status) {
+        toDoInfo.updateToDoInfo(startDt, dueDt, status);
     }
 }
