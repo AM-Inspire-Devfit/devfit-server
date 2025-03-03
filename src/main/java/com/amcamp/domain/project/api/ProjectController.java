@@ -1,7 +1,7 @@
 package com.amcamp.domain.project.api;
 
 import com.amcamp.domain.project.application.ProjectService;
-import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
+import com.amcamp.domain.project.dto.request.*;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -39,5 +39,38 @@ public class ProjectController {
     @GetMapping("/{projectId}")
     public ProjectInfoResponse projectInfo(@PathVariable Long projectId) {
         return projectService.getProjectInfo(projectId);
+    }
+
+    // update
+    @Operation(summary = "프로젝트 타이틀 업데이트", description = "프로젝트 타이틀을 수정합니다")
+    @PostMapping("/{projectId}/title")
+    public ResponseEntity<Void> projectTitleUpdate(
+            @RequestBody ProjectTextInfoUpdateRequest request) {
+        projectService.updateProjectTitle(request);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "프로젝트 목표 업데이트", description = "프로젝트 목표를 수정합니다")
+    @PostMapping("/{projectId}/goal")
+    public ResponseEntity<Void> projectGoalUpdate(
+            @RequestBody ProjectTextInfoUpdateRequest request) {
+        projectService.updateProjectGoal(request);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "프로젝트 상세설명 업데이트", description = "프로젝트 상세설명을 수정합니다")
+    @PostMapping("/{projectId}/desc")
+    public ResponseEntity<Void> projectDescriptionUpdate(
+            @RequestBody ProjectTextInfoUpdateRequest request) {
+        projectService.updateProjectDescription(request);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "프로젝트 시작/마감/진행상태 업데이트", description = "프로젝트 시작/마감/진행상태를 수정합니다")
+    @PostMapping("/{projectId}/todo")
+    public ResponseEntity<Void> projectTodoInfoUpdate(
+            @RequestBody ProjectTodoInfoUpdateRequest request) {
+        projectService.updateProjectTodoInfo(request);
+        return ResponseEntity.ok().build();
     }
 }
