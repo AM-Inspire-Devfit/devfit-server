@@ -11,7 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "프로젝트 API", description = "프로젝트 관련 API 입니다.")
+@Tag(name = "4. 프로젝트 API", description = "프로젝트 관련 API 입니다.")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/projects")
