@@ -24,6 +24,7 @@ import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.GlobalErrorCode;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
+import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
 import java.time.LocalDate;
 import org.junit.jupiter.api.*;
@@ -238,11 +239,12 @@ public class ProjectServiceTest extends IntegrationTest {
         String updatedTitle = "updatedProjectTitle";
         String updatedGoal = "updatedProjectGoal";
         String updatedDescription = "updatedProjectDescription";
+        TeamInviteCodeRequest teamInviteCodeRequest;
 
         void createTestProject() {
             TeamCreateRequest teamCreateRequest = new TeamCreateRequest("팀 이름", "팀 설명");
             String inviteCode = teamService.createTeam(teamCreateRequest).inviteCode();
-            TeamInviteCodeRequest teamInviteCodeRequest = new TeamInviteCodeRequest(inviteCode);
+            teamInviteCodeRequest = new TeamInviteCodeRequest(inviteCode);
             Long teamId = teamService.getTeamByCode(teamInviteCodeRequest).teamId();
 
             ProjectCreateRequest request =
@@ -271,6 +273,46 @@ public class ProjectServiceTest extends IntegrationTest {
             assertThat(updatedProject.getTitle()).isEqualTo(updatedTitle);
             assertThat(updatedProject.getGoal()).isEqualTo(updatedGoal);
             assertThat(updatedProject.getDescription()).isEqualTo(updatedDescription);
+        }
+
+        @Test
+        void 팀_참여자가_아닌_사용자는_프로젝트_수정이_제한된다() {
+            // given
+            createTestProject();
+            logout();
+            // 팀에 속하지 않은 사용자 로그인
+            loginAs(anotherMember);
+
+            // when, then
+            assertThatThrownBy(
+                            () ->
+                                    projectService.updateProjectBasicInfo(
+                                            1L,
+                                            new ProjectBasicInfoUpdateRequest(
+                                                    updatedTitle, updatedGoal, updatedDescription)))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED.getMessage());
+        }
+
+        @Test
+        void 프로젝트_참여자가_아닌_팀_참가자는_수정이_제한된다() {
+            // given
+            createTestProject();
+            logout();
+            // 다른 팀 멤버
+            loginAs(anotherMember);
+            teamService.joinTeam(teamInviteCodeRequest);
+
+            // when, then
+            assertThatThrownBy(
+                            () ->
+                                    projectService.updateProjectBasicInfo(
+                                            1L,
+                                            new ProjectBasicInfoUpdateRequest(
+                                                    updatedTitle, updatedGoal, updatedDescription)))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(
+                            ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED.getMessage());
         }
 
         @Test
