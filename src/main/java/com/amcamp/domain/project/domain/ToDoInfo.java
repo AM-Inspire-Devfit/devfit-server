@@ -2,6 +2,7 @@ package com.amcamp.domain.project.domain;
 
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.GlobalErrorCode;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -23,7 +24,10 @@ public class ToDoInfo {
     private ToDoStatus toDoStatus; // 진행 상태
 
     @Builder(access = AccessLevel.PRIVATE)
-    private ToDoInfo(LocalDate startDt, LocalDate dueDt, ToDoStatus toDoStatus) {
+    private ToDoInfo(
+            @Nullable LocalDate startDt,
+            @Nullable LocalDate dueDt,
+            @Nullable ToDoStatus toDoStatus) {
         this.startDt = startDt;
         this.dueDt = dueDt;
         this.toDoStatus = toDoStatus;

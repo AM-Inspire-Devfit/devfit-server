@@ -69,19 +69,9 @@ public class Project extends BaseTimeEntity {
                 .build();
     }
 
-    public void updateTitle(String title) {
-        this.title = title;
-    }
-
-    public void updateDescription(String description) {
-        this.description = description;
-    }
-
-    public void updateGoal(String goal) {
-        this.goal = goal;
-    }
-
-    public void updateTodoInfo(ToDoInfo toDoInfo) {
-        this.toDoInfo = toDoInfo;
+    public void updateBasic(String title, String goal, String description) {
+        this.title = (title != null) ? title : this.title;
+        this.goal = (goal != null) ? goal : this.goal;
+        this.description = (description != null) ? description : this.description;
     }
 }
