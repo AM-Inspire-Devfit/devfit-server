@@ -4,6 +4,8 @@ import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.project.dao.ProjectParticipantRepository;
 import com.amcamp.domain.project.dao.ProjectRepository;
 import com.amcamp.domain.project.domain.Project;
+import com.amcamp.domain.project.domain.ProjectParticipant;
+import com.amcamp.domain.project.domain.ProjectParticipantRole;
 import com.amcamp.domain.project.domain.ToDoInfo;
 import com.amcamp.domain.sprint.dao.SprintRepository;
 import com.amcamp.domain.sprint.domain.Sprint;
@@ -84,8 +86,11 @@ public class SprintService {
         final Member currentMember = memberUtil.getCurrentMember();
         final Sprint sprint = findBySprintId(sprintId);
 
-        validateProjectParticipant(
-                sprint.getProject(), sprint.getProject().getTeam(), currentMember);
+        ProjectParticipant projectParticipant =
+                validateProjectParticipant(
+                        sprint.getProject(), sprint.getProject().getTeam(), currentMember);
+
+        validateAdminProjectParticipant(projectParticipant);
 
         sprintRepository.deleteById(sprintId);
     }
@@ -102,17 +107,24 @@ public class SprintService {
                 .orElseThrow(() -> new CommonException(ProjectErrorCode.PROJECT_NOT_FOUND));
     }
 
-    private void validateProjectParticipant(Project project, Team team, Member currentMember) {
+    private ProjectParticipant validateProjectParticipant(
+            Project project, Team team, Member currentMember) {
         TeamParticipant teamParticipant =
                 teamParticipantRepository
                         .findByMemberAndTeam(currentMember, team)
                         .orElseThrow(
                                 () -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED));
 
-        projectParticipantRepository
+        return projectParticipantRepository
                 .findByProjectAndTeamParticipant(project, teamParticipant)
                 .orElseThrow(
                         () -> new CommonException(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED));
+    }
+
+    private void validateAdminProjectParticipant(ProjectParticipant projectParticipant) {
+        if (!projectParticipant.getProjectRole().equals(ProjectParticipantRole.ADMIN)) {
+            throw new CommonException(SprintErrorCode.SPRINT_DELETE_FORBIDDEN);
+        }
     }
 
     private void validateDate(LocalDate startDt, LocalDate dueDt, ToDoInfo toDoInfo) {
