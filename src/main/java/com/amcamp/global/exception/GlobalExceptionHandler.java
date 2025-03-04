@@ -18,16 +18,12 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(CommonException.class)
-    public ResponseEntity<CommonResponse<ErrorDetail>> handleCustomException(CommonException e) {
+    public ResponseEntity<CommonResponse> handleCustomException(CommonException e) {
         final BaseErrorCode errorCode = e.getErrorCode();
-        final ErrorDetail errorDetail =
-                ErrorDetail.builder()
-                        .field(e.getErrorField())
-                        .given(e.getErrorGiven())
-                        .reasonMessage(errorCode.getErrorMsg())
-                        .build();
-        final CommonResponse<ErrorDetail> response =
-                CommonResponse.onFailure(errorCode.getHttpStatus().value(), errorDetail);
+        final ErrorResponse errorResponse =
+                ErrorResponse.of(errorCode.errorClassName(), errorCode.getMessage());
+        final CommonResponse response =
+                CommonResponse.onFailure(errorCode.getHttpStatus().value(), errorResponse);
 
         return ResponseEntity.status(errorCode.getHttpStatus()).body(response);
     }

@@ -6,19 +6,10 @@ import lombok.Getter;
 @Getter
 public class CommonException extends RuntimeException {
 
-    private BaseErrorCode errorCode;
-    private String errorField;
-    private String errorGiven;
+    private final BaseErrorCode errorCode;
 
     public CommonException(BaseErrorCode errorCode) {
-        super(errorCode.getErrorMsg().getReason());
+        super(errorCode.getMessage());
         this.errorCode = errorCode;
-    }
-
-    public CommonException(BaseErrorCode errorCode, String errorField, String errorGiven) {
-        super(errorCode.getErrorMsg().getReason()); // RuntimeException
-        this.errorCode = errorCode;
-        this.errorField = errorField;
-        this.errorGiven = errorGiven;
     }
 }
