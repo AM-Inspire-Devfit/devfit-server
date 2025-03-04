@@ -5,6 +5,7 @@ import com.amcamp.domain.project.dao.ProjectParticipantRepository;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.project.domain.ProjectParticipantRole;
+import com.amcamp.domain.project.domain.ToDoInfo;
 import com.amcamp.domain.sprint.application.SprintService;
 import com.amcamp.domain.sprint.dao.SprintRepository;
 import com.amcamp.domain.sprint.domain.Sprint;
@@ -19,11 +20,9 @@ import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.domain.Team;
 import com.amcamp.domain.team.domain.TeamParticipant;
 import com.amcamp.global.exception.CommonException;
-import com.amcamp.global.exception.errorcode.ProjectErrorCode;
-import com.amcamp.global.exception.errorcode.SprintErrorCode;
-import com.amcamp.global.exception.errorcode.TaskErrorCode;
-import com.amcamp.global.exception.errorcode.TeamErrorCode;
+import com.amcamp.global.exception.errorcode.*;
 import com.amcamp.global.util.MemberUtil;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,6 +43,7 @@ public class TaskService {
         final Sprint sprint = findBySprintId(request.sprintId());
         final Project project = sprint.getProject();
         sprintService.validateProjectParticipant(project, project.getTeam(), currentMember);
+        validateDate(request.startDt(), request.dueDt(), sprint.getToDoInfo());
         taskRepository.save(
                 Task.createTask(
                         sprint,
@@ -55,7 +55,7 @@ public class TaskService {
 
     public TaskInfoResponse updateTaskBasicInfo(Long taskId, TaskBasicInfoUpdateRequest request) {
         final Member currentMember = memberUtil.getCurrentMember();
-        Task task = findByTaskId(taskId);
+        final Task task = findByTaskId(taskId);
         validateTaskModify(currentMember, task);
         task.updateTaskBasicInfo(request);
         return TaskInfoResponse.from(task);
@@ -63,7 +63,10 @@ public class TaskService {
 
     public TaskInfoResponse updateTaskToDoInfo(Long taskId, TaskToDoInfoUpdateRequest request) {
         final Member currentMember = memberUtil.getCurrentMember();
-        Task task = findByTaskId(taskId);
+        final Task task = findByTaskId(taskId);
+        final Sprint sprint = findBySprintId(request.sprintId());
+
+        validateDate(request.startDt(), request.dueDt(), sprint.getToDoInfo());
         validateTaskModify(currentMember, task);
         task.updateTaskTodoInfo(request);
         return TaskInfoResponse.from(task);
@@ -72,7 +75,7 @@ public class TaskService {
     public TaskInfoResponse updateTaskAssignStatus(Long taskId) {
         final Member currentMember = memberUtil.getCurrentMember();
 
-        Task task = findByTaskId(taskId);
+        final Task task = findByTaskId(taskId);
         final Sprint sprint = findBySprintId(task.getSprint().getId());
         final Project project = sprint.getProject();
 
@@ -88,7 +91,7 @@ public class TaskService {
 
     public void deleteTask(Long taskId) {
         final Member currentMember = memberUtil.getCurrentMember();
-        Task task = findByTaskId(taskId);
+        final Task task = findByTaskId(taskId);
         validateTaskModify(currentMember, task);
         taskRepository.delete(task);
     }
@@ -99,6 +102,12 @@ public class TaskService {
                     || !member.equals(task.getAssignee().getTeamParticipant().getMember())) {
                 throw new CommonException(TaskErrorCode.TASK_MODIFY_PERMISSION_REQUIRED);
             }
+        }
+    }
+
+    private void validateDate(LocalDate startDt, LocalDate dueDt, ToDoInfo toDoInfo) {
+        if (startDt.isBefore(toDoInfo.getStartDt()) || dueDt.isAfter(toDoInfo.getDueDt())) {
+            throw new CommonException(GlobalErrorCode.INVALID_DATE_ERROR);
         }
     }
 

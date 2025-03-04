@@ -170,6 +170,7 @@ public class TaskServiceTest extends IntegrationTest {
 
             TaskToDoInfoUpdateRequest taskToDoInfoUpdateRequest =
                     new TaskToDoInfoUpdateRequest(
+                            1L,
                             LocalDate.of(2026, 2, 1),
                             LocalDate.of(2026, 3, 1),
                             ToDoStatus.ON_GOING);
