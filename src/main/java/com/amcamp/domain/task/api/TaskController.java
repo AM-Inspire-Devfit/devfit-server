@@ -6,7 +6,6 @@ import com.amcamp.domain.task.dto.request.TaskInfoUpdateRequest;
 import com.amcamp.domain.task.dto.response.TaskInfoResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +20,7 @@ public class TaskController {
 
     @Operation(summary = "태스크 생성", description = "태스크를 생성합니다.")
     @PostMapping("/create")
-    public ResponseEntity<Void> taskCreate(@Valid @RequestBody TaskCreateRequest request) {
+    public ResponseEntity<Void> taskCreate(@RequestBody TaskCreateRequest request) {
         taskService.createTask(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
@@ -29,7 +28,7 @@ public class TaskController {
     @Operation(summary = "태스크 수정", description = "태스크를 수정합니다.")
     @PatchMapping("/{taskId}")
     public TaskInfoResponse taskEdit(
-            @PathVariable Long taskId, @Valid @RequestBody TaskInfoUpdateRequest request) {
+            @PathVariable Long taskId, @RequestBody TaskInfoUpdateRequest request) {
         return taskService.updateTaskInfo(taskId, request);
     }
 

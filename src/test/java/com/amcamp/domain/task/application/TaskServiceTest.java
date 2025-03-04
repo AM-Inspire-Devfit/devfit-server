@@ -17,10 +17,10 @@ import com.amcamp.domain.task.domain.Task;
 import com.amcamp.domain.task.domain.TaskDifficulty;
 import com.amcamp.domain.task.dto.request.TaskCreateRequest;
 import com.amcamp.domain.task.dto.request.TaskInfoUpdateRequest;
+import com.amcamp.domain.task.dto.response.TaskInfoResponse;
 import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.domain.team.dto.request.TeamCreateRequest;
 import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
-import com.amcamp.domain.team.dto.response.TeamInviteCodeResponse;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.TaskErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
@@ -123,28 +123,30 @@ public class TaskServiceTest extends IntegrationTest {
 
     @Nested
     class 태스크_수정_삭제시 {
-        @Test
-        void 수정_삭제_권한이_없으면_예외처리() {
-            // assignee가 존재할때, 프로젝트 팀장이 아니면 예외처리
-            Member member = memberUtil.getCurrentMember();
-            TaskCreateRequest taskRequest =
-                    new TaskCreateRequest(
-                            1L,
-                            "피그마 화면 설계 수정",
-                            TaskDifficulty.MID,
-                            LocalDate.of(2026, 2, 1),
-                            LocalDate.of(2026, 3, 1));
-            taskService.createTask(taskRequest);
-
-            Member newMember = memberRepository.save(Member.createMember("member", null, null));
-            loginAs(newMember);
-
-            TeamInviteCodeResponse teamInviteCodeResponse = teamService.getInviteCode(1L);
-            teamService.joinTeam(new TeamInviteCodeRequest(teamInviteCodeResponse.inviteCode()));
-
-            // 프로젝트 참여 관련 코드 필요
-
-        }
+        //        @Test
+        //        void 수정_삭제_권한이_없으면_예외처리() {
+        //            // assignee가 존재할때, 프로젝트 팀장이 아니면 예외처리
+        //            Member member = memberUtil.getCurrentMember();
+        //            TaskCreateRequest taskRequest =
+        //                    new TaskCreateRequest(
+        //                            1L,
+        //                            "피그마 화면 설계 수정",
+        //                            TaskDifficulty.MID,
+        //                            LocalDate.of(2026, 2, 1),
+        //                            LocalDate.of(2026, 3, 1));
+        //            taskService.createTask(taskRequest);
+        //
+        //            Member newMember = memberRepository.save(Member.createMember("member", null,
+        // null));
+        //            loginAs(newMember);
+        //
+        //            TeamInviteCodeResponse teamInviteCodeResponse = teamService.getInviteCode(1L);
+        //            teamService.joinTeam(new
+        // TeamInviteCodeRequest(teamInviteCodeResponse.inviteCode()));
+        //
+        //            // 프로젝트 참여 관련 코드 필요
+        //
+        //        }
 
         @Test
         void 정상적으로_수정_삭제한다() {
@@ -159,7 +161,7 @@ public class TaskServiceTest extends IntegrationTest {
                             LocalDate.of(2026, 3, 1));
             taskService.createTask(taskRequest);
 
-            // when
+            // when - update
             TaskInfoUpdateRequest taskInfoUpdateRequest =
                     new TaskInfoUpdateRequest(
                             "피그마 화면 설계 재수정",
@@ -172,19 +174,19 @@ public class TaskServiceTest extends IntegrationTest {
                             .findById(1L)
                             .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
 
-            taskService.updateTaskInfo(1L, taskInfoUpdateRequest);
+            TaskInfoResponse response = taskService.updateTaskInfo(1L, taskInfoUpdateRequest);
 
             // then
-
             assertThat(task.getSprint().getId()).isEqualTo(taskRequest.sprintId());
-            assertThat(task.getDescription()).isEqualTo(taskInfoUpdateRequest.description());
-            assertThat(task.getTaskDifficulty()).isEqualTo(taskInfoUpdateRequest.taskDifficulty());
-            assertThat(task.getToDoInfo().getStartDt()).isEqualTo(taskInfoUpdateRequest.startDt());
-            assertThat(task.getToDoInfo().getDueDt()).isEqualTo(taskInfoUpdateRequest.dueDt());
+            assertThat(response.description()).isEqualTo(taskInfoUpdateRequest.description());
+            assertThat(response.taskDifficulty()).isEqualTo(taskInfoUpdateRequest.taskDifficulty());
+            assertThat(response.startDt()).isEqualTo(taskInfoUpdateRequest.startDt());
+            assertThat(response.dueDt()).isEqualTo(taskInfoUpdateRequest.dueDt());
 
-            taskService.deleteTask(1L); // 태스크 삭제
+            // when - delete
+            taskService.deleteTask(1L);
 
-            // 삭제 후 태스크를 다시 조회할 때 예외가 발생하는지 확인
+            // then
             assertThatThrownBy(
                             () ->
                                     taskRepository

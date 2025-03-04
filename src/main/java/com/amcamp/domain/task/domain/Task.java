@@ -73,9 +73,15 @@ public class Task extends BaseTimeEntity {
     }
 
     public void updateTask(TaskInfoUpdateRequest request) {
-        this.description = request.description();
-        this.taskDifficulty = request.taskDifficulty();
-        this.toDoInfo.updateToDoInfo(
-                request.startDt(), request.dueDt(), this.getToDoInfo().getToDoStatus());
+        if (request.description() != null) {
+            this.description = request.description();
+        }
+        if (request.taskDifficulty() != null) {
+            this.taskDifficulty = request.taskDifficulty();
+        }
+        if (request.startDt() != null && request.dueDt() != null) {
+            this.toDoInfo.updateToDoInfo(
+                    request.startDt(), request.dueDt(), this.getToDoInfo().getToDoStatus());
+        }
     }
 }
