@@ -42,6 +42,8 @@ public class SprintService {
 
         validateProjectParticipant(project, project.getTeam(), currentMember);
 
+        validateDate(request.startDt(), request.dueDt(), project.getToDoInfo());
+
         sprintRepository.save(
                 Sprint.createSprint(
                         project,
