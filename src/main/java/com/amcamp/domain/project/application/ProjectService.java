@@ -88,7 +88,6 @@ public class ProjectService {
         Project project = getProjectById(projectId);
         validateProjectParticipant(member, project);
         project.updateBasic(request.title(), request.goal(), request.description());
-        projectRepository.save(project);
     }
 
     public void updateProjectTodoDateInfo(
@@ -97,7 +96,6 @@ public class ProjectService {
         Project project = getProjectById(projectId);
         validateProjectParticipant(member, project);
         project.getToDoInfo().updateTodoDate(request.startDt(), request.DueDt());
-        projectRepository.save(project);
     }
 
     public void updateProjectTodoStatusInfo(
@@ -106,7 +104,6 @@ public class ProjectService {
         Project project = getProjectById(projectId);
         validateProjectParticipant(member, project);
         project.getToDoInfo().updateTodoStatus(request.toDoStatus());
-        projectRepository.save(project);
     }
 
     // project utils
