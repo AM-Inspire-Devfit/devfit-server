@@ -9,14 +9,17 @@ import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.domain.OauthInfo;
 import com.amcamp.domain.project.application.ProjectService;
+import com.amcamp.domain.project.domain.ToDoStatus;
 import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
 import com.amcamp.domain.sprint.application.SprintService;
 import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
 import com.amcamp.domain.task.dao.TaskRepository;
+import com.amcamp.domain.task.domain.AssignedStatus;
 import com.amcamp.domain.task.domain.Task;
 import com.amcamp.domain.task.domain.TaskDifficulty;
+import com.amcamp.domain.task.dto.request.TaskBasicInfoUpdateRequest;
 import com.amcamp.domain.task.dto.request.TaskCreateRequest;
-import com.amcamp.domain.task.dto.request.TaskInfoUpdateRequest;
+import com.amcamp.domain.task.dto.request.TaskToDoInfoUpdateRequest;
 import com.amcamp.domain.task.dto.response.TaskInfoResponse;
 import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.domain.team.dto.request.TeamCreateRequest;
@@ -122,9 +125,9 @@ public class TaskServiceTest extends IntegrationTest {
     }
 
     @Nested
-    class 태스크_수정_삭제시 {
+    class 태스크_수정_시 {
         //        @Test
-        //        void 수정_삭제_권한이_없으면_예외처리() {
+        //        void 수정_권한이_없으면_예외처리() {
         //            // assignee가 존재할때, 프로젝트 팀장이 아니면 예외처리
         //            Member member = memberUtil.getCurrentMember();
         //            TaskCreateRequest taskRequest =
@@ -149,7 +152,7 @@ public class TaskServiceTest extends IntegrationTest {
         //        }
 
         @Test
-        void 정상적으로_수정_삭제한다() {
+        void 정상적으로_기본_기한정보를_수정_한다() {
             // given
             Member member = memberUtil.getCurrentMember();
             TaskCreateRequest taskRequest =
@@ -162,26 +165,33 @@ public class TaskServiceTest extends IntegrationTest {
             taskService.createTask(taskRequest);
 
             // when - update
-            TaskInfoUpdateRequest taskInfoUpdateRequest =
-                    new TaskInfoUpdateRequest(
-                            "피그마 화면 설계 재수정",
-                            TaskDifficulty.HIGH,
+            TaskBasicInfoUpdateRequest taskBasicInfoUpdateRequest =
+                    new TaskBasicInfoUpdateRequest("피그마 화면 설계 재수정", TaskDifficulty.HIGH);
+
+            TaskToDoInfoUpdateRequest taskToDoInfoUpdateRequest =
+                    new TaskToDoInfoUpdateRequest(
                             LocalDate.of(2026, 2, 1),
-                            LocalDate.of(2026, 3, 1));
+                            LocalDate.of(2026, 3, 1),
+                            ToDoStatus.ON_GOING);
 
             Task task =
                     taskRepository
                             .findById(1L)
                             .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
 
-            TaskInfoResponse response = taskService.updateTaskInfo(1L, taskInfoUpdateRequest);
+            TaskInfoResponse response =
+                    taskService.updateTaskBasicInfo(1L, taskBasicInfoUpdateRequest);
+            response = taskService.updateTaskToDoInfo(1L, taskToDoInfoUpdateRequest);
+            response = taskService.updateTaskAssignStatus(1L);
 
             // then
             assertThat(task.getSprint().getId()).isEqualTo(taskRequest.sprintId());
-            assertThat(response.description()).isEqualTo(taskInfoUpdateRequest.description());
-            assertThat(response.taskDifficulty()).isEqualTo(taskInfoUpdateRequest.taskDifficulty());
-            assertThat(response.startDt()).isEqualTo(taskInfoUpdateRequest.startDt());
-            assertThat(response.dueDt()).isEqualTo(taskInfoUpdateRequest.dueDt());
+            assertThat(response.description()).isEqualTo(taskBasicInfoUpdateRequest.description());
+            assertThat(response.taskDifficulty())
+                    .isEqualTo(taskBasicInfoUpdateRequest.taskDifficulty());
+            assertThat(response.toDoStatus()).isEqualTo(taskToDoInfoUpdateRequest.toDoStatus());
+            assertThat(response.assignedStatus()).isEqualTo(AssignedStatus.ASSIGNED);
+            assertThat(response.assignee().getNickname()).isEqualTo(member.getNickname());
 
             // when - delete
             taskService.deleteTask(1L);
