@@ -4,6 +4,7 @@ import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.project.dao.ProjectParticipantRepository;
 import com.amcamp.domain.project.dao.ProjectRepository;
 import com.amcamp.domain.project.domain.Project;
+import com.amcamp.domain.project.domain.ToDoInfo;
 import com.amcamp.domain.sprint.dao.SprintRepository;
 import com.amcamp.domain.sprint.domain.Sprint;
 import com.amcamp.domain.sprint.dto.request.SprintBasicUpdateRequest;
@@ -14,10 +15,12 @@ import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.domain.Team;
 import com.amcamp.domain.team.domain.TeamParticipant;
 import com.amcamp.global.exception.CommonException;
+import com.amcamp.global.exception.errorcode.GlobalErrorCode;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.SprintErrorCode;
 import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.util.MemberUtil;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,6 +71,8 @@ public class SprintService {
         validateProjectParticipant(
                 sprint.getProject(), sprint.getProject().getTeam(), currentMember);
 
+        validateDate(request.startDt(), request.dueDt(), sprint.getProject().getToDoInfo());
+
         sprint.updateSprintToDo(request.startDt(), request.dueDt(), request.status());
 
         return SprintInfoResponse.from(sprint);
@@ -106,5 +111,11 @@ public class SprintService {
                 .findByProjectAndTeamParticipant(project, teamParticipant)
                 .orElseThrow(
                         () -> new CommonException(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED));
+    }
+
+    private void validateDate(LocalDate startDt, LocalDate dueDt, ToDoInfo toDoInfo) {
+        if (startDt.isBefore(toDoInfo.getStartDt()) || dueDt.isAfter(toDoInfo.getDueDt())) {
+            throw new CommonException(GlobalErrorCode.INVALID_DATE_ERROR);
+        }
     }
 }
