@@ -11,9 +11,10 @@ import com.amcamp.domain.project.dao.ProjectParticipantRepository;
 import com.amcamp.domain.project.dao.ProjectRepository;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ToDoStatus;
+import com.amcamp.domain.project.dto.request.ProjectBasicInfoUpdateRequest;
 import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
-import com.amcamp.domain.project.dto.request.ProjectTextInfoUpdateRequest;
-import com.amcamp.domain.project.dto.request.ProjectTodoInfoUpdateRequest;
+import com.amcamp.domain.project.dto.request.ProjectTodoDateInfoUpdateRequest;
+import com.amcamp.domain.project.dto.request.ProjectTodoStatusInfoUpdateRequest;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
 import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
@@ -231,6 +232,13 @@ public class ProjectServiceTest extends IntegrationTest {
 
     @Nested
     class 프로젝트_업데이트 {
+        String originalTitle = "originalProjectTitle";
+        String originalGoal = "originalProjectTitle";
+        String originalDescription = "originalProjectGoal";
+        String updatedTitle = "updatedProjectTitle";
+        String updatedGoal = "updatedProjectGoal";
+        String updatedDescription = "updatedProjectDescription";
+
         void createTestProject() {
             TeamCreateRequest teamCreateRequest = new TeamCreateRequest("팀 이름", "팀 설명");
             String inviteCode = teamService.createTeam(teamCreateRequest).inviteCode();
@@ -240,85 +248,115 @@ public class ProjectServiceTest extends IntegrationTest {
             ProjectCreateRequest request =
                     new ProjectCreateRequest(
                             teamId,
-                            "originalProjectTitle",
-                            "originalProjectGoal",
+                            originalTitle,
+                            originalGoal,
                             startDt,
                             dueDt,
-                            "originalProjectDescription");
+                            originalDescription);
 
             projectService.createProject(request);
         }
 
         @Test
-        void 프로젝트_타이틀을_수정하면_정상적으로_수정된다() {
+        void 프로젝트_기본정보를_수정하면_정상적으로_수정된다() {
             // given
             createTestProject();
             // when
-            String updatedTitle = "updatedProjectTitle";
-            projectService.updateProjectTitle(new ProjectTextInfoUpdateRequest(1L, updatedTitle));
+            projectService.updateProjectBasicInfo(
+                    1L,
+                    new ProjectBasicInfoUpdateRequest(
+                            updatedTitle, updatedGoal, updatedDescription));
             Project updatedProject = projectRepository.findById(1L).get();
             // then
             assertThat(updatedProject.getTitle()).isEqualTo(updatedTitle);
-        }
-
-        @Test
-        void 프로젝트_목표를_수정하면_정상적으로_수정된다() {
-            // given
-            createTestProject();
-            // when
-            String updatedGoal = "updatedProjectGoal";
-            projectService.updateProjectGoal(new ProjectTextInfoUpdateRequest(1L, updatedGoal));
-            Project updatedProject = projectRepository.findById(1L).get();
-            // then
             assertThat(updatedProject.getGoal()).isEqualTo(updatedGoal);
-        }
-
-        @Test
-        void 프로젝트_상세설명을_수정하면_정상적으로_수정된다() {
-            // given
-            createTestProject();
-            // when
-            String updatedDescription = "updatedProjectDescription";
-            projectService.updateProjectDescription(
-                    new ProjectTextInfoUpdateRequest(1L, updatedDescription));
-            Project updatedProject = projectRepository.findById(1L).get();
-            // then
             assertThat(updatedProject.getDescription()).isEqualTo(updatedDescription);
         }
 
         @Test
-        void 프로젝트_상태정보를_수정하면_정상적으로_수정된다() {
+        void 프로젝트_기본정보를_타이틀만_수정하면_타이틀만_수정된다() {
+            // given
+            createTestProject();
+            // when
+            projectService.updateProjectBasicInfo(
+                    1L, new ProjectBasicInfoUpdateRequest(updatedTitle, null, null));
+            Project updatedProject = projectRepository.findById(1L).get();
+            // then
+            assertThat(updatedProject.getTitle()).isEqualTo(updatedTitle);
+            assertThat(updatedProject.getGoal()).isEqualTo(originalGoal);
+            assertThat(updatedProject.getDescription()).isEqualTo(originalDescription);
+        }
+
+        @Test
+        void 프로젝트_기본정보를_목표만_수정하면_목표만_수정된다() {
+            // given
+            createTestProject();
+            // when
+            projectService.updateProjectBasicInfo(
+                    1L, new ProjectBasicInfoUpdateRequest(null, updatedGoal, null));
+            Project updatedProject = projectRepository.findById(1L).get();
+            // then
+            assertThat(updatedProject.getTitle()).isEqualTo(originalTitle);
+            assertThat(updatedProject.getGoal()).isEqualTo(updatedGoal);
+            assertThat(updatedProject.getDescription()).isEqualTo(originalDescription);
+        }
+
+        @Test
+        void 프로젝트_기본정보를_상세설명만_수정하면_상세설명만_수정된다() {
+            // given
+            createTestProject();
+            // when
+            projectService.updateProjectBasicInfo(
+                    1L, new ProjectBasicInfoUpdateRequest(null, null, updatedDescription));
+            Project updatedProject = projectRepository.findById(1L).get();
+            // then
+            assertThat(updatedProject.getTitle()).isEqualTo(originalTitle);
+            assertThat(updatedProject.getGoal()).isEqualTo(originalGoal);
+            assertThat(updatedProject.getDescription()).isEqualTo(updatedDescription);
+        }
+
+        @Test
+        void 프로젝트_일정정보를_수정하면_정상적으로_수정된다() {
             // given
             createTestProject();
             // when
             LocalDate updatedStartDt = LocalDate.of(2027, 1, 1);
             LocalDate updatedDueDt = LocalDate.of(2027, 12, 1);
-            projectService.updateProjectTodoInfo(
-                    new ProjectTodoInfoUpdateRequest(
-                            1L, updatedStartDt, updatedDueDt, ToDoStatus.COMPLETED));
+            projectService.updateProjectTodoDateInfo(
+                    1L, new ProjectTodoDateInfoUpdateRequest(updatedStartDt, updatedDueDt));
             Project updatedProject = projectRepository.findById(1L).get();
             // then
             assertThat(updatedProject.getToDoInfo().getStartDt()).isEqualTo(updatedStartDt);
             assertThat(updatedProject.getToDoInfo().getDueDt()).isEqualTo(updatedDueDt);
-            assertThat(updatedProject.getToDoInfo().getToDoStatus())
-                    .isEqualTo(ToDoStatus.COMPLETED);
         }
 
         @Test
-        void 잘못된_날짜정보_입력하면_오류가_발생한다() {
+        void 잘못된_날짜를_입력하면_오류가_발생한다() {
             // given
             createTestProject();
             // when
             LocalDate updatedStartDt = LocalDate.of(2027, 1, 1);
             LocalDate updatedDueDt = LocalDate.of(2026, 1, 1);
-            ProjectTodoInfoUpdateRequest request =
-                    new ProjectTodoInfoUpdateRequest(
-                            1L, updatedStartDt, updatedDueDt, ToDoStatus.COMPLETED);
+            ProjectTodoDateInfoUpdateRequest request =
+                    new ProjectTodoDateInfoUpdateRequest(updatedStartDt, updatedDueDt);
 
             // then
-            assertThatThrownBy(() -> projectService.updateProjectTodoInfo(request))
+            assertThatThrownBy(() -> projectService.updateProjectTodoDateInfo(1L, request))
                     .isInstanceOf(CommonException.class)
                     .hasMessageContaining(GlobalErrorCode.INVALID_DATE_ERROR.getMessage());
+        }
+
+        @Test
+        void 프로젝트_진행상태를_수정하면_정상적으로_수정된다() {
+            // given
+            createTestProject();
+            // when
+            projectService.updateProjectTodoStatusInfo(
+                    1L, new ProjectTodoStatusInfoUpdateRequest(ToDoStatus.COMPLETED));
+            Project updatedProject = projectRepository.findById(1L).get();
+            // then
+            assertThat(updatedProject.getToDoInfo().getToDoStatus())
+                    .isEqualTo(ToDoStatus.COMPLETED);
         }
     }
 }

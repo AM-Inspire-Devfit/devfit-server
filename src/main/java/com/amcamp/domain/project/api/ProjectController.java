@@ -42,35 +42,27 @@ public class ProjectController {
     }
 
     // update
-    @Operation(summary = "프로젝트 타이틀 업데이트", description = "프로젝트 타이틀을 수정합니다")
+    @Operation(summary = "프로젝트 기본 정보 업데이트", description = "프로젝트 타이틀/목표/상세설정을 수정합니다")
     @PatchMapping("/{projectId}/title")
-    public ResponseEntity<Void> projectTitleUpdate(
-            @RequestBody ProjectTextInfoUpdateRequest request) {
-        projectService.updateProjectTitle(request);
+    public ResponseEntity<Void> projectBasicInfoUpdate(
+            @PathVariable Long projectId, @RequestBody ProjectBasicInfoUpdateRequest request) {
+        projectService.updateProjectBasicInfo(projectId, request);
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "프로젝트 목표 업데이트", description = "프로젝트 목표를 수정합니다")
-    @PatchMapping("/{projectId}/goal")
-    public ResponseEntity<Void> projectGoalUpdate(
-            @RequestBody ProjectTextInfoUpdateRequest request) {
-        projectService.updateProjectGoal(request);
+    @Operation(summary = "프로젝트 시작/마감기한 업데이트", description = "프로젝트 시작/마감기한을 수정합니다")
+    @PatchMapping("/{projectId}/date")
+    public ResponseEntity<Void> projectTodoDateInfoUpdate(
+            @PathVariable Long projectId, @RequestBody ProjectTodoDateInfoUpdateRequest request) {
+        projectService.updateProjectTodoDateInfo(projectId, request);
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "프로젝트 상세설명 업데이트", description = "프로젝트 상세설명을 수정합니다")
-    @PatchMapping("/{projectId}/desc")
-    public ResponseEntity<Void> projectDescriptionUpdate(
-            @RequestBody ProjectTextInfoUpdateRequest request) {
-        projectService.updateProjectDescription(request);
-        return ResponseEntity.ok().build();
-    }
-
-    @Operation(summary = "프로젝트 시작/마감/진행상태 업데이트", description = "프로젝트 시작/마감/진행상태를 수정합니다")
+    @Operation(summary = "프로젝트 진행상태 업데이트", description = "프로젝트 진행상태를 수정합니다")
     @PatchMapping("/{projectId}/todo")
-    public ResponseEntity<Void> projectTodoInfoUpdate(
-            @RequestBody ProjectTodoInfoUpdateRequest request) {
-        projectService.updateProjectTodoInfo(request);
+    public ResponseEntity<Void> projectTodoStatusInfoUpdate(
+            @PathVariable Long projectId, @RequestBody ProjectTodoStatusInfoUpdateRequest request) {
+        projectService.updateProjectTodoStatusInfo(projectId, request);
         return ResponseEntity.ok().build();
     }
 }

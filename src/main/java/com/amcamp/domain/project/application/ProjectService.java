@@ -7,7 +7,6 @@ import com.amcamp.domain.project.dao.ProjectRepositoryCustom;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.project.domain.ProjectParticipantRole;
-import com.amcamp.domain.project.domain.ToDoInfo;
 import com.amcamp.domain.project.dto.request.*;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
@@ -83,28 +82,23 @@ public class ProjectService {
     }
 
     // update
-    public void updateProjectTitle(ProjectTextInfoUpdateRequest request) {
-        Project project = getProjectById(request.projectId());
-        project.updateTitle(request.text());
+    public void updateProjectBasicInfo(Long projectId, ProjectBasicInfoUpdateRequest request) {
+        Project project = getProjectById(projectId);
+        project.updateBasic(request.title(), request.goal(), request.description());
         projectRepository.save(project);
     }
 
-    public void updateProjectGoal(ProjectTextInfoUpdateRequest request) {
-        Project project = getProjectById(request.projectId());
-        project.updateGoal(request.text());
+    public void updateProjectTodoDateInfo(
+            Long projectId, ProjectTodoDateInfoUpdateRequest request) {
+        Project project = getProjectById(projectId);
+        project.getToDoInfo().updateTodoDate(request.startDt(), request.DueDt());
         projectRepository.save(project);
     }
 
-    public void updateProjectDescription(ProjectTextInfoUpdateRequest request) {
-        Project project = getProjectById(request.projectId());
-        project.updateDescription(request.text());
-        projectRepository.save(project);
-    }
-
-    public void updateProjectTodoInfo(ProjectTodoInfoUpdateRequest request) {
-        Project project = getProjectById(request.projectId());
-        project.updateTodoInfo(
-                ToDoInfo.createTodoInfo(request.startDt(), request.DueDt(), request.toDoStatus()));
+    public void updateProjectTodoStatusInfo(
+            Long projectId, ProjectTodoStatusInfoUpdateRequest request) {
+        Project project = getProjectById(projectId);
+        project.getToDoInfo().updateTodoStatus(request.toDoStatus());
         projectRepository.save(project);
     }
 
