@@ -20,6 +20,7 @@ import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.util.MemberUtil;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -83,21 +84,27 @@ public class ProjectService {
 
     // update
     public void updateProjectBasicInfo(Long projectId, ProjectBasicInfoUpdateRequest request) {
+        Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
+        validateProjectParticipant(member, project);
         project.updateBasic(request.title(), request.goal(), request.description());
         projectRepository.save(project);
     }
 
     public void updateProjectTodoDateInfo(
             Long projectId, ProjectTodoDateInfoUpdateRequest request) {
+        Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
+        validateProjectParticipant(member, project);
         project.getToDoInfo().updateTodoDate(request.startDt(), request.DueDt());
         projectRepository.save(project);
     }
 
     public void updateProjectTodoStatusInfo(
             Long projectId, ProjectTodoStatusInfoUpdateRequest request) {
+        Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
+        validateProjectParticipant(member, project);
         project.getToDoInfo().updateTodoStatus(request.toDoStatus());
         projectRepository.save(project);
     }
@@ -126,5 +133,19 @@ public class ProjectService {
         return projectParticipantRepository
                 .findByProjectAndTeamParticipant(project, teamParticipant)
                 .isPresent();
+    }
+
+    private void validateProjectParticipant(Member member, Project project) {
+        Optional<TeamParticipant> teamParticipant =
+                teamParticipantRepository.findByMemberAndTeam(member, project.getTeam());
+        if (teamParticipant.isEmpty()) {
+            throw new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED);
+        } else {
+            if (projectParticipantRepository
+                    .findByProjectAndTeamParticipant(project, teamParticipant.get())
+                    .isEmpty()) {
+                throw new CommonException(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED);
+            }
+        }
     }
 }
