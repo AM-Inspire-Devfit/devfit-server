@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "이미지 API", description = "이미지 관련 API입니다.")
+@Tag(name = "2. 이미지 API", description = "이미지 관련 API입니다.")
 @RestController
 @RequiredArgsConstructor
 public class ImageController {

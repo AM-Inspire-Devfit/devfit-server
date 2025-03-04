@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "스프린트 API", description = "스프린트 관련 API입니다.")
+@Tag(name = "5. 스프린트 API", description = "스프린트 관련 API입니다.")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/sprints")

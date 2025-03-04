@@ -18,7 +18,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "팀 API", description = "팀 관련 API입니다.")
+@Tag(name = "3. 팀 API", description = "팀 관련 API입니다.")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/teams")
