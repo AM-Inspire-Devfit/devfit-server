@@ -16,6 +16,7 @@ import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
 import com.amcamp.domain.project.dto.request.ProjectTodoDateInfoUpdateRequest;
 import com.amcamp.domain.project.dto.request.ProjectTodoStatusInfoUpdateRequest;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
+import com.amcamp.domain.project.dto.response.ProjectParticipationInfoResponse;
 import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.dao.TeamRepository;
@@ -27,6 +28,7 @@ import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
 import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -119,66 +121,52 @@ public class ProjectServiceTest extends IntegrationTest {
 
     @Nested
     class 프로젝트_조회 {
-        //        @Test
-        //        void 팀_ID로_조회하면_전체_프로젝트가_정상적으로_반환된다() {
-        //            // given
-        //            TeamCreateRequest teamCreateRequest = new TeamCreateRequest("팀 이름", "팀 설명");
-        //            String inviteCode = teamService.createTeam(teamCreateRequest).inviteCode();
-        //            TeamInviteCodeRequest teamInviteCodeRequest = new
-        // TeamInviteCodeRequest(inviteCode);
-        //            Long teamId = teamService.getTeamByCode(teamInviteCodeRequest).teamId();
-        //
-        //            ProjectCreateRequest request1 =
-        //                    new ProjectCreateRequest(
-        //                            teamId,
-        //                            "project1",
-        //                            "projectDescription",
-        //                            "projectGoal",
-        //                            startDt,
-        //                            dueDt);
-        //            ProjectCreateRequest request2 =
-        //                    new ProjectCreateRequest(
-        //                            teamId,
-        //                            "project2",
-        //                            "projectDescription",
-        //                            "projectGoal",
-        //                            startDt,
-        //                            dueDt);
-        //
-        //            ProjectCreateRequest request3 =
-        //                    new ProjectCreateRequest(
-        //                            teamId,
-        //                            "project3",
-        //                            "projectDescription",
-        //                            "projectGoal",
-        //                            startDt,
-        //                            dueDt);
-        //
-        //            ProjectCreateRequest request4 =
-        //                    new ProjectCreateRequest(
-        //                            teamId,
-        //                            "project4",
-        //                            "projectDescription",
-        //                            "projectGoal",
-        //                            startDt,
-        //                            dueDt);
-        //
-        //            projectService.createProject(request1);
-        //            projectService.createProject(request2);
-        //            // member logout 후 anotherMember 로그인
-        //            logout();
-        //            loginAs(anotherMember);
-        //            // 팀 참가
-        //            teamService.joinTeam(teamInviteCodeRequest);
-        //            // anotherMember 새 프로젝트 생성
-        //            projectService.createProject(request1);
-        //            projectService.createProject(request2);
-        //
-        //            // when
-        //            ProjectListInfoResponse foundResponse =
-        // projectService.getProjectListInfo(teamId);
+        @Test
+        void 팀_ID로_조회하면_전체_프로젝트가_정상적으로_반환된다() {
+            // given
+            TeamCreateRequest teamCreateRequest = new TeamCreateRequest("팀 이름", "팀 설명");
+            String inviteCode = teamService.createTeam(teamCreateRequest).inviteCode();
+            TeamInviteCodeRequest teamInviteCodeRequest = new TeamInviteCodeRequest(inviteCode);
+            Long teamId = teamService.getTeamByCode(teamInviteCodeRequest).teamId();
 
-        //        }
+            ProjectCreateRequest request1 =
+                    new ProjectCreateRequest(
+                            teamId,
+                            "project1",
+                            "projectGoal",
+                            startDt,
+                            dueDt,
+                            "projectDescription");
+            ProjectCreateRequest request2 =
+                    new ProjectCreateRequest(
+                            teamId,
+                            "project1",
+                            "projectGoal",
+                            startDt,
+                            dueDt,
+                            "projectDescription");
+
+            projectService.createProject(request1);
+            // member logout 후 anotherMember 로그인
+            logout();
+            loginAs(anotherMember);
+            // 팀 참가
+            teamService.joinTeam(teamInviteCodeRequest);
+            // anotherMember 새 프로젝트 생성
+            projectService.createProject(request2);
+
+            // when
+
+            List<ProjectParticipationInfoResponse> foundResponse =
+                    projectService.getProjectListInfo(teamId);
+
+            foundResponse.stream()
+                    .filter(ProjectParticipationInfoResponse::isParticipate)
+                    .forEach(r -> assertThat(r.projectInfo().projectTitle()).isEqualTo("project1"));
+            foundResponse.stream()
+                    .filter(f -> !f.isParticipate())
+                    .forEach(r -> assertThat(r.projectInfo().projectTitle()).isEqualTo("project1"));
+        }
 
         @Test
         void 프로젝트를_ID로_조회하면_정상적으로_반환된다() {

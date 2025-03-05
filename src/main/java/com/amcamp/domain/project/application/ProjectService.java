@@ -9,7 +9,7 @@ import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.project.domain.ProjectParticipantRole;
 import com.amcamp.domain.project.dto.request.*;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
-import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
+import com.amcamp.domain.project.dto.response.ProjectParticipationInfoResponse;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.dao.TeamRepository;
 import com.amcamp.domain.team.domain.Team;
@@ -19,7 +19,6 @@ import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.util.MemberUtil;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -63,23 +62,18 @@ public class ProjectService {
     }
 
     @Transactional(readOnly = true)
-    public ProjectListInfoResponse getProjectListInfo(Long teamId) {
+    public List<ProjectParticipationInfoResponse> getProjectListInfo(Long teamId) {
         List<Project> projectList = projectRepositoryCustom.findAllByTeamId(teamId);
         Member member = memberUtil.getCurrentMember();
         Team team = getTeam(teamId);
-
         TeamParticipant teamParticipant = getTeamParticipant(member, team);
-
-        Map<Boolean, List<ProjectInfoResponse>> partitionedProjects =
-                projectList.stream()
-                        .collect(
-                                Collectors.partitioningBy(
-                                        project -> isTeamParticipant(project, teamParticipant),
-                                        Collectors.mapping(
-                                                ProjectInfoResponse::from, Collectors.toList())));
-
-        return new ProjectListInfoResponse(
-                partitionedProjects.get(true), partitionedProjects.get(false));
+        return projectList.stream()
+                .map(
+                        p ->
+                                new ProjectParticipationInfoResponse(
+                                        ProjectInfoResponse.from(p),
+                                        isProjectParticipant(p, teamParticipant)))
+                .collect(Collectors.toList());
     }
 
     // update
@@ -126,7 +120,7 @@ public class ProjectService {
                 .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_NOT_FOUND));
     }
 
-    private Boolean isTeamParticipant(Project project, TeamParticipant teamParticipant) {
+    private Boolean isProjectParticipant(Project project, TeamParticipant teamParticipant) {
         return projectParticipantRepository
                 .findByProjectAndTeamParticipant(project, teamParticipant)
                 .isPresent();

@@ -3,9 +3,10 @@ package com.amcamp.domain.project.api;
 import com.amcamp.domain.project.application.ProjectService;
 import com.amcamp.domain.project.dto.request.*;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
-import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
+import com.amcamp.domain.project.dto.response.ProjectParticipationInfoResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +32,7 @@ public class ProjectController {
             summary = "전체 프로젝트 목록 조회",
             description = "팀 ID를 통해 사용자가 참여 중인 프로젝트와 참여 중이지 않은 프로젝트를 나누어 조회합니다.")
     @GetMapping("/{teamId}/list")
-    public ProjectListInfoResponse projectListInfo(@PathVariable Long teamId) {
+    public List<ProjectParticipationInfoResponse> projectListInfo(@PathVariable Long teamId) {
         return projectService.getProjectListInfo(teamId);
     }
 
