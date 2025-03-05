@@ -98,7 +98,7 @@ public class TaskService {
         if (task.getAssignedStatus() != AssignedStatus.NOT_ASSIGNED || task.getAssignee() != null) {
             if (!task.getAssignee().getProjectRole().equals(ProjectParticipantRole.ADMIN)
                     || !member.equals(task.getAssignee().getTeamParticipant().getMember())) {
-                throw new CommonException(TaskErrorCode.TASK_MODIFY_PERMISSION_REQUIRED);
+                throw new CommonException(TaskErrorCode.TASK_MODIFY_FORBIDDEN);
             }
         }
     }
