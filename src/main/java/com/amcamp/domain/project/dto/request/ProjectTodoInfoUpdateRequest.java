@@ -2,11 +2,9 @@ package com.amcamp.domain.project.dto.request;
 
 import com.amcamp.domain.project.domain.ToDoStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.annotation.Nullable;
 import java.time.LocalDate;
 
 public record ProjectTodoInfoUpdateRequest(
-        @Schema(description = "수정된 프로젝트 시작일자", example = "2026-03-01") @Nullable LocalDate startDt,
-        @Schema(description = "수정된 프로젝트 마감일자", example = "2026-04-01") @Nullable LocalDate DueDt,
-        @Schema(description = "수정된 프로젝트 진행상태", example = "COMPLETED") @Nullable
-                ToDoStatus toDoStatus) {}
+        @Schema(description = "수정된 프로젝트 시작일자", example = "2026-03-01") LocalDate startDt,
+        @Schema(description = "수정된 프로젝트 마감일자", example = "2026-04-01") LocalDate DueDt,
+        @Schema(description = "수정된 프로젝트 진행상태", example = "COMPLETED") ToDoStatus toDoStatus) {}
