@@ -23,6 +23,7 @@ import com.amcamp.global.exception.errorcode.SprintErrorCode;
 import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.util.MemberUtil;
 import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -98,6 +99,12 @@ public class SprintService {
         validateAdminProjectParticipant(projectParticipant);
 
         sprintRepository.deleteById(sprintId);
+
+        List<Sprint> sprintList =
+                sprintRepository.findAllByProjectOrderByCreatedAt(sprint.getProject());
+        for (int i = 0; i < sprintList.size(); i++) {
+            sprintList.get(i).updateSprintTitle(String.valueOf(i + 1));
+        }
     }
 
     private Sprint findBySprintId(Long sprintId) {
