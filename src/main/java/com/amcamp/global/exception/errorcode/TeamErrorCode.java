@@ -1,9 +1,11 @@
 package com.amcamp.global.exception.errorcode;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 @Getter
+@AllArgsConstructor
 public enum TeamErrorCode implements BaseErrorCode {
     TEAM_NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 팀을 찾을 수 없습니다."),
     MEMBER_ALREADY_JOINED(HttpStatus.BAD_REQUEST, "이미 이 팀에 참가한 회원입니다."),
@@ -17,13 +19,8 @@ public enum TeamErrorCode implements BaseErrorCode {
     private final HttpStatus httpStatus;
     private final String message;
 
-    TeamErrorCode(HttpStatus httpStatus, String message) {
-        this.httpStatus = httpStatus;
-        this.message = message;
-    }
-
     @Override
-    public String getCodeName() {
+    public String errorClassName() {
         return this.name();
     }
 }

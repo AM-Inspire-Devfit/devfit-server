@@ -1,9 +1,11 @@
 package com.amcamp.global.exception.errorcode;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 @Getter
+@AllArgsConstructor
 public enum ProjectErrorCode implements BaseErrorCode {
     PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "project 를 찾을 수 없습니다."),
 
@@ -13,13 +15,8 @@ public enum ProjectErrorCode implements BaseErrorCode {
     private final HttpStatus httpStatus;
     private final String message;
 
-    ProjectErrorCode(HttpStatus httpStatus, String message) {
-        this.httpStatus = httpStatus;
-        this.message = message;
-    }
-
     @Override
-    public String getCodeName() {
+    public String errorClassName() {
         return this.name();
     }
 }
