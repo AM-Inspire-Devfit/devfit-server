@@ -45,7 +45,7 @@ public class ProjectService {
                 projectRepository.save(
                         Project.createProject(
                                 team,
-                                request.projectTitle(),
+                                normalizeProjectTitle(request.projectTitle()),
                                 request.projectDescription(),
                                 request.projectGoal(),
                                 request.startDt(),
@@ -96,6 +96,11 @@ public class ProjectService {
     }
 
     // project utils
+
+    private String normalizeProjectTitle(String name) {
+        return name.trim().replaceAll("[^0-9a-zA-Z가-힣 ]", "_");
+    }
+
     private Project getProjectById(Long projectId) {
         return projectRepository
                 .findById(projectId)
