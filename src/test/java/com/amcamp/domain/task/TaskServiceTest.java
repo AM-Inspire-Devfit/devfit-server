@@ -20,7 +20,6 @@ import com.amcamp.domain.task.domain.Task;
 import com.amcamp.domain.task.domain.TaskDifficulty;
 import com.amcamp.domain.task.dto.request.TaskBasicInfoUpdateRequest;
 import com.amcamp.domain.task.dto.request.TaskCreateRequest;
-import com.amcamp.domain.task.dto.request.TaskToDoInfoUpdateRequest;
 import com.amcamp.domain.task.dto.response.TaskInfoResponse;
 import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.domain.team.dto.request.TeamCreateRequest;
@@ -153,16 +152,9 @@ public class TaskServiceTest extends IntegrationTest {
                     new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID);
             taskService.createTask(taskRequest);
 
-            // when - update
+            // when - update basic info & assigned
             TaskBasicInfoUpdateRequest taskBasicInfoUpdateRequest =
                     new TaskBasicInfoUpdateRequest("피그마 화면 설계 재수정", TaskDifficulty.HIGH);
-
-            TaskToDoInfoUpdateRequest taskToDoInfoUpdateRequest =
-                    new TaskToDoInfoUpdateRequest(
-                            1L,
-                            LocalDate.of(2026, 2, 1),
-                            LocalDate.of(2026, 3, 1),
-                            ToDoStatus.ON_GOING);
 
             Task task =
                     taskRepository
@@ -171,7 +163,6 @@ public class TaskServiceTest extends IntegrationTest {
 
             TaskInfoResponse response =
                     taskService.updateTaskBasicInfo(1L, taskBasicInfoUpdateRequest);
-            response = taskService.updateTaskToDoInfo(1L, taskToDoInfoUpdateRequest);
             response = taskService.assignTask(1L);
 
             // then
@@ -179,9 +170,13 @@ public class TaskServiceTest extends IntegrationTest {
             assertThat(response.description()).isEqualTo(taskBasicInfoUpdateRequest.description());
             assertThat(response.taskDifficulty())
                     .isEqualTo(taskBasicInfoUpdateRequest.taskDifficulty());
-            assertThat(response.toDoStatus()).isEqualTo(taskToDoInfoUpdateRequest.toDoStatus());
+            assertThat(response.toDoStatus()).isEqualTo(ToDoStatus.ON_GOING);
             assertThat(response.assignedStatus()).isEqualTo(AssignedStatus.ASSIGNED);
             assertThat(response.assignee().getNickname()).isEqualTo(member.getNickname());
+
+            // when & then - finished
+            response = taskService.updateTaskToDoInfo(1L);
+            assertThat(response.toDoStatus()).isEqualTo(ToDoStatus.COMPLETED);
 
             // when - delete
             taskService.deleteTask(1L);
