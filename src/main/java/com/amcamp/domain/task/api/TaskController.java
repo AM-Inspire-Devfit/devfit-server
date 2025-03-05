@@ -13,14 +13,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "태스크 API", description = "태스크  관련 API입니다.")
+@Tag(name = "6. 태스크 API", description = "태스크  관련 API입니다.")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/tasks")
 public class TaskController {
     private final TaskService taskService;
 
-    @Operation(summary = "6. 태스크 생성", description = "태스크를 생성합니다.")
+    @Operation(summary = "태스크 생성", description = "태스크를 생성합니다.")
     @PostMapping("/create")
     public ResponseEntity<Void> taskCreate(@Valid @RequestBody TaskCreateRequest request) {
         taskService.createTask(request);
