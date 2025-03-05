@@ -61,7 +61,7 @@ public class ExceptionHandlerTest {
 
         // then: 응답 객체 검증
         assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(400);
+        assertThat(response.getStatus()).isEqualTo(404);
         assertThat(response.getData()).isInstanceOf(ErrorDetail.class);
 
         // ErrorMsg 객체 세부 검증
