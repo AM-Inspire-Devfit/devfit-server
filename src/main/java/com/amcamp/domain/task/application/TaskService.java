@@ -83,11 +83,13 @@ public class TaskService {
         final Sprint sprint = findBySprintId(task.getSprint().getId());
         final Project project = sprint.getProject();
 
-        validateProjectParticipant(project, project.getTeam(), currentMember);
-        validateTaskModify(currentMember, task);
+        ProjectParticipant projectParticipant =
+                validateProjectParticipant(project, project.getTeam(), currentMember);
+        //        validateTaskModify(currentMember, task);
 
-        TeamParticipant teamParticipant = findTeamParticipant(currentMember, project.getTeam());
-        ProjectParticipant projectParticipant = findProjectParticipant(teamParticipant, project);
+        if (task.getAssignedStatus() != AssignedStatus.NOT_ASSIGNED && task.getAssignee() != null) {
+            throw new CommonException(TaskErrorCode.TASK_ALREADY_ASSIGNED);
+        }
 
         task.assignTask(projectParticipant);
         return findProjectParticipantMember(task) != null
