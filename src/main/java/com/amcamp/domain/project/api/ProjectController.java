@@ -45,7 +45,7 @@ public class ProjectController {
 
     // update
     @Operation(summary = "프로젝트 기본 정보 업데이트", description = "프로젝트 타이틀/목표/상세설정을 수정합니다")
-    @PatchMapping("/{projectId}/title")
+    @PatchMapping("/{projectId}/basic-info")
     public ResponseEntity<Void> projectBasicInfoUpdate(
             @PathVariable Long projectId,
             @Valid @RequestBody ProjectBasicInfoUpdateRequest request) {
@@ -54,7 +54,7 @@ public class ProjectController {
     }
 
     @Operation(summary = "프로젝트 시작/마감기한/진행상태 업데이트", description = "프로젝트 시작/마감기한/진행상태를 수정합니다")
-    @PatchMapping("/{projectId}/todo")
+    @PatchMapping("/{projectId}/todo-info")
     public ResponseEntity<Void> projectTodoInfoUpdate(
             @PathVariable Long projectId,
             @Valid @RequestBody ProjectTodoInfoUpdateRequest request) {
