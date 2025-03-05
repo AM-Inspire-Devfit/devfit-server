@@ -15,14 +15,13 @@ public record TaskInfoResponse(
         @Schema(description = "태스크 시작일자", example = "2024-01-01") LocalDate startDt,
         @Schema(description = "태스크 마감일자", example = "2024-01-02") LocalDate dueDt,
         @Schema(description = "태스크 진행현황", example = "1") ToDoStatus toDoStatus,
-        @Schema(description = "태스크 담당자", example = "최현태") Member assignee,
-        @Schema(description = "태스크 담당현황", example = "1") AssignedStatus assignedStatus) {
+        @Schema(description = "태스크 담당 상태", example = "ASSIGNED") AssignedStatus assignedStatus,
+        @Schema(description = "태스크 담당자 아이디", example = "1") Long memberId,
+        @Schema(description = "태스크 담당자 닉네임", example = "최현태") String nickname,
+        @Schema(description = "태스크 담당자 프로필 url", example = "Presigned URL")
+                String profileImageUrl) {
 
-    public static TaskInfoResponse from(Task task) {
-        Member member = null;
-        if (task.getAssignee() != null && task.getAssignedStatus() != AssignedStatus.NOT_ASSIGNED) {
-            member = task.getAssignee().getTeamParticipant().getMember();
-        }
+    public static TaskInfoResponse from(Task task, Member member) {
         return new TaskInfoResponse(
                 task.getId(),
                 task.getDescription(),
@@ -30,7 +29,23 @@ public record TaskInfoResponse(
                 task.getToDoInfo().getStartDt(),
                 task.getToDoInfo().getDueDt(),
                 task.getToDoInfo().getToDoStatus(),
-                member,
-                task.getAssignedStatus());
+                task.getAssignedStatus(),
+                member.getId(),
+                member.getNickname(),
+                member.getProfileImageUrl());
+    }
+
+    public static TaskInfoResponse of(Task task) {
+        return new TaskInfoResponse(
+                task.getId(),
+                task.getDescription(),
+                task.getTaskDifficulty(),
+                task.getToDoInfo().getStartDt(),
+                task.getToDoInfo().getDueDt(),
+                task.getToDoInfo().getToDoStatus(),
+                task.getAssignedStatus(),
+                null,
+                null,
+                null);
     }
 }

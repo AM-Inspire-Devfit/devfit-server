@@ -172,7 +172,7 @@ public class TaskServiceTest extends IntegrationTest {
                     .isEqualTo(taskBasicInfoUpdateRequest.taskDifficulty());
             assertThat(response.toDoStatus()).isEqualTo(ToDoStatus.ON_GOING);
             assertThat(response.assignedStatus()).isEqualTo(AssignedStatus.ASSIGNED);
-            assertThat(response.assignee().getNickname()).isEqualTo(member.getNickname());
+            assertThat(response.nickname()).isEqualTo(member.getNickname());
 
             // when & then - finished
             response = taskService.updateTaskToDoInfo(1L);

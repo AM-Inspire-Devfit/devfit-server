@@ -5,7 +5,6 @@ import com.amcamp.domain.project.dao.ProjectParticipantRepository;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.project.domain.ProjectParticipantRole;
-import com.amcamp.domain.project.domain.ToDoInfo;
 import com.amcamp.domain.sprint.dao.SprintRepository;
 import com.amcamp.domain.sprint.domain.Sprint;
 import com.amcamp.domain.task.dao.TaskRepository;
@@ -20,7 +19,6 @@ import com.amcamp.domain.team.domain.TeamParticipant;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.*;
 import com.amcamp.global.util.MemberUtil;
-import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,13 +33,18 @@ public class TaskService {
     private final ProjectParticipantRepository projectParticipantRepository;
     private final TeamParticipantRepository teamParticipantRepository;
 
-    public void createTask(TaskCreateRequest request) {
+    public TaskInfoResponse createTask(TaskCreateRequest request) {
         final Member currentMember = memberUtil.getCurrentMember();
         final Sprint sprint = findBySprintId(request.sprintId());
         final Project project = sprint.getProject();
         validateProjectParticipant(project, project.getTeam(), currentMember);
-        taskRepository.save(
-                Task.createTask(sprint, request.description(), request.taskDifficulty()));
+        Task task =
+                taskRepository.save(
+                        Task.createTask(sprint, request.description(), request.taskDifficulty()));
+
+        return findProjectParticipantMember(task) != null
+                ? TaskInfoResponse.from(task, findProjectParticipantMember(task))
+                : TaskInfoResponse.of(task);
     }
 
     public TaskInfoResponse updateTaskBasicInfo(Long taskId, TaskBasicInfoUpdateRequest request) {
@@ -49,7 +52,10 @@ public class TaskService {
         final Task task = findByTaskId(taskId);
         validateTaskModify(currentMember, task);
         task.updateTaskBasicInfo(request);
-        return TaskInfoResponse.from(task);
+
+        return findProjectParticipantMember(task) != null
+                ? TaskInfoResponse.from(task, findProjectParticipantMember(task))
+                : TaskInfoResponse.of(task);
     }
 
     public TaskInfoResponse updateTaskToDoInfo(Long taskId) {
@@ -57,7 +63,10 @@ public class TaskService {
         final Task task = findByTaskId(taskId);
         validateTaskModify(currentMember, task);
         task.updateTaskTodoInfo();
-        return TaskInfoResponse.from(task);
+
+        return findProjectParticipantMember(task) != null
+                ? TaskInfoResponse.from(task, findProjectParticipantMember(task))
+                : TaskInfoResponse.of(task);
     }
 
     public TaskInfoResponse assignTask(Long taskId) {
@@ -73,7 +82,9 @@ public class TaskService {
         ProjectParticipant projectParticipant = findProjectParticipant(teamParticipant, project);
 
         task.assignTask(projectParticipant);
-        return TaskInfoResponse.from(task);
+        return findProjectParticipantMember(task) != null
+                ? TaskInfoResponse.from(task, findProjectParticipantMember(task))
+                : TaskInfoResponse.of(task);
     }
 
     public void deleteTask(Long taskId) {
@@ -89,12 +100,6 @@ public class TaskService {
                     || !member.equals(task.getAssignee().getTeamParticipant().getMember())) {
                 throw new CommonException(TaskErrorCode.TASK_MODIFY_FORBIDDEN);
             }
-        }
-    }
-
-    private void validateDate(LocalDate startDt, LocalDate dueDt, ToDoInfo toDoInfo) {
-        if (startDt.isBefore(toDoInfo.getStartDt()) || dueDt.isAfter(toDoInfo.getDueDt())) {
-            throw new CommonException(GlobalErrorCode.INVALID_DATE_ERROR);
         }
     }
 
@@ -136,5 +141,13 @@ public class TaskService {
                 .findByProjectAndTeamParticipant(project, teamParticipant)
                 .orElseThrow(
                         () -> new CommonException(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED));
+    }
+
+    private Member findProjectParticipantMember(Task task) {
+        Member member = null;
+        if (task.getAssignee() != null && task.getAssignedStatus() != AssignedStatus.NOT_ASSIGNED) {
+            member = task.getAssignee().getTeamParticipant().getMember();
+        }
+        return member;
     }
 }

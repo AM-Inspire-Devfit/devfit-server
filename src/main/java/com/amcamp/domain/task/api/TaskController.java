@@ -21,9 +21,8 @@ public class TaskController {
 
     @Operation(summary = "태스크 생성", description = "태스크를 생성합니다.")
     @PostMapping("/create")
-    public ResponseEntity<Void> taskCreate(@Valid @RequestBody TaskCreateRequest request) {
-        taskService.createTask(request);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    public TaskInfoResponse taskCreate(@Valid @RequestBody TaskCreateRequest request) {
+        return taskService.createTask(request);
     }
 
     @Operation(summary = "태스크 기본 정보 수정", description = "태스크 기본 정보를 수정합니다.")
