@@ -4,6 +4,8 @@ import com.amcamp.domain.common.model.BaseTimeEntity;
 import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.project.domain.ToDoInfo;
 import com.amcamp.domain.sprint.domain.Sprint;
+import com.amcamp.domain.task.dto.request.TaskBasicInfoUpdateRequest;
+import com.amcamp.domain.task.dto.request.TaskToDoInfoUpdateRequest;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import lombok.AccessLevel;
@@ -60,15 +62,37 @@ public class Task extends BaseTimeEntity {
             String description,
             LocalDate startDt,
             LocalDate dueDt,
-            TaskDifficulty taskDifficulty,
-            ProjectParticipant assignee) {
+            TaskDifficulty taskDifficulty) {
         return Task.builder()
                 .sprint(sprint)
                 .description(description)
                 .toDoInfo(ToDoInfo.createToDoInfo(startDt, dueDt))
                 .taskDifficulty(taskDifficulty)
-                .assignedStatus(AssignedStatus.ASSIGNED)
-                .assignee(assignee)
+                .assignedStatus(AssignedStatus.NOT_ASSIGNED)
+                .assignee(null)
                 .build();
+    }
+
+    public void updateTaskBasicInfo(TaskBasicInfoUpdateRequest request) {
+        if (request.description() != null) {
+            this.description = request.description();
+        }
+        if (request.taskDifficulty() != null) {
+            this.taskDifficulty = request.taskDifficulty();
+        }
+    }
+
+    public void updateTaskTodoInfo(TaskToDoInfoUpdateRequest request) {
+        this.toDoInfo.updateToDoInfo(request.startDt(), request.dueDt(), request.toDoStatus());
+    }
+
+    public void updateTaskAssignStatus(ProjectParticipant projectParticipant) {
+        if (this.getAssignedStatus() == AssignedStatus.NOT_ASSIGNED) {
+            this.assignedStatus = AssignedStatus.ASSIGNED;
+            this.assignee = projectParticipant;
+        } else {
+            this.assignedStatus = AssignedStatus.NOT_ASSIGNED;
+            this.assignee = null;
+        }
     }
 }
