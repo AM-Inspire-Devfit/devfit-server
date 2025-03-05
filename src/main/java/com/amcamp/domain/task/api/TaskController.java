@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class TaskController {
     private final TaskService taskService;
 
-    @Operation(summary = "태스크 생성", description = "태스크를 생성합니다.")
+    @Operation(summary = "6. 태스크 생성", description = "태스크를 생성합니다.")
     @PostMapping("/create")
     public ResponseEntity<Void> taskCreate(@Valid @RequestBody TaskCreateRequest request) {
         taskService.createTask(request);
