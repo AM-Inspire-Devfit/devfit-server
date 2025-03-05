@@ -38,21 +38,26 @@ public class SprintService {
     private final TeamParticipantRepository teamParticipantRepository;
     private final ProjectParticipantRepository projectParticipantRepository;
 
-    public void createSprint(SprintCreateRequest request) {
+    public SprintInfoResponse createSprint(SprintCreateRequest request) {
         final Member currentMember = memberUtil.getCurrentMember();
         final Project project = findByProjectId(request.projectId());
 
         validateProjectParticipant(project, project.getTeam(), currentMember);
-
         validateDate(request.startDt(), request.dueDt(), project.getToDoInfo());
 
-        sprintRepository.save(
-                Sprint.createSprint(
-                        project,
-                        request.title(),
-                        request.goal(),
-                        request.startDt(),
-                        request.dueDt()));
+        long count = sprintRepository.countByProject(project);
+        String autoTitle = String.valueOf(count + 1);
+
+        Sprint sprint =
+                sprintRepository.save(
+                        Sprint.createSprint(
+                                project,
+                                autoTitle,
+                                request.goal(),
+                                request.startDt(),
+                                request.dueDt()));
+
+        return SprintInfoResponse.from(sprint);
     }
 
     public SprintInfoResponse updateSprintBasicInfo(
