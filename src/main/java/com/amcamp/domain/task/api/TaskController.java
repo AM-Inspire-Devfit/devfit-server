@@ -3,7 +3,6 @@ package com.amcamp.domain.task.api;
 import com.amcamp.domain.task.application.TaskService;
 import com.amcamp.domain.task.dto.request.TaskBasicInfoUpdateRequest;
 import com.amcamp.domain.task.dto.request.TaskCreateRequest;
-import com.amcamp.domain.task.dto.request.TaskToDoInfoUpdateRequest;
 import com.amcamp.domain.task.dto.response.TaskInfoResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,15 +33,14 @@ public class TaskController {
         return taskService.updateTaskBasicInfo(taskId, request);
     }
 
-    @Operation(summary = "태스크 완료", description = "태스크 일정 및 진행 상태를 수정합니다.")
-    @PatchMapping("/{taskId}/todo-info")
-    public TaskInfoResponse taskUpdateToDo(
-            @PathVariable Long taskId, @Valid @RequestBody TaskToDoInfoUpdateRequest request) {
-        return taskService.updateTaskToDoInfo(taskId, request);
+    @Operation(summary = "태스크 완료", description = "태스크 완료에 따른 일정 및 진행 상태를 수정합니다.")
+    @PatchMapping("/{taskId}")
+    public TaskInfoResponse taskUpdateToDo(@PathVariable Long taskId) {
+        return taskService.updateTaskToDoInfo(taskId);
     }
 
     @Operation(summary = "태스크 담당자 할당", description = "태스크 담당 상태를 수정합니다.")
-    @PostMapping("/{taskId}/assign")
+    @PostMapping("/{taskId}")
     public TaskInfoResponse taskAssign(@PathVariable Long taskId) {
         return taskService.assignTask(taskId);
     }

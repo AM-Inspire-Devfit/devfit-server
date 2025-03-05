@@ -6,7 +6,6 @@ import com.amcamp.domain.project.domain.ToDoInfo;
 import com.amcamp.domain.project.domain.ToDoStatus;
 import com.amcamp.domain.sprint.domain.Sprint;
 import com.amcamp.domain.task.dto.request.TaskBasicInfoUpdateRequest;
-import com.amcamp.domain.task.dto.request.TaskToDoInfoUpdateRequest;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import lombok.AccessLevel;
@@ -79,8 +78,9 @@ public class Task extends BaseTimeEntity {
         }
     }
 
-    public void updateTaskTodoInfo(TaskToDoInfoUpdateRequest request) {
-        this.toDoInfo.updateToDoInfo(request.startDt(), request.dueDt(), request.toDoStatus());
+    public void updateTaskTodoInfo() {
+        this.toDoInfo.updateToDoInfo(
+                this.toDoInfo.getStartDt(), LocalDate.now(), ToDoStatus.COMPLETED);
     }
 
     public void assignTask(ProjectParticipant projectParticipant) {

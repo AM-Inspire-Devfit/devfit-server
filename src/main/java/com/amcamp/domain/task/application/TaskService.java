@@ -13,7 +13,6 @@ import com.amcamp.domain.task.domain.AssignedStatus;
 import com.amcamp.domain.task.domain.Task;
 import com.amcamp.domain.task.dto.request.TaskBasicInfoUpdateRequest;
 import com.amcamp.domain.task.dto.request.TaskCreateRequest;
-import com.amcamp.domain.task.dto.request.TaskToDoInfoUpdateRequest;
 import com.amcamp.domain.task.dto.response.TaskInfoResponse;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.domain.Team;
@@ -53,14 +52,11 @@ public class TaskService {
         return TaskInfoResponse.from(task);
     }
 
-    public TaskInfoResponse updateTaskToDoInfo(Long taskId, TaskToDoInfoUpdateRequest request) {
+    public TaskInfoResponse updateTaskToDoInfo(Long taskId) {
         final Member currentMember = memberUtil.getCurrentMember();
         final Task task = findByTaskId(taskId);
-        final Sprint sprint = findBySprintId(request.sprintId());
-
-        validateDate(request.startDt(), request.dueDt(), sprint.getToDoInfo());
         validateTaskModify(currentMember, task);
-        task.updateTaskTodoInfo(request);
+        task.updateTaskTodoInfo();
         return TaskInfoResponse.from(task);
     }
 
