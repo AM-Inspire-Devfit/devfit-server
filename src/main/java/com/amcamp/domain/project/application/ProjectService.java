@@ -99,6 +99,7 @@ public class ProjectService {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
         validateProjectAdmin(member, project);
+        projectParticipantRepository.deleteAllByProject(project);
         projectRepository.delete(project);
     }
 

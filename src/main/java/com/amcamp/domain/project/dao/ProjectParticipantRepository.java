@@ -9,4 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ProjectParticipantRepository extends JpaRepository<ProjectParticipant, Long> {
     Optional<ProjectParticipant> findByProjectAndTeamParticipant(
             Project project, TeamParticipant teamParticipant);
+
+    void deleteAllByProject(Project project);
 }
