@@ -88,11 +88,7 @@ public class TaskServiceTest extends IntegrationTest {
 
         SprintCreateRequest sprintRequest =
                 new SprintCreateRequest(
-                        1L,
-                        "1차 스프린트",
-                        "MVP 개발",
-                        LocalDate.of(2026, 2, 1),
-                        LocalDate.of(2026, 3, 1));
+                        1L, "1차 스프린트", LocalDate.of(2026, 2, 1), LocalDate.of(2026, 3, 1));
         sprintService.createSprint(sprintRequest);
     }
 
