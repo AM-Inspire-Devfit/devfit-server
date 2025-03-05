@@ -50,6 +50,10 @@ public class TaskService {
     public TaskInfoResponse updateTaskBasicInfo(Long taskId, TaskBasicInfoUpdateRequest request) {
         final Member currentMember = memberUtil.getCurrentMember();
         final Task task = findByTaskId(taskId);
+        final Sprint sprint = findBySprintId(task.getSprint().getId());
+        final Project project = sprint.getProject();
+
+        validateProjectParticipant(project, project.getTeam(), currentMember);
         validateTaskModify(currentMember, task);
         task.updateTaskBasicInfo(request);
 
@@ -61,6 +65,10 @@ public class TaskService {
     public TaskInfoResponse updateTaskToDoInfo(Long taskId) {
         final Member currentMember = memberUtil.getCurrentMember();
         final Task task = findByTaskId(taskId);
+        final Sprint sprint = findBySprintId(task.getSprint().getId());
+        final Project project = sprint.getProject();
+
+        validateProjectParticipant(project, project.getTeam(), currentMember);
         validateTaskModify(currentMember, task);
         task.updateTaskTodoInfo();
 
@@ -90,6 +98,10 @@ public class TaskService {
     public void deleteTask(Long taskId) {
         final Member currentMember = memberUtil.getCurrentMember();
         final Task task = findByTaskId(taskId);
+        final Sprint sprint = findBySprintId(task.getSprint().getId());
+        final Project project = sprint.getProject();
+
+        validateProjectParticipant(project, project.getTeam(), currentMember);
         validateTaskModify(currentMember, task);
         taskRepository.delete(task);
     }
