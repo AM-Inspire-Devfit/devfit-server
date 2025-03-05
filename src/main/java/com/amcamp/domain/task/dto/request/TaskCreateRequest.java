@@ -13,7 +13,7 @@ public record TaskCreateRequest(
         @NotBlank(message = "태스크 내용은 필수값입니다.")
                 @Schema(description = "태스크 내용", example = "피그마 화면 설계 수정")
                 String description,
-        @NotBlank(message = "태스크 난이도는 필수값입니다.") @Schema(description = "태스크 난이도", example = "MID")
+        @NotNull(message = "태스크 난이도는 필수값입니다.") @Schema(description = "태스크 난이도", example = "MID")
                 TaskDifficulty taskDifficulty,
         @NotNull(message = "태스크 시작 날짜는 비워둘 수 없습니다.")
                 @JsonFormat(
