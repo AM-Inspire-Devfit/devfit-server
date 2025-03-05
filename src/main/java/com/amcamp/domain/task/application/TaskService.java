@@ -41,14 +41,8 @@ public class TaskService {
         final Sprint sprint = findBySprintId(request.sprintId());
         final Project project = sprint.getProject();
         validateProjectParticipant(project, project.getTeam(), currentMember);
-        validateDate(request.startDt(), request.dueDt(), sprint.getToDoInfo());
         taskRepository.save(
-                Task.createTask(
-                        sprint,
-                        request.description(),
-                        request.startDt(),
-                        request.dueDt(),
-                        request.taskDifficulty()));
+                Task.createTask(sprint, request.description(), request.taskDifficulty()));
     }
 
     public TaskInfoResponse updateTaskBasicInfo(Long taskId, TaskBasicInfoUpdateRequest request) {
@@ -70,9 +64,8 @@ public class TaskService {
         return TaskInfoResponse.from(task);
     }
 
-    public TaskInfoResponse updateTaskAssignStatus(Long taskId) {
+    public TaskInfoResponse assignTask(Long taskId) {
         final Member currentMember = memberUtil.getCurrentMember();
-
         final Task task = findByTaskId(taskId);
         final Sprint sprint = findBySprintId(task.getSprint().getId());
         final Project project = sprint.getProject();
@@ -83,7 +76,7 @@ public class TaskService {
         TeamParticipant teamParticipant = findTeamParticipant(currentMember, project.getTeam());
         ProjectParticipant projectParticipant = findProjectParticipant(teamParticipant, project);
 
-        task.updateTaskAssignStatus(projectParticipant);
+        task.assignTask(projectParticipant);
         return TaskInfoResponse.from(task);
     }
 

@@ -102,12 +102,7 @@ public class TaskServiceTest extends IntegrationTest {
         // given
         Member member = memberUtil.getCurrentMember();
         TaskCreateRequest taskRequest =
-                new TaskCreateRequest(
-                        1L,
-                        "피그마 화면 설계 수정",
-                        TaskDifficulty.MID,
-                        LocalDate.of(2026, 2, 1),
-                        LocalDate.of(2026, 3, 1));
+                new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID);
 
         // when
         taskService.createTask(taskRequest);
@@ -121,8 +116,6 @@ public class TaskServiceTest extends IntegrationTest {
         assertThat(task.getSprint().getId()).isEqualTo(taskRequest.sprintId());
         assertThat(task.getDescription()).isEqualTo(taskRequest.description());
         assertThat(task.getTaskDifficulty()).isEqualTo(taskRequest.taskDifficulty());
-        assertThat(task.getToDoInfo().getStartDt()).isEqualTo(taskRequest.startDt());
-        assertThat(task.getToDoInfo().getDueDt()).isEqualTo(taskRequest.dueDt());
     }
 
     @Nested
@@ -157,12 +150,7 @@ public class TaskServiceTest extends IntegrationTest {
             // given
             Member member = memberUtil.getCurrentMember();
             TaskCreateRequest taskRequest =
-                    new TaskCreateRequest(
-                            1L,
-                            "피그마 화면 설계 수정",
-                            TaskDifficulty.MID,
-                            LocalDate.of(2026, 2, 1),
-                            LocalDate.of(2026, 3, 1));
+                    new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID);
             taskService.createTask(taskRequest);
 
             // when - update
@@ -184,7 +172,7 @@ public class TaskServiceTest extends IntegrationTest {
             TaskInfoResponse response =
                     taskService.updateTaskBasicInfo(1L, taskBasicInfoUpdateRequest);
             response = taskService.updateTaskToDoInfo(1L, taskToDoInfoUpdateRequest);
-            response = taskService.updateTaskAssignStatus(1L);
+            response = taskService.assignTask(1L);
 
             // then
             assertThat(task.getSprint().getId()).isEqualTo(taskRequest.sprintId());

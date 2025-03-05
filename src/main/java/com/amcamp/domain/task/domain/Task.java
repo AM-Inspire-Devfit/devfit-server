@@ -3,6 +3,7 @@ package com.amcamp.domain.task.domain;
 import com.amcamp.domain.common.model.BaseTimeEntity;
 import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.project.domain.ToDoInfo;
+import com.amcamp.domain.project.domain.ToDoStatus;
 import com.amcamp.domain.sprint.domain.Sprint;
 import com.amcamp.domain.task.dto.request.TaskBasicInfoUpdateRequest;
 import com.amcamp.domain.task.dto.request.TaskToDoInfoUpdateRequest;
@@ -58,17 +59,13 @@ public class Task extends BaseTimeEntity {
     }
 
     public static Task createTask(
-            Sprint sprint,
-            String description,
-            LocalDate startDt,
-            LocalDate dueDt,
-            TaskDifficulty taskDifficulty) {
+            Sprint sprint, String description, TaskDifficulty taskDifficulty) {
         return Task.builder()
                 .sprint(sprint)
                 .description(description)
-                .toDoInfo(ToDoInfo.createToDoInfo(startDt, dueDt))
                 .taskDifficulty(taskDifficulty)
                 .assignedStatus(AssignedStatus.NOT_ASSIGNED)
+                .toDoInfo(ToDoInfo.createToDoInfo(null, null))
                 .assignee(null)
                 .build();
     }
@@ -86,13 +83,9 @@ public class Task extends BaseTimeEntity {
         this.toDoInfo.updateToDoInfo(request.startDt(), request.dueDt(), request.toDoStatus());
     }
 
-    public void updateTaskAssignStatus(ProjectParticipant projectParticipant) {
-        if (this.getAssignedStatus() == AssignedStatus.NOT_ASSIGNED) {
-            this.assignedStatus = AssignedStatus.ASSIGNED;
-            this.assignee = projectParticipant;
-        } else {
-            this.assignedStatus = AssignedStatus.NOT_ASSIGNED;
-            this.assignee = null;
-        }
+    public void assignTask(ProjectParticipant projectParticipant) {
+        this.assignedStatus = AssignedStatus.ASSIGNED;
+        this.assignee = projectParticipant;
+        this.toDoInfo.updateToDoInfo(LocalDate.now(), null, ToDoStatus.ON_GOING);
     }
 }

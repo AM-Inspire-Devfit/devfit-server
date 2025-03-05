@@ -34,17 +34,17 @@ public class TaskController {
         return taskService.updateTaskBasicInfo(taskId, request);
     }
 
-    @Operation(summary = "태스크 일정 및 진행 상태 수정", description = "태스크 일정 및 진행 상태를 수정합니다.")
+    @Operation(summary = "태스크 완료", description = "태스크 일정 및 진행 상태를 수정합니다.")
     @PatchMapping("/{taskId}/todo-info")
     public TaskInfoResponse taskUpdateToDo(
             @PathVariable Long taskId, @Valid @RequestBody TaskToDoInfoUpdateRequest request) {
         return taskService.updateTaskToDoInfo(taskId, request);
     }
 
-    @Operation(summary = "태스크 담당 상태 수정", description = "태스크 담당 상태를 수정합니다.")
-    @PatchMapping("/{taskId}/assign")
-    public TaskInfoResponse taskUpdateAssignStatus(@PathVariable Long taskId) {
-        return taskService.updateTaskAssignStatus(taskId);
+    @Operation(summary = "태스크 담당자 할당", description = "태스크 담당 상태를 수정합니다.")
+    @PostMapping("/{taskId}/assign")
+    public TaskInfoResponse taskAssign(@PathVariable Long taskId) {
+        return taskService.assignTask(taskId);
     }
 
     @Operation(summary = "태스크 삭제", description = "태스크를 삭제합니다.")
