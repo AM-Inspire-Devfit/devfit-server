@@ -68,7 +68,7 @@ public class SprintService {
         validateProjectParticipant(
                 sprint.getProject(), sprint.getProject().getTeam(), currentMember);
 
-        sprint.updateSprintBasic(request.title(), request.goal());
+        sprint.updateSprintBasic(request.goal());
 
         return SprintInfoResponse.from(sprint);
     }
