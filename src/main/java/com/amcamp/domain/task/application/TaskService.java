@@ -44,7 +44,7 @@ public class TaskService {
 
         return findProjectParticipantMember(task) != null
                 ? TaskInfoResponse.from(task, findProjectParticipantMember(task))
-                : TaskInfoResponse.of(task);
+                : TaskInfoResponse.from(task);
     }
 
     public TaskInfoResponse updateTaskBasicInfo(Long taskId, TaskBasicInfoUpdateRequest request) {
@@ -55,7 +55,7 @@ public class TaskService {
 
         return findProjectParticipantMember(task) != null
                 ? TaskInfoResponse.from(task, findProjectParticipantMember(task))
-                : TaskInfoResponse.of(task);
+                : TaskInfoResponse.from(task);
     }
 
     public TaskInfoResponse updateTaskToDoInfo(Long taskId) {
@@ -66,7 +66,7 @@ public class TaskService {
 
         return findProjectParticipantMember(task) != null
                 ? TaskInfoResponse.from(task, findProjectParticipantMember(task))
-                : TaskInfoResponse.of(task);
+                : TaskInfoResponse.from(task);
     }
 
     public TaskInfoResponse assignTask(Long taskId) {
@@ -84,7 +84,7 @@ public class TaskService {
         task.assignTask(projectParticipant);
         return findProjectParticipantMember(task) != null
                 ? TaskInfoResponse.from(task, findProjectParticipantMember(task))
-                : TaskInfoResponse.of(task);
+                : TaskInfoResponse.from(task);
     }
 
     public void deleteTask(Long taskId) {

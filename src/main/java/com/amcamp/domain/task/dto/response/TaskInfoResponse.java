@@ -35,7 +35,7 @@ public record TaskInfoResponse(
                 member.getProfileImageUrl());
     }
 
-    public static TaskInfoResponse of(Task task) {
+    public static TaskInfoResponse from(Task task) {
         return new TaskInfoResponse(
                 task.getId(),
                 task.getDescription(),
