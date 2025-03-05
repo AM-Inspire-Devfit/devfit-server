@@ -19,7 +19,6 @@ import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.util.MemberUtil;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -68,8 +67,7 @@ public class ProjectService {
     public List<ProjectParticipationInfoResponse> getProjectListInfo(Long teamId) {
         List<Project> projectList = projectRepositoryCustom.findAllByTeamId(teamId);
         Member member = memberUtil.getCurrentMember();
-        Team team = getTeam(teamId);
-        TeamParticipant teamParticipant = getTeamParticipant(member, team);
+        TeamParticipant teamParticipant = getTeamParticipant(member, getTeam(teamId));
         return projectList.stream()
                 .map(
                         p ->
@@ -95,6 +93,21 @@ public class ProjectService {
                 .updateToDoInfo(request.startDt(), request.DueDt(), request.toDoStatus());
     }
 
+    // delete
+
+    public void deleteProject(Long projectId) {
+        Member member = memberUtil.getCurrentMember();
+        Project project = getProjectById(projectId);
+        validateProjectAdmin(member, project);
+        projectRepository.delete(project);
+    }
+
+    public void deleteProjectParticipant(Long projectId) {
+        Member member = memberUtil.getCurrentMember();
+        Project project = getProjectById(projectId);
+        projectParticipantRepository.delete(getProjectParticipant(member, project));
+    }
+
     // project utils
 
     private String normalizeProjectTitle(String name) {
@@ -107,17 +120,31 @@ public class ProjectService {
                 .orElseThrow(() -> new CommonException(ProjectErrorCode.PROJECT_NOT_FOUND));
     }
 
-    // util methods
     private TeamParticipant getTeamParticipant(Member member, Team team) {
         return teamParticipantRepository
                 .findByMemberAndTeam(member, team)
                 .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED));
     }
 
+    private ProjectParticipant getProjectParticipant(Member member, Project project) {
+        TeamParticipant teamParticipant = getTeamParticipant(member, project.getTeam());
+        return projectParticipantRepository
+                .findByProjectAndTeamParticipant(project, teamParticipant)
+                .orElseThrow(
+                        () -> new CommonException(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED));
+    }
+
     private Team getTeam(Long teamId) {
         return teamRepository
                 .findById(teamId)
                 .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_NOT_FOUND));
+    }
+
+    private void validateProjectAdmin(Member member, Project project) {
+        ProjectParticipant participant = getProjectParticipant(member, project);
+        if (!participant.getProjectRole().equals(ProjectParticipantRole.ADMIN)) {
+            throw new CommonException(ProjectErrorCode.UNAUTHORIZED_ACCESS);
+        }
     }
 
     private Boolean isProjectParticipant(Project project, TeamParticipant teamParticipant) {
@@ -127,16 +154,6 @@ public class ProjectService {
     }
 
     private void validateProjectParticipant(Member member, Project project) {
-        Optional<TeamParticipant> teamParticipant =
-                teamParticipantRepository.findByMemberAndTeam(member, project.getTeam());
-        if (teamParticipant.isEmpty()) {
-            throw new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED);
-        } else {
-            if (projectParticipantRepository
-                    .findByProjectAndTeamParticipant(project, teamParticipant.get())
-                    .isEmpty()) {
-                throw new CommonException(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED);
-            }
-        }
+        getProjectParticipant(member, project);
     }
 }
