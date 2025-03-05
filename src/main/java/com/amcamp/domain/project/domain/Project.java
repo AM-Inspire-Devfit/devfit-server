@@ -66,4 +66,10 @@ public class Project extends BaseTimeEntity {
                 .toDoInfo(ToDoInfo.createToDoInfo(startDt, dueDt))
                 .build();
     }
+
+    public void updateBasic(String title, String goal, String description) {
+        this.title = (title != null) ? title : this.title;
+        this.goal = (goal != null) ? goal : this.goal;
+        this.description = (description != null) ? description : this.description;
+    }
 }

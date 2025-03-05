@@ -7,9 +7,9 @@ import com.amcamp.domain.project.dao.ProjectRepositoryCustom;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.project.domain.ProjectParticipantRole;
-import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
+import com.amcamp.domain.project.dto.request.*;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
-import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
+import com.amcamp.domain.project.dto.response.ProjectParticipationInfoResponse;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.dao.TeamRepository;
 import com.amcamp.domain.team.domain.Team;
@@ -19,7 +19,7 @@ import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.util.MemberUtil;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -45,7 +45,7 @@ public class ProjectService {
                 projectRepository.save(
                         Project.createProject(
                                 team,
-                                request.projectTitle(),
+                                normalizeProjectTitle(request.projectTitle()),
                                 request.projectDescription(),
                                 request.projectGoal(),
                                 request.startDt(),
@@ -58,27 +58,47 @@ public class ProjectService {
 
     @Transactional(readOnly = true)
     public ProjectInfoResponse getProjectInfo(Long projectId) {
-        return ProjectInfoResponse.from(getProjectById(projectId));
+        Member member = memberUtil.getCurrentMember();
+        Project project = getProjectById(projectId);
+        validateProjectParticipant(member, project);
+        return ProjectInfoResponse.from(project);
     }
 
     @Transactional(readOnly = true)
-    public ProjectListInfoResponse getProjectListInfo(Long teamId) {
+    public List<ProjectParticipationInfoResponse> getProjectListInfo(Long teamId) {
         List<Project> projectList = projectRepositoryCustom.findAllByTeamId(teamId);
         Member member = memberUtil.getCurrentMember();
         Team team = getTeam(teamId);
-
         TeamParticipant teamParticipant = getTeamParticipant(member, team);
+        return projectList.stream()
+                .map(
+                        p ->
+                                new ProjectParticipationInfoResponse(
+                                        ProjectInfoResponse.from(p),
+                                        isProjectParticipant(p, teamParticipant)))
+                .collect(Collectors.toList());
+    }
 
-        Map<Boolean, List<ProjectInfoResponse>> partitionedProjects =
-                projectList.stream()
-                        .collect(
-                                Collectors.partitioningBy(
-                                        project -> isTeamParticipant(project, teamParticipant),
-                                        Collectors.mapping(
-                                                ProjectInfoResponse::from, Collectors.toList())));
+    // update
+    public void updateProjectBasicInfo(Long projectId, ProjectBasicInfoUpdateRequest request) {
+        Member member = memberUtil.getCurrentMember();
+        Project project = getProjectById(projectId);
+        validateProjectParticipant(member, project);
+        project.updateBasic(request.title(), request.goal(), request.description());
+    }
 
-        return new ProjectListInfoResponse(
-                partitionedProjects.get(true), partitionedProjects.get(false));
+    public void updateProjectTodoInfo(Long projectId, ProjectTodoInfoUpdateRequest request) {
+        Member member = memberUtil.getCurrentMember();
+        Project project = getProjectById(projectId);
+        validateProjectParticipant(member, project);
+        project.getToDoInfo()
+                .updateToDoInfo(request.startDt(), request.DueDt(), request.toDoStatus());
+    }
+
+    // project utils
+
+    private String normalizeProjectTitle(String name) {
+        return name.trim().replaceAll("[^0-9a-zA-Z가-힣 ]", "_");
     }
 
     private Project getProjectById(Long projectId) {
@@ -100,9 +120,23 @@ public class ProjectService {
                 .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_NOT_FOUND));
     }
 
-    private Boolean isTeamParticipant(Project project, TeamParticipant teamParticipant) {
+    private Boolean isProjectParticipant(Project project, TeamParticipant teamParticipant) {
         return projectParticipantRepository
                 .findByProjectAndTeamParticipant(project, teamParticipant)
                 .isPresent();
+    }
+
+    private void validateProjectParticipant(Member member, Project project) {
+        Optional<TeamParticipant> teamParticipant =
+                teamParticipantRepository.findByMemberAndTeam(member, project.getTeam());
+        if (teamParticipant.isEmpty()) {
+            throw new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED);
+        } else {
+            if (projectParticipantRepository
+                    .findByProjectAndTeamParticipant(project, teamParticipant.get())
+                    .isEmpty()) {
+                throw new CommonException(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED);
+            }
+        }
     }
 }
