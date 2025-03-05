@@ -58,7 +58,10 @@ public class ProjectService {
 
     @Transactional(readOnly = true)
     public ProjectInfoResponse getProjectInfo(Long projectId) {
-        return ProjectInfoResponse.from(getProjectById(projectId));
+        Member member = memberUtil.getCurrentMember();
+        Project project = getProjectById(projectId);
+        validateProjectParticipant(member, project);
+        return ProjectInfoResponse.from(project);
     }
 
     @Transactional(readOnly = true)

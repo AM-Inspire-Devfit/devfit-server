@@ -6,6 +6,7 @@ import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectParticipationInfoResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,7 +24,7 @@ public class ProjectController {
     @Operation(summary = "프로젝트 생성", description = "새로운 프로젝트를 생성합니다.")
     @PostMapping("/create")
     public ResponseEntity<Void> projectCreate(
-            @RequestBody ProjectCreateRequest projectCreateRequest) {
+            @Valid @RequestBody ProjectCreateRequest projectCreateRequest) {
         projectService.createProject(projectCreateRequest);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
@@ -46,7 +47,8 @@ public class ProjectController {
     @Operation(summary = "프로젝트 기본 정보 업데이트", description = "프로젝트 타이틀/목표/상세설정을 수정합니다")
     @PatchMapping("/{projectId}/title")
     public ResponseEntity<Void> projectBasicInfoUpdate(
-            @PathVariable Long projectId, @RequestBody ProjectBasicInfoUpdateRequest request) {
+            @PathVariable Long projectId,
+            @Valid @RequestBody ProjectBasicInfoUpdateRequest request) {
         projectService.updateProjectBasicInfo(projectId, request);
         return ResponseEntity.ok().build();
     }
@@ -54,7 +56,8 @@ public class ProjectController {
     @Operation(summary = "프로젝트 시작/마감기한/진행상태 업데이트", description = "프로젝트 시작/마감기한/진행상태를 수정합니다")
     @PatchMapping("/{projectId}/todo")
     public ResponseEntity<Void> projectTodoInfoUpdate(
-            @PathVariable Long projectId, @RequestBody ProjectTodoInfoUpdateRequest request) {
+            @PathVariable Long projectId,
+            @Valid @RequestBody ProjectTodoInfoUpdateRequest request) {
         projectService.updateProjectTodoInfo(projectId, request);
         return ResponseEntity.ok().build();
     }
