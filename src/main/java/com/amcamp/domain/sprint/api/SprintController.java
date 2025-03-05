@@ -23,9 +23,10 @@ public class SprintController {
 
     @Operation(summary = "스프린트 생성", description = "스프린트를 생성합니다.")
     @PostMapping("/create")
-    public ResponseEntity<Void> sprintCreate(@Valid @RequestBody SprintCreateRequest request) {
-        sprintService.createSprint(request);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    public ResponseEntity<SprintInfoResponse> sprintCreate(
+            @Valid @RequestBody SprintCreateRequest request) {
+        SprintInfoResponse response = sprintService.createSprint(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Operation(summary = "스프린트 기본 정보 수정", description = "스프린트의 기본 정보(제목, 목표)를 수정합니다.")

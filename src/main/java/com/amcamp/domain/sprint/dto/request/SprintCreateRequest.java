@@ -9,9 +9,6 @@ import java.time.LocalDate;
 public record SprintCreateRequest(
         @NotNull(message = "프로젝트 ID는 비워둘 수 없습니다.") @Schema(description = "프로젝트 ID", example = "1")
                 Long projectId,
-        @NotBlank(message = "스프린트 제목은 비워둘 수 없습니다.")
-                @Schema(description = "스프린트 제목", example = "1차 스프린트")
-                String title,
         @NotBlank(message = "스프린트 중간 목표는 비워둘 수 없습니다.")
                 @Schema(description = "중간 목표", example = "MVP 개발")
                 String goal,
@@ -30,7 +27,7 @@ public record SprintCreateRequest(
                 @Schema(description = "스프린트 마감 날짜", defaultValue = "2026-03-01")
                 LocalDate dueDt) {
     public static SprintCreateRequest of(
-            Long projectId, String title, String goal, LocalDate startDt, LocalDate dueDt) {
-        return new SprintCreateRequest(projectId, title, goal, startDt, dueDt);
+            Long projectId, String goal, LocalDate startDt, LocalDate dueDt) {
+        return new SprintCreateRequest(projectId, goal, startDt, dueDt);
     }
 }
