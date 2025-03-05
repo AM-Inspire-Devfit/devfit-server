@@ -13,8 +13,7 @@ import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ToDoStatus;
 import com.amcamp.domain.project.dto.request.ProjectBasicInfoUpdateRequest;
 import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
-import com.amcamp.domain.project.dto.request.ProjectTodoDateInfoUpdateRequest;
-import com.amcamp.domain.project.dto.request.ProjectTodoStatusInfoUpdateRequest;
+import com.amcamp.domain.project.dto.request.ProjectTodoInfoUpdateRequest;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectParticipationInfoResponse;
 import com.amcamp.domain.team.application.TeamService;
@@ -350,14 +349,18 @@ public class ProjectServiceTest extends IntegrationTest {
             // given
             createTestProject();
             // when
-            LocalDate updatedStartDt = LocalDate.of(2027, 1, 1);
+            LocalDate updatedStartDt = LocalDate.of(2026, 1, 15);
             LocalDate updatedDueDt = LocalDate.of(2027, 12, 1);
-            projectService.updateProjectTodoDateInfo(
-                    1L, new ProjectTodoDateInfoUpdateRequest(updatedStartDt, updatedDueDt));
+            projectService.updateProjectTodoInfo(
+                    1L,
+                    new ProjectTodoInfoUpdateRequest(
+                            updatedStartDt, updatedDueDt, ToDoStatus.COMPLETED));
             Project updatedProject = projectRepository.findById(1L).get();
             // then
             assertThat(updatedProject.getToDoInfo().getStartDt()).isEqualTo(updatedStartDt);
             assertThat(updatedProject.getToDoInfo().getDueDt()).isEqualTo(updatedDueDt);
+            assertThat(updatedProject.getToDoInfo().getToDoStatus())
+                    .isEqualTo(ToDoStatus.COMPLETED);
         }
 
         @Test
@@ -367,26 +370,14 @@ public class ProjectServiceTest extends IntegrationTest {
             // when
             LocalDate updatedStartDt = LocalDate.of(2027, 1, 1);
             LocalDate updatedDueDt = LocalDate.of(2026, 1, 1);
-            ProjectTodoDateInfoUpdateRequest request =
-                    new ProjectTodoDateInfoUpdateRequest(updatedStartDt, updatedDueDt);
+            ProjectTodoInfoUpdateRequest request =
+                    new ProjectTodoInfoUpdateRequest(
+                            updatedStartDt, updatedDueDt, ToDoStatus.COMPLETED);
 
             // then
-            assertThatThrownBy(() -> projectService.updateProjectTodoDateInfo(1L, request))
+            assertThatThrownBy(() -> projectService.updateProjectTodoInfo(1L, request))
                     .isInstanceOf(CommonException.class)
                     .hasMessageContaining(GlobalErrorCode.INVALID_DATE_ERROR.getMessage());
-        }
-
-        @Test
-        void 프로젝트_진행상태를_수정하면_정상적으로_수정된다() {
-            // given
-            createTestProject();
-            // when
-            projectService.updateProjectTodoStatusInfo(
-                    1L, new ProjectTodoStatusInfoUpdateRequest(ToDoStatus.COMPLETED));
-            Project updatedProject = projectRepository.findById(1L).get();
-            // then
-            assertThat(updatedProject.getToDoInfo().getToDoStatus())
-                    .isEqualTo(ToDoStatus.COMPLETED);
         }
     }
 }

@@ -51,19 +51,11 @@ public class ProjectController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "프로젝트 시작/마감기한 업데이트", description = "프로젝트 시작/마감기한을 수정합니다")
-    @PatchMapping("/{projectId}/date")
-    public ResponseEntity<Void> projectTodoDateInfoUpdate(
-            @PathVariable Long projectId, @RequestBody ProjectTodoDateInfoUpdateRequest request) {
-        projectService.updateProjectTodoDateInfo(projectId, request);
-        return ResponseEntity.ok().build();
-    }
-
-    @Operation(summary = "프로젝트 진행상태 업데이트", description = "프로젝트 진행상태를 수정합니다")
+    @Operation(summary = "프로젝트 시작/마감기한/진행상태 업데이트", description = "프로젝트 시작/마감기한/진행상태를 수정합니다")
     @PatchMapping("/{projectId}/todo")
-    public ResponseEntity<Void> projectTodoStatusInfoUpdate(
-            @PathVariable Long projectId, @RequestBody ProjectTodoStatusInfoUpdateRequest request) {
-        projectService.updateProjectTodoStatusInfo(projectId, request);
+    public ResponseEntity<Void> projectTodoInfoUpdate(
+            @PathVariable Long projectId, @RequestBody ProjectTodoInfoUpdateRequest request) {
+        projectService.updateProjectTodoInfo(projectId, request);
         return ResponseEntity.ok().build();
     }
 }

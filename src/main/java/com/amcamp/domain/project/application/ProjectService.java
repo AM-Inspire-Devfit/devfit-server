@@ -84,20 +84,12 @@ public class ProjectService {
         project.updateBasic(request.title(), request.goal(), request.description());
     }
 
-    public void updateProjectTodoDateInfo(
-            Long projectId, ProjectTodoDateInfoUpdateRequest request) {
+    public void updateProjectTodoInfo(Long projectId, ProjectTodoInfoUpdateRequest request) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
         validateProjectParticipant(member, project);
-        project.getToDoInfo().updateTodoDate(request.startDt(), request.DueDt());
-    }
-
-    public void updateProjectTodoStatusInfo(
-            Long projectId, ProjectTodoStatusInfoUpdateRequest request) {
-        Member member = memberUtil.getCurrentMember();
-        Project project = getProjectById(projectId);
-        validateProjectParticipant(member, project);
-        project.getToDoInfo().updateTodoStatus(request.toDoStatus());
+        project.getToDoInfo()
+                .updateToDoInfo(request.startDt(), request.DueDt(), request.toDoStatus());
     }
 
     // project utils
