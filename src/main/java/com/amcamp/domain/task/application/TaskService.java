@@ -143,20 +143,6 @@ public class TaskService {
                 .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
     }
 
-    private TeamParticipant findTeamParticipant(Member member, Team team) {
-        return teamParticipantRepository
-                .findByMemberAndTeam(member, team)
-                .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED));
-    }
-
-    private ProjectParticipant findProjectParticipant(
-            TeamParticipant teamParticipant, Project project) {
-        return projectParticipantRepository
-                .findByProjectAndTeamParticipant(project, teamParticipant)
-                .orElseThrow(
-                        () -> new CommonException(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED));
-    }
-
     private Member findProjectParticipantMember(Task task) {
         Member member = null;
         if (task.getAssignee() != null && task.getAssignedStatus() != AssignedStatus.NOT_ASSIGNED) {
