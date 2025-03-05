@@ -149,4 +149,29 @@ public class SprintServiceTest extends IntegrationTest {
             assertThat(response.title()).isEqualTo("testTitle");
         }
     }
+
+    @Nested
+    class 스프린트_삭제할_때 {
+        @Test
+        void 스프린트가_존재하지_않으면_예외가_발생한다() {
+            // when & then
+            assertThatThrownBy(() -> sprintService.deleteSprint(2L))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(SprintErrorCode.SPRINT_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        void 프로젝트_리더가_삭제할_경우_성공한다() {
+            // given
+            sprintRepository.save(
+                    Sprint.createSprint(project, "testTitle", "testDescription", startDt, dueDt));
+
+            // when
+            sprintService.deleteSprint(1L);
+
+            // then
+            assertThat(sprintRepository.findAll()).isEmpty();
+            assertThat(sprintRepository.count()).isEqualTo(0);
+        }
+    }
 }
