@@ -3,12 +3,10 @@ package com.amcamp.domain.task.dto.request;
 import com.amcamp.domain.project.domain.ToDoStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 public record TaskToDoInfoUpdateRequest(
-        @NotNull(message = "스프린트 ID는 필수값입니다.") @Schema(description = "스프린트 ID", example = "1")
-                Long sprintId,
+        @Schema(description = "스프린트 ID", example = "1") Long sprintId,
         @JsonFormat(
                         shape = JsonFormat.Shape.STRING,
                         pattern = "yyyy-MM-dd",
