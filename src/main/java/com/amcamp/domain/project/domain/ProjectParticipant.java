@@ -51,4 +51,8 @@ public class ProjectParticipant extends BaseTimeEntity {
                 .projectRole(projectRole)
                 .build();
     }
+
+    public void changeRole(ProjectParticipantRole projectRole) {
+        this.projectRole = projectRole;
+    }
 }

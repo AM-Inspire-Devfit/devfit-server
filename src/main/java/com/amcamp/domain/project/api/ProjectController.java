@@ -76,4 +76,12 @@ public class ProjectController {
         projectService.deleteProjectParticipant(projectId);
         return ResponseEntity.ok().build();
     }
+
+    @Operation(summary = "admin 권한 양도", description = "프로젝트 Admin 권한을 양도합니다.")
+    @PostMapping("/{projectId}/admin/change")
+    public ResponseEntity<Void> projectAdminChange(
+            @PathVariable Long projectId, @Valid @RequestBody ProjectAdminChangeRequest request) {
+        projectService.changeProjectAdmin(projectId, request.newAdminId());
+        return ResponseEntity.ok().build();
+    }
 }

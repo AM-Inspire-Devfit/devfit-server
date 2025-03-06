@@ -378,8 +378,21 @@ public class ProjectServiceTest extends IntegrationTest {
         //				.hasMessageContaining(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED.getMessage());
         //		}
 
+        //        @Test
+        //        void 프로젝트_참가자가_2명_이상이면_admin은_프로젝트를_못나간다() {
+        //            // given
+        //            createTestProject();
+        //            // when
+        //			//project 일반 멤버 추가
+        //            // then
+        //            assertThatThrownBy(() -> projectService.deleteProjectParticipant(1L))
+        //                    .isInstanceOf(CommonException.class)
+        //                    .hasMessageContaining(
+        //                            ProjectErrorCode.PROJECT_ADMIN_CANNOT_LEAVE.getMessage());
+        //        }
+
         @Test
-        void 프로젝트를_나가면_프로젝트_참여자_정보가_정상적으_삭제된다() {
+        void 프로젝트_참가자가_admin_1명이면_프로젝트가_삭제된다() {
             // given
             createTestProject();
             // when
@@ -387,8 +400,7 @@ public class ProjectServiceTest extends IntegrationTest {
             // then
             assertThatThrownBy(() -> projectService.getProjectInfo(1L))
                     .isInstanceOf(CommonException.class)
-                    .hasMessageContaining(
-                            ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED.getMessage());
+                    .hasMessageContaining(ProjectErrorCode.PROJECT_NOT_FOUND.getMessage());
         }
     }
 }

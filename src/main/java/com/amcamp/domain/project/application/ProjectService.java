@@ -1,5 +1,6 @@
 package com.amcamp.domain.project.application;
 
+import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.project.dao.ProjectParticipantRepository;
 import com.amcamp.domain.project.dao.ProjectRepository;
@@ -15,6 +16,7 @@ import com.amcamp.domain.team.dao.TeamRepository;
 import com.amcamp.domain.team.domain.Team;
 import com.amcamp.domain.team.domain.TeamParticipant;
 import com.amcamp.global.exception.CommonException;
+import com.amcamp.global.exception.errorcode.MemberErrorCode;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.util.MemberUtil;
@@ -35,6 +37,7 @@ public class ProjectService {
     private final TeamParticipantRepository teamParticipantRepository;
     private final ProjectParticipantRepository projectParticipantRepository;
     private final ProjectRepositoryCustom projectRepositoryCustom;
+    private final MemberRepository memberRepository;
 
     public void createProject(ProjectCreateRequest request) {
         Member member = memberUtil.getCurrentMember();
@@ -106,7 +109,35 @@ public class ProjectService {
     public void deleteProjectParticipant(Long projectId) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
-        projectParticipantRepository.delete(getProjectParticipant(member, project));
+        ProjectParticipant participant = getProjectParticipant(member, project);
+        if (isProjectAdmin(member, project)) {
+            boolean hasOtherParticipants =
+                    projectParticipantRepository.existsByProjectAndProjectRoleNot(
+                            project, ProjectParticipantRole.ADMIN);
+            // 다른 팀원 있을 떄 -> 예외 발생
+            if (hasOtherParticipants) {
+                throw new CommonException(ProjectErrorCode.PROJECT_ADMIN_CANNOT_LEAVE);
+            }
+            projectParticipantRepository.deleteAllByProject(project);
+            projectRepository.delete(project);
+        } else {
+            projectParticipantRepository.delete(participant);
+        }
+    }
+
+    public void changeProjectAdmin(Long projectId, Long newAdminId) {
+        Member currentMember = memberUtil.getCurrentMember(); // 현재 사용자 (기존 Admin)
+        Project project = getProjectById(projectId);
+        ProjectParticipant currentAdmin = validateProjectAdmin(currentMember, project);
+
+        Member newAdminMember =
+                memberRepository
+                        .findById(newAdminId)
+                        .orElseThrow(() -> new CommonException(MemberErrorCode.MEMBER_NOT_FOUND));
+        ProjectParticipant newAdmin = getProjectParticipant(newAdminMember, project);
+
+        currentAdmin.changeRole(ProjectParticipantRole.MEMBER);
+        newAdmin.changeRole(ProjectParticipantRole.ADMIN);
     }
 
     // project utils
@@ -141,11 +172,17 @@ public class ProjectService {
                 .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_NOT_FOUND));
     }
 
-    private void validateProjectAdmin(Member member, Project project) {
+    private ProjectParticipant validateProjectAdmin(Member member, Project project) {
         ProjectParticipant participant = getProjectParticipant(member, project);
         if (!participant.getProjectRole().equals(ProjectParticipantRole.ADMIN)) {
             throw new CommonException(ProjectErrorCode.UNAUTHORIZED_ACCESS);
         }
+        return participant;
+    }
+
+    private boolean isProjectAdmin(Member member, Project project) {
+        ProjectParticipant participant = getProjectParticipant(member, project);
+        return participant.getProjectRole().equals(ProjectParticipantRole.ADMIN);
     }
 
     private Boolean isProjectParticipant(Project project, TeamParticipant teamParticipant) {
