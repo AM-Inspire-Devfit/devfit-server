@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface SprintRepository extends JpaRepository<Sprint, Long> {
+public interface SprintRepository extends JpaRepository<Sprint, Long>, SprintRepositoryCustom {
     @Query("SELECT COUNT(s) FROM Sprint s WHERE s.project = :project")
     long countByProject(@Param("project") Project project);
 
