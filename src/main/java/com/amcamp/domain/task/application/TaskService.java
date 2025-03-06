@@ -86,7 +86,7 @@ public class TaskService {
 
         validateProjectParticipant(project, project.getTeam(), currentMember);
         validateTaskNotAssignedForSos(task);
-        validateTaskModify(currentMember, task);
+        //        validateTaskModify(currentMember, task);
         task.updateTaskSOS();
 
         return findProjectParticipantMember(task) != null

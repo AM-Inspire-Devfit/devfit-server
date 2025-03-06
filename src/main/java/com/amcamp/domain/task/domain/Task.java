@@ -93,6 +93,7 @@ public class Task extends BaseTimeEntity {
         this.assignedStatus = AssignedStatus.ASSIGNED;
         this.assignee = projectParticipant;
         this.toDoInfo.updateToDoInfo(LocalDate.now(), null, ToDoStatus.ON_GOING);
+        this.sosStatus = SOSStatus.NOT_SOS;
     }
 
     public void updateTaskSOS() {
