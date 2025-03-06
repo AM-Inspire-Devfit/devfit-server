@@ -85,6 +85,7 @@ public class TaskService {
         final Project project = sprint.getProject();
 
         validateProjectParticipant(project, project.getTeam(), currentMember);
+        validateTaskNotAssignedForSos(task);
         validateTaskModify(currentMember, task);
         task.updateTaskSOS();
 
@@ -123,6 +124,12 @@ public class TaskService {
         validateProjectParticipant(project, project.getTeam(), currentMember);
         validateTaskModify(currentMember, task);
         taskRepository.delete(task);
+    }
+
+    private void validateTaskNotAssignedForSos(Task task) {
+        if (task.getAssignedStatus() == AssignedStatus.NOT_ASSIGNED) {
+            throw new CommonException(TaskErrorCode.TASK_NOT_ASSIGNED);
+        }
     }
 
     private void validateTaskModify(Member member, Task task) {
