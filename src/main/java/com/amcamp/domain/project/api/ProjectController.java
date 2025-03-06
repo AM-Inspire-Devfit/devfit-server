@@ -63,7 +63,7 @@ public class ProjectController {
     }
 
     // delete
-    @Operation(summary = "프로젝트 시작/마감기한/진행상태 업데이트", description = "프로젝트를 삭제합니다.")
+    @Operation(summary = "프로젝트 삭제", description = "프로젝트를 삭제합니다.")
     @DeleteMapping("/{projectId}/")
     public ResponseEntity<Void> projectDelete(@PathVariable Long projectId) {
         projectService.deleteProject(projectId);
