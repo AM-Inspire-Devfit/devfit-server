@@ -59,7 +59,7 @@ public class ProjectService {
     public ProjectInfoResponse getProjectInfo(Long projectId) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
-        validateProjectParticipant(member, project);
+        getProjectParticipant(member, project);
         return ProjectInfoResponse.from(project);
     }
 
@@ -81,14 +81,14 @@ public class ProjectService {
     public void updateProjectBasicInfo(Long projectId, ProjectBasicInfoUpdateRequest request) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
-        validateProjectParticipant(member, project);
+        getProjectParticipant(member, project);
         project.updateBasic(request.title(), request.goal(), request.description());
     }
 
     public void updateProjectTodoInfo(Long projectId, ProjectTodoInfoUpdateRequest request) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
-        validateProjectParticipant(member, project);
+        getProjectParticipant(member, project);
         project.getToDoInfo()
                 .updateToDoInfo(request.startDt(), request.DueDt(), request.toDoStatus());
     }
@@ -152,9 +152,5 @@ public class ProjectService {
         return projectParticipantRepository
                 .findByProjectAndTeamParticipant(project, teamParticipant)
                 .isPresent();
-    }
-
-    private void validateProjectParticipant(Member member, Project project) {
-        getProjectParticipant(member, project);
     }
 }
