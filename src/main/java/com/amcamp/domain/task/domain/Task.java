@@ -36,6 +36,9 @@ public class Task extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private AssignedStatus assignedStatus;
 
+    @Enumerated(EnumType.STRING)
+    private SOSStatus sosStatus;
+
     // 태스크 수행 멤버
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assignee_id")
@@ -48,13 +51,15 @@ public class Task extends BaseTimeEntity {
             TaskDifficulty taskDifficulty,
             ToDoInfo toDoInfo,
             AssignedStatus assignedStatus,
-            ProjectParticipant assignee) {
+            ProjectParticipant assignee,
+            SOSStatus sosStatus) {
         this.sprint = sprint;
         this.description = description;
         this.toDoInfo = toDoInfo;
         this.taskDifficulty = taskDifficulty;
         this.assignedStatus = assignedStatus;
         this.assignee = assignee;
+        this.sosStatus = sosStatus;
     }
 
     public static Task createTask(
@@ -66,6 +71,7 @@ public class Task extends BaseTimeEntity {
                 .assignedStatus(AssignedStatus.NOT_ASSIGNED)
                 .toDoInfo(ToDoInfo.createToDoInfo(null, null))
                 .assignee(null)
+                .sosStatus(SOSStatus.NOT_SOS)
                 .build();
     }
 
@@ -87,5 +93,13 @@ public class Task extends BaseTimeEntity {
         this.assignedStatus = AssignedStatus.ASSIGNED;
         this.assignee = projectParticipant;
         this.toDoInfo.updateToDoInfo(LocalDate.now(), null, ToDoStatus.ON_GOING);
+    }
+
+    public void updateTaskSOS() {
+        if (this.sosStatus != SOSStatus.SOS) {
+            this.sosStatus = SOSStatus.SOS;
+        } else {
+            this.sosStatus = SOSStatus.NOT_SOS;
+        }
     }
 }

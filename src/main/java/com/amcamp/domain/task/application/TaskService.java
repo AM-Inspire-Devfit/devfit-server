@@ -77,6 +77,21 @@ public class TaskService {
                 : TaskInfoResponse.from(task);
     }
 
+    public TaskInfoResponse updateTaskSOS(Long taskId) {
+        final Member currentMember = memberUtil.getCurrentMember();
+        final Task task = findByTaskId(taskId);
+        final Sprint sprint = findBySprintId(task.getSprint().getId());
+        final Project project = sprint.getProject();
+
+        validateProjectParticipant(project, project.getTeam(), currentMember);
+        validateTaskModify(currentMember, task);
+        task.updateTaskSOS();
+
+        return findProjectParticipantMember(task) != null
+                ? TaskInfoResponse.from(task, findProjectParticipantMember(task))
+                : TaskInfoResponse.from(task);
+    }
+
     public TaskInfoResponse assignTask(Long taskId) {
         final Member currentMember = memberUtil.getCurrentMember();
         final Task task = findByTaskId(taskId);
@@ -85,7 +100,6 @@ public class TaskService {
 
         ProjectParticipant projectParticipant =
                 validateProjectParticipant(project, project.getTeam(), currentMember);
-        //        validateTaskModify(currentMember, task);
 
         if (task.getAssignedStatus() != AssignedStatus.NOT_ASSIGNED && task.getAssignee() != null) {
             throw new CommonException(TaskErrorCode.TASK_ALREADY_ASSIGNED);

@@ -38,6 +38,12 @@ public class TaskController {
         return taskService.updateTaskToDoInfo(taskId);
     }
 
+    @Operation(summary = "태스크 SOS", description = "태스크 sos 상태를 수정합니다.")
+    @PatchMapping("/{taskId}/sos")
+    public TaskInfoResponse taskUpdateSOS(@PathVariable Long taskId) {
+        return taskService.updateTaskSOS(taskId);
+    }
+
     @Operation(summary = "태스크 담당자 할당", description = "태스크 담당 상태를 수정합니다.")
     @PostMapping("/{taskId}")
     public TaskInfoResponse taskAssign(@PathVariable Long taskId) {
