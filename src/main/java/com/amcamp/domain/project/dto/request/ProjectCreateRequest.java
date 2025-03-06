@@ -11,11 +11,11 @@ public record ProjectCreateRequest(
         @Schema(description = "프로젝트 제목", example = "Devfit") @NotBlank String projectTitle,
         @Schema(description = "프로젝트 목표", example = "개발자 건강을 위한 협업 툴 개발") @NotBlank
                 String projectGoal,
-        @Schema(description = "프로젝트 시작 날짜", example = "2024-01-01")
+        @Schema(description = "프로젝트 시작 날짜", example = "2026-01-01")
                 @JsonFormat(shape = JsonFormat.Shape.STRING)
                 @NotNull
                 LocalDate startDt,
-        @Schema(description = "프로젝트 마감 날짜", example = "2025-01-01")
+        @Schema(description = "프로젝트 마감 날짜", example = "2027-01-01")
                 @JsonFormat(shape = JsonFormat.Shape.STRING)
                 @NotNull
                 LocalDate dueDt,
