@@ -56,7 +56,7 @@ public class SprintController {
     @GetMapping("/{projectId}")
     public Slice<SprintInfoResponse> sprintFindAll(
             @PathVariable Long projectId,
-            @Parameter(description = "이전 페이지의 마지막 스프린트 ID (첫 페이지는 비워두세요)")
+            @Parameter(description = "이전 페이지의 스프린트 ID (첫 페이지는 비워두세요)")
                     @RequestParam(required = false)
                     Long lastSprintId) {
         return sprintService.findAllSprint(projectId, lastSprintId);
