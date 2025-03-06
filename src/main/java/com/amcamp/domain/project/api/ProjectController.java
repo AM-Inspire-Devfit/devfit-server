@@ -3,17 +3,18 @@ package com.amcamp.domain.project.api;
 import com.amcamp.domain.project.application.ProjectService;
 import com.amcamp.domain.project.dto.request.*;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
-import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectParticipantInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectRegistrationInfoResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "4. 프로젝트 API", description = "프로젝트 관련 API 입니다.")
 @RestController
@@ -34,20 +35,24 @@ public class ProjectController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    // read
+    @Operation(
+            summary = "전체 프로젝트 목록 조회",
+            description = "팀 ID를 통해 사용자가 참여 중인 프로젝트와 참여 중이지 않은 프로젝트를 나누어 조회합니다.")
+    @GetMapping("/{teamId}/list")
+    public Slice<ProjectInfoResponse> projectListInfo(
+            @PathVariable Long teamId,
+			@RequestParam boolean isParticipating,
+            @RequestParam(required = false) Long lastProjectId,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        return projectService.getProjectListInfo(teamId, lastProjectId, pageSize, isParticipating);
+    }
+
     @Operation(summary = "프로젝트 조회", description = "프로젝트 ID를 통해 프로젝트 정보를 조회합니다.")
     @GetMapping("/{projectId}")
     public ProjectInfoResponse projectInfo(@PathVariable Long projectId) {
         return projectService.getProjectInfo(projectId);
     }
 
-    @Operation(
-            summary = "전체 프로젝트 목록 조회",
-            description = "팀 ID를 통해 사용자가 참여 중인 프로젝트와 참여 중이지 않은 프로젝트를 나누어 조회합니다.")
-    @GetMapping("/{teamId}/list")
-    public List<ProjectListInfoResponse> projectListInfo(@PathVariable Long teamId) {
-        return projectService.getProjectListInfo(teamId);
-    }
 
     // update
     @Operation(summary = "프로젝트 기본 정보 업데이트", description = "프로젝트 타이틀/목표/상세설정을 수정합니다")

@@ -10,7 +10,6 @@ import com.amcamp.domain.project.domain.*;
 import com.amcamp.domain.project.domain.ProjectRegistration;
 import com.amcamp.domain.project.dto.request.*;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
-import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectParticipantInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectRegistrationInfoResponse;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
@@ -25,6 +24,7 @@ import com.amcamp.global.util.MemberUtil;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -73,17 +73,14 @@ public class ProjectService {
     }
 
     @Transactional(readOnly = true)
-    public List<ProjectListInfoResponse> getProjectListInfo(Long teamId) {
-        List<Project> projectList = projectRepositoryCustom.findAllByTeamId(teamId);
+    public Slice<ProjectInfoResponse> getProjectListInfo(
+            Long teamId, Long lastProjectId, int pageSize, boolean isParticipating) {
+
         Member member = memberUtil.getCurrentMember();
-        TeamParticipant teamParticipant = getValidTeamParticipant(member, getTeam(teamId));
-        return projectList.stream()
-                .map(
-                        p ->
-                                new ProjectListInfoResponse(
-                                        ProjectInfoResponse.from(p),
-                                        isProjectParticipant(p, teamParticipant)))
-                .collect(Collectors.toList());
+        Team team = getTeam(teamId);
+        TeamParticipant teamParticipant = getValidTeamParticipant(member, team);
+        return projectRepositoryCustom.findAllByTeamIdWithPagination(
+                teamId, lastProjectId, pageSize, teamParticipant, isParticipating);
     }
 
     // update
