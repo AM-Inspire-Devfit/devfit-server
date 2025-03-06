@@ -9,6 +9,7 @@ import com.amcamp.domain.sprint.dao.SprintRepository;
 import com.amcamp.domain.sprint.domain.Sprint;
 import com.amcamp.domain.task.dao.TaskRepository;
 import com.amcamp.domain.task.domain.AssignedStatus;
+import com.amcamp.domain.task.domain.SOSStatus;
 import com.amcamp.domain.task.domain.Task;
 import com.amcamp.domain.task.dto.request.TaskBasicInfoUpdateRequest;
 import com.amcamp.domain.task.dto.request.TaskCreateRequest;
@@ -101,7 +102,9 @@ public class TaskService {
         ProjectParticipant projectParticipant =
                 validateProjectParticipant(project, project.getTeam(), currentMember);
 
-        if (task.getAssignedStatus() != AssignedStatus.NOT_ASSIGNED && task.getAssignee() != null) {
+        if (task.getAssignedStatus() != AssignedStatus.NOT_ASSIGNED
+                && task.getAssignee() != null
+                && task.getSosStatus() != SOSStatus.SOS) {
             throw new CommonException(TaskErrorCode.TASK_ALREADY_ASSIGNED);
         }
 
