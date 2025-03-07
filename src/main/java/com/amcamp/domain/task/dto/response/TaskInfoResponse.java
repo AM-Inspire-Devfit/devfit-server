@@ -58,7 +58,7 @@ public record TaskInfoResponse(
     public static List<TaskInfoResponse> from(List<Task> taskList) {
         List<TaskInfoResponse> result = new ArrayList<>();
         for (Task task : taskList) {
-            result.add(
+            TaskInfoResponse t =
                     new TaskInfoResponse(
                             task.getId(),
                             task.getDescription(),
@@ -67,12 +67,14 @@ public record TaskInfoResponse(
                             task.getToDoInfo().getDueDt(),
                             task.getToDoInfo().getToDoStatus(),
                             task.getAssignedStatus(),
+                            task.getSosStatus(),
                             task.getAssignee().getTeamParticipant().getMember().getId(),
                             task.getAssignee().getTeamParticipant().getMember().getNickname(),
                             task.getAssignee()
                                     .getTeamParticipant()
                                     .getMember()
-                                    .getProfileImageUrl()));
+                                    .getProfileImageUrl());
+            result.add(t);
         }
         return result;
     }

@@ -60,16 +60,6 @@ public class TaskController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    @Operation(summary = "프로젝트 내 스프린트별 태스크 조회", description = "프로젝트에 포함된 태스크를 스프린트별로 불러 옵니다.")
-    @GetMapping("/{projectId}/project")
-    public Slice<TaskInfoResponse> taskListByProject(
-            @PathVariable Long projectId,
-            @Parameter(description = "이전 페이지의 마지막 스프린트 ID (첫 페이지는 비워두세요)")
-                    @RequestParam(required = false)
-                    Long lastSprintId) {
-        return taskService.getTasksByProject(projectId, lastSprintId);
-    }
-
     @Operation(summary = "스프린트별 태스크 상세 조회", description = "태스크 세부 내용을 스프린트별로 불러 옵니다.")
     @GetMapping("/{sprintId}/sprint")
     public List<TaskInfoResponse> taskListBySprint(@PathVariable Long sprintId) {

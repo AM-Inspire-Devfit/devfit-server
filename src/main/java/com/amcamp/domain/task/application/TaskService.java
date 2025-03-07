@@ -137,14 +137,6 @@ public class TaskService {
     }
 
     @Transactional(readOnly = true)
-    public Slice<TaskInfoResponse> getTasksByProject(Long projectId, Long lastSprintId) {
-        final Member currentMember = memberUtil.getCurrentMember();
-        final Project project = findProject(projectId);
-        validateProjectParticipant(project, project.getTeam(), currentMember);
-        return taskRepository.findTasksByProject(projectId, lastSprintId, 1);
-    }
-
-    @Transactional(readOnly = true)
     public List<TaskInfoResponse> getTasksBySprint(Long sprintId) {
         final Member currentMember = memberUtil.getCurrentMember();
         final Sprint sprint = findBySprintId(sprintId);
