@@ -2,6 +2,7 @@ package com.amcamp.domain.task.application;
 
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.project.dao.ProjectParticipantRepository;
+import com.amcamp.domain.project.dao.ProjectRepository;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.project.domain.ProjectParticipantRole;
@@ -20,7 +21,9 @@ import com.amcamp.domain.team.domain.TeamParticipant;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.*;
 import com.amcamp.global.util.MemberUtil;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +36,7 @@ public class TaskService {
     private final SprintRepository sprintRepository;
     private final ProjectParticipantRepository projectParticipantRepository;
     private final TeamParticipantRepository teamParticipantRepository;
+    private final ProjectRepository projectRepository;
 
     public TaskInfoResponse createTask(TaskCreateRequest request) {
         final Member currentMember = memberUtil.getCurrentMember();
@@ -132,6 +136,32 @@ public class TaskService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public Slice<TaskInfoResponse> getTasksByProject(Long projectId, Long lastSprintId) {
+        final Member currentMember = memberUtil.getCurrentMember();
+        final Project project = findProject(projectId);
+        validateProjectParticipant(project, project.getTeam(), currentMember);
+        return taskRepository.findTasksByProject(projectId, lastSprintId, 1);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TaskInfoResponse> getTasksBySprint(Long sprintId) {
+        final Member currentMember = memberUtil.getCurrentMember();
+        final Sprint sprint = findBySprintId(sprintId);
+        final Project project = sprint.getProject();
+        validateProjectParticipant(project, project.getTeam(), currentMember);
+        return TaskInfoResponse.from(taskRepository.findBySprintId(sprintId));
+    }
+
+    @Transactional(readOnly = true)
+    public Slice<TaskInfoResponse> getTasksByMember(Long projectId, Long lastSprintId) {
+        final Member currentMember = memberUtil.getCurrentMember();
+        final Project project = findProject(projectId);
+        ProjectParticipant projectParticipant =
+                validateProjectParticipant(project, project.getTeam(), currentMember);
+        return taskRepository.findTasksByMember(projectId, lastSprintId, projectParticipant, 1);
+    }
+
     private void validateTaskModify(Member member, Task task) {
         if (task.getAssignedStatus() != AssignedStatus.NOT_ASSIGNED || task.getAssignee() != null) {
             if (!task.getAssignee().getProjectRole().equals(ProjectParticipantRole.ADMIN)
@@ -159,6 +189,12 @@ public class TaskService {
         return sprintRepository
                 .findById(sprintId)
                 .orElseThrow(() -> new CommonException(SprintErrorCode.SPRINT_NOT_FOUND));
+    }
+
+    private Project findProject(Long projectId) {
+        return projectRepository
+                .findById(projectId)
+                .orElseThrow(() -> new CommonException(ProjectErrorCode.PROJECT_NOT_FOUND));
     }
 
     private Task findByTaskId(Long taskId) {
