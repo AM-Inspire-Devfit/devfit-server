@@ -16,6 +16,7 @@ import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
 import com.amcamp.domain.task.application.TaskService;
 import com.amcamp.domain.task.dao.TaskRepository;
 import com.amcamp.domain.task.domain.AssignedStatus;
+import com.amcamp.domain.task.domain.SOSStatus;
 import com.amcamp.domain.task.domain.Task;
 import com.amcamp.domain.task.domain.TaskDifficulty;
 import com.amcamp.domain.task.dto.request.TaskBasicInfoUpdateRequest;
@@ -189,5 +190,69 @@ public class TaskServiceTest extends IntegrationTest {
                     .isInstanceOf(CommonException.class)
                     .hasMessage(TaskErrorCode.TASK_NOT_FOUND.getMessage());
         }
+    }
+
+    @Nested
+    class sos_실행_시 {
+        @Test
+        void 태스크가_할당되지않았을_경우_SOS_실행하지_않는다() {
+            // given
+            Member member = memberUtil.getCurrentMember();
+            TaskCreateRequest taskRequest =
+                    new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID);
+            taskService.createTask(taskRequest);
+
+            // when
+            Task task =
+                    taskRepository
+                            .findById(1L)
+                            .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
+
+            // when & then
+            assertThatThrownBy(() -> taskService.updateTaskSOS(task.getId()))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(TaskErrorCode.TASK_NOT_ASSIGNED.getMessage());
+        }
+
+        @Test
+        void 태스크가_할당되었을_경우_SOS_실행한다() {
+            // given
+            Member member = memberUtil.getCurrentMember();
+            TaskCreateRequest taskRequest =
+                    new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID);
+            taskService.createTask(taskRequest);
+
+            // when & then
+            Task task =
+                    taskRepository
+                            .findById(1L)
+                            .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
+
+            TaskInfoResponse response = taskService.assignTask(task.getId());
+            assertThat(response.sosStatus()).isEqualTo(SOSStatus.NOT_SOS);
+
+            response = taskService.updateTaskSOS(task.getId());
+            assertThat(response.sosStatus()).isEqualTo(SOSStatus.SOS);
+        }
+        //		@Test
+        //		void sos인_상태에서_태스크_할당상태를_수정한다 (){
+        //			// given
+        //			Member member = memberUtil.getCurrentMember();
+        //			TaskCreateRequest taskRequest =
+        //				new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID);
+        //			taskService.createTask(taskRequest);
+        //
+        //			Task task =
+        //				taskRepository
+        //					.findById(1L)
+        //					.orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
+        //
+        //			taskService.assignTask(task.getId());
+        //			taskService.updateTaskSOS(task.getId());
+        //
+        //			// 프로젝트 참가 메소드 필요
+        //
+        //		}
+
     }
 }
