@@ -140,7 +140,7 @@ public class TaskService {
         final Member currentMember = memberUtil.getCurrentMember();
         final Sprint sprint = findBySprintId(sprintId);
         final Project project = sprint.getProject();
-        validateProjectParticipant(project, project.getTeam(), currentMember);
+        //        validateProjectParticipant(project, project.getTeam(), currentMember);
         return TaskInfoResponse.from(taskRepository.findBySprintId(sprintId));
     }
 
