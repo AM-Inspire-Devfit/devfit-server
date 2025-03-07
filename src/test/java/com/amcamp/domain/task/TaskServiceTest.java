@@ -26,10 +26,14 @@ import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.domain.team.dto.request.TeamCreateRequest;
 import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
 import com.amcamp.global.exception.CommonException;
+import com.amcamp.domain.team.dto.response.TeamInviteCodeResponse;
+import com.amcamp.global.exception.errorcode.ProjectErrorCode;
+import com.amcamp.global.exception.errorcode.SprintErrorCode;
 import com.amcamp.global.exception.errorcode.TaskErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
 import com.amcamp.global.util.MemberUtil;
 import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -253,5 +257,111 @@ public class TaskServiceTest extends IntegrationTest {
         //
         //		}
 
+    }
+
+    @Nested
+    class 태스크_목록_조회_시 {
+        @Test
+        void 스프린트가_유효하지않으면_에러를_반환한다() {
+            // given
+            Member member = memberUtil.getCurrentMember();
+            TaskCreateRequest taskRequest1 =
+                    new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID);
+            taskService.createTask(taskRequest1);
+            TaskCreateRequest taskRequest2 =
+                    new TaskCreateRequest(1L, "mvp 완성", TaskDifficulty.HIGH);
+            taskService.createTask(taskRequest2);
+
+            Task task =
+                    taskRepository
+                            .findById(1L)
+                            .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
+
+            taskService.assignTask(task.getId()); // 첫번쨰 태스크에만 담당자 배정
+
+            // when & then
+            assertThatThrownBy(() -> taskService.getTasksBySprint(2l))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(SprintErrorCode.SPRINT_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        void 프로젝트_참가자가_아니면_에러를_반환한다() {
+            // given
+            Member member = memberUtil.getCurrentMember();
+            TeamInviteCodeResponse teamInviteCodeResponse = teamService.getInviteCode(1L);
+            TaskCreateRequest taskRequest1 =
+                    new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID);
+            taskService.createTask(taskRequest1);
+            TaskCreateRequest taskRequest2 =
+                    new TaskCreateRequest(1L, "mvp 완성", TaskDifficulty.HIGH);
+            taskService.createTask(taskRequest2);
+
+            Member nonMember =
+                    memberRepository.save(
+                            Member.createMember("nonMember", "testProfileImageUrl", null));
+            loginAs(nonMember);
+
+            teamService.joinTeam(new TeamInviteCodeRequest(teamInviteCodeResponse.inviteCode()));
+
+            // when & then
+            assertThatThrownBy(() -> taskService.getTasksBySprint(1l))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED.getMessage());
+        }
+
+        @Test
+        void 프로젝트별로_조회한다() {
+            // given
+            Member member = memberUtil.getCurrentMember();
+            TaskCreateRequest taskRequest1 =
+                    new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID);
+            taskService.createTask(taskRequest1);
+            TaskCreateRequest taskRequest2 =
+                    new TaskCreateRequest(1L, "mvp 완성", TaskDifficulty.HIGH);
+            taskService.createTask(taskRequest2);
+
+            Task task =
+                    taskRepository
+                            .findById(1L)
+                            .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
+
+            taskService.assignTask(task.getId()); // 첫번쨰 태스크에만 담당자 배정
+
+            // when
+            List<TaskInfoResponse> result = taskService.getTasksBySprint(1l);
+
+            // then
+            assertThat(result).hasSize(2);
+            assertThat(result.get(0).description()).isEqualTo(taskRequest1.description());
+            assertThat(result.get(1).description()).isEqualTo(taskRequest2.description());
+        }
+
+        @Test
+        void 멤버별로_조회한다() {
+            // given
+            Member member = memberUtil.getCurrentMember();
+            TaskCreateRequest taskRequest1 =
+                    new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID);
+            taskService.createTask(taskRequest1);
+            TaskCreateRequest taskRequest2 =
+                    new TaskCreateRequest(1L, "mvp 완성", TaskDifficulty.HIGH);
+            taskService.createTask(taskRequest2);
+
+            Task task =
+                    taskRepository
+                            .findById(1L)
+                            .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
+
+            taskService.assignTask(task.getId()); // 첫번쨰 태스크에만 담당자 배정
+
+            // when
+            List<TaskInfoResponse> result = taskService.getTasksByMember(1l);
+
+            // then
+            assertThat(result).isNotNull();
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).description()).isEqualTo(taskRequest1.description());
+        }
     }
 }

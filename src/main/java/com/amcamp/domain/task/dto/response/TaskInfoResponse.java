@@ -58,22 +58,40 @@ public record TaskInfoResponse(
     public static List<TaskInfoResponse> from(List<Task> taskList) {
         List<TaskInfoResponse> result = new ArrayList<>();
         for (Task task : taskList) {
-            TaskInfoResponse t =
-                    new TaskInfoResponse(
-                            task.getId(),
-                            task.getDescription(),
-                            task.getTaskDifficulty(),
-                            task.getToDoInfo().getStartDt(),
-                            task.getToDoInfo().getDueDt(),
-                            task.getToDoInfo().getToDoStatus(),
-                            task.getAssignedStatus(),
-                            task.getSosStatus(),
-                            task.getAssignee().getTeamParticipant().getMember().getId(),
-                            task.getAssignee().getTeamParticipant().getMember().getNickname(),
-                            task.getAssignee()
-                                    .getTeamParticipant()
-                                    .getMember()
-                                    .getProfileImageUrl());
+            TaskInfoResponse t;
+            if (task.getAssignee() != null && task.getAssignedStatus() == AssignedStatus.ASSIGNED) {
+                t =
+                        new TaskInfoResponse(
+                                task.getId(),
+                                task.getDescription(),
+                                task.getTaskDifficulty(),
+                                task.getToDoInfo().getStartDt(),
+                                task.getToDoInfo().getDueDt(),
+                                task.getToDoInfo().getToDoStatus(),
+                                task.getAssignedStatus(),
+                                task.getSosStatus(),
+                                task.getAssignee().getTeamParticipant().getMember().getId(),
+                                task.getAssignee().getTeamParticipant().getMember().getNickname(),
+                                task.getAssignee()
+                                        .getTeamParticipant()
+                                        .getMember()
+                                        .getProfileImageUrl());
+            } else {
+                t =
+                        new TaskInfoResponse(
+                                task.getId(),
+                                task.getDescription(),
+                                task.getTaskDifficulty(),
+                                task.getToDoInfo().getStartDt(),
+                                task.getToDoInfo().getDueDt(),
+                                task.getToDoInfo().getToDoStatus(),
+                                task.getAssignedStatus(),
+                                task.getSosStatus(),
+                                null,
+                                null,
+                                null);
+            }
+
             result.add(t);
         }
         return result;
