@@ -8,17 +8,21 @@ import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.domain.OauthInfo;
 import com.amcamp.domain.project.application.ProjectService;
 import com.amcamp.domain.project.dao.ProjectParticipantRepository;
+import com.amcamp.domain.project.dao.ProjectRegistrationRepository;
 import com.amcamp.domain.project.dao.ProjectRepository;
-import com.amcamp.domain.project.domain.Project;
-import com.amcamp.domain.project.domain.ToDoStatus;
+import com.amcamp.domain.project.domain.*;
 import com.amcamp.domain.project.dto.request.ProjectBasicInfoUpdateRequest;
 import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
 import com.amcamp.domain.project.dto.request.ProjectTodoInfoUpdateRequest;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
+import com.amcamp.domain.project.dto.response.ProjectParticipantInfoResponse;
+import com.amcamp.domain.project.dto.response.ProjectRegistrationInfoResponse;
 import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.dao.TeamRepository;
+import com.amcamp.domain.team.domain.Team;
+import com.amcamp.domain.team.domain.TeamParticipant;
 import com.amcamp.domain.team.dto.request.TeamCreateRequest;
 import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
 import com.amcamp.global.exception.CommonException;
@@ -27,7 +31,9 @@ import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -40,11 +46,13 @@ public class ProjectServiceTest extends IntegrationTest {
     @Autowired private MemberRepository memberRepository;
     @Autowired private TeamParticipantRepository teamParticipantRepository;
     @Autowired private TeamRepository teamRepository;
+    @Autowired private ProjectRegistrationRepository projectRegistrationRepository;
     @Autowired private ProjectParticipantRepository projectParticipantRepository;
     @Autowired private ProjectRepository projectRepository;
 
-    private Member member;
-    private Member anotherMember;
+    private Member memberAdmin;
+    private Member member1;
+    private Member member2;
     private String title = "projectTitle";
     private String goal = "projectTitle";
     private String description = "projectGoal";
@@ -81,6 +89,13 @@ public class ProjectServiceTest extends IntegrationTest {
         projectService.createProject(request);
     }
 
+    void createTestProject(Long teamId) {
+        ProjectCreateRequest request =
+                new ProjectCreateRequest(teamId, title, goal, startDt, dueDt, description);
+
+        projectService.createProject(request);
+    }
+
     void createTestProject(
             Long teamId,
             String title,
@@ -96,25 +111,33 @@ public class ProjectServiceTest extends IntegrationTest {
 
     @BeforeEach
     private void setUp() {
-        member =
+        memberAdmin =
                 Member.createMember(
-                        "member",
+                        "memberAdmin",
                         "testProfileImageUrl",
                         OauthInfo.createOauthInfo("testOauthId", "testOauthProvider"));
-        memberRepository.save(member);
-        loginAs(member);
+        memberRepository.save(memberAdmin);
+        loginAs(memberAdmin);
 
-        anotherMember =
+        member1 =
                 Member.createMember(
-                        "anotherMember",
+                        "member1",
                         "testProfileImageUrl",
                         OauthInfo.createOauthInfo("testOauthId", "testOauthProvider"));
-        memberRepository.save(anotherMember);
+        memberRepository.save(member1);
+
+        member2 =
+                Member.createMember(
+                        "member2",
+                        "testProfileImageUrl",
+                        OauthInfo.createOauthInfo("testOauthId", "testOauthProvider"));
+        memberRepository.save(member2);
     }
 
     @AfterEach
     public void afterEach() {
         logout();
+        projectRegistrationRepository.deleteAll();
         projectParticipantRepository.deleteAll();
         projectRepository.deleteAll();
         teamParticipantRepository.deleteAll();
@@ -146,7 +169,7 @@ public class ProjectServiceTest extends IntegrationTest {
             createTestProject(teamId, "project1", goal, startDt, dueDt, description);
             // member logout 후 anotherMember 로그인
             logout();
-            loginAs(anotherMember);
+            loginAs(member1);
             // 팀 참가
             teamService.joinTeam(teamInviteCodeRequest);
             // anotherMember 새 프로젝트 생성
@@ -237,7 +260,7 @@ public class ProjectServiceTest extends IntegrationTest {
             createOriginalProject();
             logout();
             // 팀에 속하지 않은 사용자 로그인
-            loginAs(anotherMember);
+            loginAs(member1);
 
             // when, then
             assertThatThrownBy(
@@ -256,7 +279,7 @@ public class ProjectServiceTest extends IntegrationTest {
             createOriginalProject();
             logout();
             // 다른 팀 멤버
-            loginAs(anotherMember);
+            loginAs(member1);
             teamService.joinTeam(teamInviteCodeRequest);
 
             // when, then
@@ -351,7 +374,247 @@ public class ProjectServiceTest extends IntegrationTest {
     }
 
     @Nested
+    class 프로젝트_가입_신청 {
+        @Test
+        void 프로젝트_가입신청을_하면_정상적으로_요청이_생성된다() {
+            // given
+            Long teamId = getTeamId();
+            createTestProject(teamId);
+            logout();
+            loginAs(member1);
+            teamService.joinTeam(teamInviteCodeRequest);
+
+            // when
+            projectService.requestToProjectRegistration(1L);
+            Team team = teamRepository.findById(teamId).get();
+            TeamParticipant teamParticipant =
+                    teamParticipantRepository.findByMemberAndTeam(member1, team).get();
+
+            // then
+            logout();
+            loginAs(memberAdmin);
+            ProjectRegistrationInfoResponse registrationInfo =
+                    projectService.getProjectRegistration(1L, 1L);
+            assertThat(registrationInfo.requesterId()).isEqualTo(teamParticipant.getId());
+            assertThat(
+                    registrationInfo.projectRegistrationStatus()
+                            == ProjectRegistrationStatus.PENDING);
+        }
+
+        @Test
+        void 프로젝트_가입신청_목록을_조회하면_정상적으로_조회된다() {
+            // given
+            Long teamId = getTeamId();
+            Team team = teamRepository.findById(teamId).get();
+            createTestProject(teamId);
+            logout();
+
+            // when
+            loginAs(member1);
+            teamService.joinTeam(teamInviteCodeRequest);
+            TeamParticipant teamParticipant1 =
+                    teamParticipantRepository.findByMemberAndTeam(member1, team).get();
+            projectService.requestToProjectRegistration(1L);
+
+            logout();
+            loginAs(member2);
+            teamService.joinTeam(teamInviteCodeRequest);
+            TeamParticipant teamParticipant2 =
+                    teamParticipantRepository.findByMemberAndTeam(member2, team).get();
+            projectService.requestToProjectRegistration(1L);
+
+            // then
+            logout();
+            loginAs(memberAdmin);
+            List<Long> requesterIds =
+                    projectService.getProjectRegistrationList(1L).stream()
+                            .map(ProjectRegistrationInfoResponse::requesterId)
+                            .toList();
+
+            assertThat(new HashSet<>(requesterIds))
+                    .isEqualTo(Set.of(teamParticipant1.getId(), teamParticipant2.getId()));
+        }
+
+        @Test
+        void 이미_가입신청한_팀참여자는_신청하면_예외가_발생한다() {
+            // given
+            Long teamId = getTeamId();
+            createTestProject(teamId);
+            logout();
+            loginAs(member1);
+            teamService.joinTeam(teamInviteCodeRequest);
+
+            // when
+            projectService.requestToProjectRegistration(1L);
+
+            // then
+            assertThatThrownBy(() -> projectService.requestToProjectRegistration(1L))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(
+                            ProjectErrorCode.PROJECT_REGISTRATION_ALREADY_EXISTS.getMessage());
+        }
+
+        @Test
+        void 프로젝트_가입을_승인하면_정상적으로_승인된다() {
+            // given
+            Long teamId = getTeamId();
+            createTestProject(teamId);
+            logout();
+            loginAs(member1);
+            teamService.joinTeam(teamInviteCodeRequest);
+
+            // when
+            projectService.requestToProjectRegistration(1L);
+            Team team = teamRepository.findById(teamId).get();
+            TeamParticipant teamParticipant =
+                    teamParticipantRepository.findByMemberAndTeam(member1, team).get();
+
+            // then
+            logout();
+            loginAs(memberAdmin);
+            ProjectRegistrationInfoResponse registrationInfo =
+                    projectService.getProjectRegistration(1L, 1L);
+            projectService.approveProjectRegistration(1L, registrationInfo.registrationId());
+
+            // then
+            ProjectRegistrationInfoResponse approvedRegistration =
+                    projectService.getProjectRegistration(1L, 1L);
+            assertThat(approvedRegistration.requesterId()).isEqualTo(teamParticipant.getId());
+            assertThat(
+                    approvedRegistration.projectRegistrationStatus()
+                            == ProjectRegistrationStatus.APPROVED);
+        }
+
+        @Test
+        void 프로젝트_가입을_거부하면_정상적으로_거부된다() {
+            // given
+            Long teamId = getTeamId();
+            createTestProject(teamId);
+            logout();
+            loginAs(member1);
+            teamService.joinTeam(teamInviteCodeRequest);
+
+            // when
+            projectService.requestToProjectRegistration(1L);
+            Team team = teamRepository.findById(teamId).get();
+            TeamParticipant teamParticipant =
+                    teamParticipantRepository.findByMemberAndTeam(member1, team).get();
+
+            // then
+            logout();
+            loginAs(memberAdmin);
+            ProjectRegistrationInfoResponse registrationInfo =
+                    projectService.getProjectRegistration(1L, 1L);
+            projectService.rejectProjectRegistration(1L, registrationInfo.registrationId());
+
+            // then
+            ProjectRegistrationInfoResponse approvedRegistration =
+                    projectService.getProjectRegistration(1L, 1L);
+            assertThat(approvedRegistration.requesterId()).isEqualTo(teamParticipant.getId());
+            assertThat(
+                    approvedRegistration.projectRegistrationStatus()
+                            == ProjectRegistrationStatus.REJECTED);
+        }
+
+        @Test
+        void 프로젝트_가입을_취소하면_요청이_정상적으로_삭제된다() {
+            // given
+            Long teamId = getTeamId();
+            createTestProject(teamId);
+            logout();
+            loginAs(member1);
+            teamService.joinTeam(teamInviteCodeRequest);
+            // when
+            projectService.requestToProjectRegistration(1L);
+            projectService.deleteProjectRegistration(1L, 1L);
+            // then
+            logout();
+            loginAs(memberAdmin);
+            assertThatThrownBy(() -> projectService.getProjectRegistration(1L, 1L))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(
+                            ProjectErrorCode.PROJECT_REGISTRATION_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        void 프로젝트_참여자를_조회하면_정상적으로_조회된다() {
+            // given
+            Long teamId = getTeamId();
+            createTestProject(teamId);
+            logout();
+            loginAs(member1);
+            teamService.joinTeam(teamInviteCodeRequest);
+
+            // when
+            projectService.requestToProjectRegistration(1L);
+
+            // then
+            logout();
+            loginAs(memberAdmin);
+            ProjectRegistrationInfoResponse registrationInfo =
+                    projectService.getProjectRegistration(1L, 1L);
+            projectService.approveProjectRegistration(1L, registrationInfo.registrationId());
+
+            // then
+            logout();
+            loginAs(member1);
+            ProjectParticipantInfoResponse myInfo = projectService.getProjectParticipant(1L);
+            assertThat(myInfo.nickname()).isEqualTo(member1.getNickname());
+            assertThat(myInfo.role()).isEqualTo(ProjectParticipantRole.MEMBER);
+        }
+
+        @Test
+        void 프로젝트_참여자_목록을_조회하면_정상적으로_조회된다() {
+            // given
+            Long teamId = getTeamId();
+            createTestProject(teamId);
+            logout();
+
+            // when
+            loginAs(member1);
+            teamService.joinTeam(teamInviteCodeRequest);
+            projectService.requestToProjectRegistration(1L);
+            logout();
+
+            loginAs(member2);
+            teamService.joinTeam(teamInviteCodeRequest);
+            projectService.requestToProjectRegistration(1L);
+            logout();
+
+            loginAs(memberAdmin);
+            projectService.getProjectRegistrationList(1L).stream()
+                    .map(ProjectRegistrationInfoResponse::registrationId)
+                    .forEach(i -> projectService.approveProjectRegistration(1L, i));
+
+            // then
+            List<Long> requesterIds =
+                    projectService.getProjectParticipantList(1L).stream()
+                            .map(ProjectParticipantInfoResponse::memberId)
+                            .toList();
+
+            assertThat(new HashSet<>(requesterIds))
+                    .isEqualTo(Set.of(memberAdmin.getId(), member1.getId(), member2.getId()));
+        }
+    }
+
+    @Nested
     class 프로젝트_삭제_및_나가기 {
+
+        void composeProjectMembers() {
+            createTestProject();
+            logout();
+            loginAs(member1);
+            teamService.joinTeam(teamInviteCodeRequest);
+
+            // when
+            projectService.requestToProjectRegistration(1L);
+
+            // then
+            logout();
+            loginAs(memberAdmin);
+            projectService.approveProjectRegistration(1L, 1L);
+        }
+
         @Test
         void 프로젝트를_삭제하면_정상적으로_삭제된다() {
             // given
@@ -364,31 +627,28 @@ public class ProjectServiceTest extends IntegrationTest {
                     .hasMessageContaining(ProjectErrorCode.PROJECT_NOT_FOUND.getMessage());
         }
 
-        //		@Test
-        //		void 권한이_없으면_삭제가_거부된다(){
-        //			//given
-        //			createTestProject();
-        //			//권한 수정
-        //			//when
-        //			projectService.deleteProjectParticipant(1L);
-        //			//then
-        //			assertThatThrownBy(()->projectService.getProjectInfo(1L))
-        //				.isInstanceOf(CommonException.class)
-        //				.hasMessageContaining(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED.getMessage());
-        //		}
+        @Test
+        void 권한이_없으면_삭제가_거부된다() {
+            // given
+            composeProjectMembers();
+            logout();
+            loginAs(member1);
+            // when, then
+            assertThatThrownBy(() -> projectService.deleteProject(1L))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(ProjectErrorCode.UNAUTHORIZED_ACCESS.getMessage());
+        }
 
-        //        @Test
-        //        void 프로젝트_참가자가_2명_이상이면_admin은_프로젝트를_못나간다() {
-        //            // given
-        //            createTestProject();
-        //            // when
-        //			//project 일반 멤버 추가
-        //            // then
-        //            assertThatThrownBy(() -> projectService.deleteProjectParticipant(1L))
-        //                    .isInstanceOf(CommonException.class)
-        //                    .hasMessageContaining(
-        //                            ProjectErrorCode.PROJECT_ADMIN_CANNOT_LEAVE.getMessage());
-        //        }
+        @Test
+        void 프로젝트_참가자가_2명_이상이면_admin은_프로젝트를_못나간다() {
+            // given
+            composeProjectMembers();
+
+            // when, then
+            assertThatThrownBy(() -> projectService.deleteProjectParticipant(1L))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(ProjectErrorCode.PROJECT_ADMIN_CANNOT_LEAVE.getMessage());
+        }
 
         @Test
         void 프로젝트_참가자가_admin_1명이면_프로젝트가_삭제된다() {
@@ -400,6 +660,26 @@ public class ProjectServiceTest extends IntegrationTest {
             assertThatThrownBy(() -> projectService.getProjectInfo(1L))
                     .isInstanceOf(CommonException.class)
                     .hasMessageContaining(ProjectErrorCode.PROJECT_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        void admin권한을_양도하면_정상적으로_프로젝트_참여자가_삭제된다() {
+            // given
+            composeProjectMembers();
+            Long newAdminId =
+                    projectService.getProjectParticipantList(1L).stream()
+                            .filter(r -> !r.memberId().equals(memberAdmin.getId()))
+                            .map(ProjectParticipantInfoResponse::projectParticipantId)
+                            .findAny()
+                            .get();
+            // when
+            projectService.changeProjectAdmin(1L, newAdminId);
+            projectService.deleteProjectParticipant(1L);
+            // then
+            assertThatThrownBy(() -> projectService.getProjectParticipant(1L))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(
+                            ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED.getMessage());
         }
     }
 }

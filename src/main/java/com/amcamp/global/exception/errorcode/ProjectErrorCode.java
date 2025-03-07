@@ -13,6 +13,7 @@ public enum ProjectErrorCode implements BaseErrorCode {
     UNAUTHORIZED_ACCESS(HttpStatus.FORBIDDEN, "권한이 없습니다."),
     PROJECT_ADMIN_CANNOT_LEAVE(
             HttpStatus.FORBIDDEN, "프로젝트 Admin은 다른 팀원에게 권한을 넘긴 후에만 프로젝트를 나갈 수 있습니다."),
+    PROJECT_REGISTRATION_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 프로젝트 가입 요청이 생성되어 있습니다"),
     PROJECT_REGISTRATION_NOT_FOUND(HttpStatus.NOT_FOUND, "project 가입 요청을 찾을 수 없습니다.");
 
     private final HttpStatus httpStatus;

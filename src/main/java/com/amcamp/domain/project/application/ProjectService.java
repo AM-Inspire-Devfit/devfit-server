@@ -146,7 +146,7 @@ public class ProjectService {
     public void requestToProjectRegistration(Long projectId) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
-        TeamParticipant requester = getTeamParticipant(member, project.getTeam());
+        TeamParticipant requester = validateProjectRegistrationAlreadyExists(member, project);
         projectRegistrationRepository.save(ProjectRegistration.createRequest(project, requester));
     }
 
@@ -245,6 +245,16 @@ public class ProjectService {
         return teamRepository
                 .findById(teamId)
                 .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_NOT_FOUND));
+    }
+
+    private TeamParticipant validateProjectRegistrationAlreadyExists(
+            Member member, Project project) {
+        TeamParticipant participant = getTeamParticipant(member, project.getTeam());
+        if (projectRegistrationRepository.findByRequester(participant).isPresent()) {
+            throw new CommonException(ProjectErrorCode.PROJECT_REGISTRATION_ALREADY_EXISTS);
+        } else {
+            return participant;
+        }
     }
 
     private ProjectRegistration getProjectRegistrationById(Long registrationId) {

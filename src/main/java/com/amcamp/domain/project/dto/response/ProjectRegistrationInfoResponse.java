@@ -7,6 +7,7 @@ import java.time.LocalDate;
 
 public record ProjectRegistrationInfoResponse(
         @Schema(description = "프로젝트 아이디", example = "1") Long projectId,
+        @Schema(description = "프로젝트 가입 요청 아이디", example = "1") Long registrationId,
         @Schema(description = "프로젝트 가입 요청자 아이디", example = "1") Long requesterId,
         @Schema(description = "프로젝트 가입 요청 진행 상태", example = "REQUEST_PENDING")
                 ProjectRegistrationStatus projectRegistrationStatus,
@@ -15,6 +16,7 @@ public record ProjectRegistrationInfoResponse(
     public static ProjectRegistrationInfoResponse from(ProjectRegistration projectRegistration) {
         return new ProjectRegistrationInfoResponse(
                 projectRegistration.getProject().getId(),
+                projectRegistration.getId(),
                 projectRegistration.getRequester().getId(),
                 projectRegistration.getRequestStatus(),
                 projectRegistration.getUpdatedDt().toLocalDate());
