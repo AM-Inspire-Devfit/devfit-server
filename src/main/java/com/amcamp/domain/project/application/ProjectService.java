@@ -100,7 +100,6 @@ public class ProjectService {
     }
 
     // delete
-
     public void deleteProject(Long projectId) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
@@ -151,14 +150,15 @@ public class ProjectService {
         projectRegistrationRepository.save(ProjectRegistration.createRequest(project, requester));
     }
 
-    public ProjectRegistrationInfoResponse getProjectRequest(Long projectId, Long registrationId) {
+    public ProjectRegistrationInfoResponse getProjectRegistration(
+            Long projectId, Long registrationId) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
         validateProjectAdmin(member, project);
         return ProjectRegistrationInfoResponse.from(getProjectRegistrationById(registrationId));
     }
 
-    public List<ProjectRegistrationInfoResponse> getProjectRequestList(Long projectId) {
+    public List<ProjectRegistrationInfoResponse> getProjectRegistrationList(Long projectId) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
         validateProjectAdmin(member, project);
@@ -167,22 +167,38 @@ public class ProjectService {
                 .collect(Collectors.toList());
     }
 
-    public void approveProjectJoinRequest(Long projectId, Long registrationId) {
+    public void approveProjectRegistration(Long projectId, Long registrationId) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
         validateProjectAdmin(member, project);
-        getProjectRegistrationById(registrationId).updateStatus(ProjectRegistrationStatus.APPROVED);
+        ProjectRegistration registration = getProjectRegistrationById(registrationId);
+        projectParticipantRepository.save(
+                ProjectParticipant.createProjectParticipant(
+                        registration.getRequester(), project, ProjectParticipantRole.MEMBER));
+        registration.updateStatus(ProjectRegistrationStatus.APPROVED);
     }
 
-    public void rejectProjectJoinRequest(Long projectId, Long registrationId) {
+    public void rejectProjectRegistration(Long projectId, Long registrationId) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
         validateProjectAdmin(member, project);
         getProjectRegistrationById(registrationId).updateStatus(ProjectRegistrationStatus.REJECTED);
     }
 
-    // project participant info
+    public void deleteProjectRegistration(Long projectId, Long projectRegisterId) {
+        Member member = memberUtil.getCurrentMember();
+        Project project = getProjectById(projectId);
+        TeamParticipant teamParticipant = getTeamParticipant(member, project.getTeam());
+        ProjectRegistration registration = getProjectRegistrationById(projectRegisterId);
 
+        if (teamParticipant.equals(registration.getRequester())) {
+            projectRegistrationRepository.delete(registration);
+        } else {
+            throw new CommonException(ProjectErrorCode.UNAUTHORIZED_ACCESS);
+        }
+    }
+
+    // project participant info
     public ProjectParticipantInfoResponse getProjectParticipant(Long projectId) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
@@ -193,7 +209,7 @@ public class ProjectService {
     public List<ProjectParticipantInfoResponse> getProjectParticipantList(Long projectId) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
-        validateProjectAdmin(member, project);
+        getProjectParticipant(member, project);
         return projectParticipantRepository.findAllByProject(project).stream()
                 .map(ProjectParticipantInfoResponse::from)
                 .collect(Collectors.toList());
