@@ -23,7 +23,6 @@ import com.amcamp.global.exception.errorcode.*;
 import com.amcamp.global.util.MemberUtil;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -146,12 +145,14 @@ public class TaskService {
     }
 
     @Transactional(readOnly = true)
-    public Slice<TaskInfoResponse> getTasksByMember(Long projectId, Long lastSprintId) {
+    public List<TaskInfoResponse> getTasksByMember(Long sprintId) {
         final Member currentMember = memberUtil.getCurrentMember();
-        final Project project = findProject(projectId);
+        final Sprint sprint = findBySprintId(sprintId);
+        final Project project = sprint.getProject();
         ProjectParticipant projectParticipant =
                 validateProjectParticipant(project, project.getTeam(), currentMember);
-        return taskRepository.findTasksByMember(projectId, lastSprintId, projectParticipant, 1);
+        return TaskInfoResponse.from(
+                taskRepository.findBySprintIdAndAssignee(sprintId, projectParticipant));
     }
 
     private void validateTaskModify(Member member, Task task) {
