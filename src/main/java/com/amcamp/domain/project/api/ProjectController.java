@@ -3,7 +3,9 @@ package com.amcamp.domain.project.api;
 import com.amcamp.domain.project.application.ProjectService;
 import com.amcamp.domain.project.dto.request.*;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
-import com.amcamp.domain.project.dto.response.ProjectParticipationInfoResponse;
+import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
+import com.amcamp.domain.project.dto.response.ProjectParticipantInfoResponse;
+import com.amcamp.domain.project.dto.response.ProjectRegistrationInfoResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -33,7 +35,7 @@ public class ProjectController {
             summary = "전체 프로젝트 목록 조회",
             description = "팀 ID를 통해 사용자가 참여 중인 프로젝트와 참여 중이지 않은 프로젝트를 나누어 조회합니다.")
     @GetMapping("/{teamId}/list")
-    public List<ProjectParticipationInfoResponse> projectListInfo(@PathVariable Long teamId) {
+    public List<ProjectListInfoResponse> projectListInfo(@PathVariable Long teamId) {
         return projectService.getProjectListInfo(teamId);
     }
 
@@ -83,5 +85,51 @@ public class ProjectController {
             @PathVariable Long projectId, @Valid @RequestBody ProjectAdminChangeRequest request) {
         projectService.changeProjectAdmin(projectId, request.newAdminId());
         return ResponseEntity.ok().build();
+    }
+
+    // project join
+
+    @PostMapping("/{projectId}/registration")
+    public ResponseEntity<Void> projectRegister(@PathVariable Long projectId) {
+        projectService.requestToProjectRegistration(projectId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{projectId}/registration/list")
+    public ProjectRegistrationInfoResponse projectRegistrationListGet(
+            @PathVariable Long projectId, @RequestParam Long projectRegisterId) {
+        return projectService.getProjectRequest(projectId, projectRegisterId);
+    }
+
+    @GetMapping("/{projectId}/registration/list")
+    public List<ProjectRegistrationInfoResponse> projectRegistrationListGet(
+            @PathVariable Long projectId) {
+        return projectService.getProjectRequestList(projectId);
+    }
+
+    @PutMapping("/{projectId}/registration/approve")
+    public ResponseEntity<Void> projectRegistrationApprove(
+            @PathVariable Long projectId, @RequestParam Long projectRegisterId) {
+        projectService.approveProjectJoinRequest(projectId, projectRegisterId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{projectId}/registration/reject")
+    public ResponseEntity<Void> projectRegistrationReject(
+            @PathVariable Long projectId, @RequestParam Long projectRegisterId) {
+        projectService.rejectProjectJoinRequest(projectId, projectRegisterId);
+        return ResponseEntity.ok().build();
+    }
+
+    // project member
+    @PostMapping("/{projectId}/me")
+    public ProjectParticipantInfoResponse projectParticipantGet(@PathVariable Long projectId) {
+        return projectService.getProjectParticipant(projectId);
+    }
+
+    @PostMapping("/{projectId}/participants")
+    public List<ProjectParticipantInfoResponse> projectParticipantListGet(
+            @PathVariable Long projectId) {
+        return projectService.getProjectParticipantList(projectId);
     }
 }

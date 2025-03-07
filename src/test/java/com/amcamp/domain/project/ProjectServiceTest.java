@@ -15,7 +15,7 @@ import com.amcamp.domain.project.dto.request.ProjectBasicInfoUpdateRequest;
 import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
 import com.amcamp.domain.project.dto.request.ProjectTodoInfoUpdateRequest;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
-import com.amcamp.domain.project.dto.response.ProjectParticipationInfoResponse;
+import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
 import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.dao.TeamRepository;
@@ -153,11 +153,10 @@ public class ProjectServiceTest extends IntegrationTest {
             createTestProject(teamId, "project2", goal, startDt, dueDt, description);
 
             // when
-            List<ProjectParticipationInfoResponse> foundResponse =
-                    projectService.getProjectListInfo(teamId);
+            List<ProjectListInfoResponse> foundResponse = projectService.getProjectListInfo(teamId);
 
             foundResponse.stream()
-                    .filter(ProjectParticipationInfoResponse::isParticipate)
+                    .filter(ProjectListInfoResponse::isParticipate)
                     .forEach(r -> assertThat(r.projectInfo().projectTitle()).isEqualTo("project2"));
             foundResponse.stream()
                     .filter(f -> !f.isParticipate())

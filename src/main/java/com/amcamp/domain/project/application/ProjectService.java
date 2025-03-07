@@ -3,14 +3,16 @@ package com.amcamp.domain.project.application;
 import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.project.dao.ProjectParticipantRepository;
+import com.amcamp.domain.project.dao.ProjectRegistrationRepository;
 import com.amcamp.domain.project.dao.ProjectRepository;
 import com.amcamp.domain.project.dao.ProjectRepositoryCustom;
-import com.amcamp.domain.project.domain.Project;
-import com.amcamp.domain.project.domain.ProjectParticipant;
-import com.amcamp.domain.project.domain.ProjectParticipantRole;
+import com.amcamp.domain.project.domain.*;
+import com.amcamp.domain.project.domain.ProjectRegistration;
 import com.amcamp.domain.project.dto.request.*;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
-import com.amcamp.domain.project.dto.response.ProjectParticipationInfoResponse;
+import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
+import com.amcamp.domain.project.dto.response.ProjectParticipantInfoResponse;
+import com.amcamp.domain.project.dto.response.ProjectRegistrationInfoResponse;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.dao.TeamRepository;
 import com.amcamp.domain.team.domain.Team;
@@ -38,6 +40,7 @@ public class ProjectService {
     private final ProjectParticipantRepository projectParticipantRepository;
     private final ProjectRepositoryCustom projectRepositoryCustom;
     private final MemberRepository memberRepository;
+    private final ProjectRegistrationRepository projectRegistrationRepository;
 
     public void createProject(ProjectCreateRequest request) {
         Member member = memberUtil.getCurrentMember();
@@ -67,14 +70,14 @@ public class ProjectService {
     }
 
     @Transactional(readOnly = true)
-    public List<ProjectParticipationInfoResponse> getProjectListInfo(Long teamId) {
+    public List<ProjectListInfoResponse> getProjectListInfo(Long teamId) {
         List<Project> projectList = projectRepositoryCustom.findAllByTeamId(teamId);
         Member member = memberUtil.getCurrentMember();
         TeamParticipant teamParticipant = getTeamParticipant(member, getTeam(teamId));
         return projectList.stream()
                 .map(
                         p ->
-                                new ProjectParticipationInfoResponse(
+                                new ProjectListInfoResponse(
                                         ProjectInfoResponse.from(p),
                                         isProjectParticipant(p, teamParticipant)))
                 .collect(Collectors.toList());
@@ -140,6 +143,62 @@ public class ProjectService {
         newAdmin.changeRole(ProjectParticipantRole.ADMIN);
     }
 
+    // project Registration
+    public void requestToProjectRegistration(Long projectId) {
+        Member member = memberUtil.getCurrentMember();
+        Project project = getProjectById(projectId);
+        TeamParticipant requester = getTeamParticipant(member, project.getTeam());
+        projectRegistrationRepository.save(ProjectRegistration.createRequest(project, requester));
+    }
+
+    public ProjectRegistrationInfoResponse getProjectRequest(Long projectId, Long registrationId) {
+        Member member = memberUtil.getCurrentMember();
+        Project project = getProjectById(projectId);
+        validateProjectAdmin(member, project);
+        return ProjectRegistrationInfoResponse.from(getProjectRegistrationById(registrationId));
+    }
+
+    public List<ProjectRegistrationInfoResponse> getProjectRequestList(Long projectId) {
+        Member member = memberUtil.getCurrentMember();
+        Project project = getProjectById(projectId);
+        validateProjectAdmin(member, project);
+        return projectRegistrationRepository.findAllByProject(project).stream()
+                .map(ProjectRegistrationInfoResponse::from)
+                .collect(Collectors.toList());
+    }
+
+    public void approveProjectJoinRequest(Long projectId, Long registrationId) {
+        Member member = memberUtil.getCurrentMember();
+        Project project = getProjectById(projectId);
+        validateProjectAdmin(member, project);
+        getProjectRegistrationById(registrationId).updateStatus(ProjectRegistrationStatus.APPROVED);
+    }
+
+    public void rejectProjectJoinRequest(Long projectId, Long registrationId) {
+        Member member = memberUtil.getCurrentMember();
+        Project project = getProjectById(projectId);
+        validateProjectAdmin(member, project);
+        getProjectRegistrationById(registrationId).updateStatus(ProjectRegistrationStatus.REJECTED);
+    }
+
+    // project participant info
+
+    public ProjectParticipantInfoResponse getProjectParticipant(Long projectId) {
+        Member member = memberUtil.getCurrentMember();
+        Project project = getProjectById(projectId);
+        ProjectParticipant participant = getProjectParticipant(member, project);
+        return ProjectParticipantInfoResponse.from(participant);
+    }
+
+    public List<ProjectParticipantInfoResponse> getProjectParticipantList(Long projectId) {
+        Member member = memberUtil.getCurrentMember();
+        Project project = getProjectById(projectId);
+        validateProjectAdmin(member, project);
+        return projectParticipantRepository.findAllByProject(project).stream()
+                .map(ProjectParticipantInfoResponse::from)
+                .collect(Collectors.toList());
+    }
+
     // project utils
 
     private String normalizeProjectTitle(String name) {
@@ -170,6 +229,13 @@ public class ProjectService {
         return teamRepository
                 .findById(teamId)
                 .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_NOT_FOUND));
+    }
+
+    private ProjectRegistration getProjectRegistrationById(Long registrationId) {
+        return projectRegistrationRepository
+                .findById(registrationId)
+                .orElseThrow(
+                        () -> new CommonException(ProjectErrorCode.PROJECT_REGISTRATION_NOT_FOUND));
     }
 
     private ProjectParticipant validateProjectAdmin(Member member, Project project) {
