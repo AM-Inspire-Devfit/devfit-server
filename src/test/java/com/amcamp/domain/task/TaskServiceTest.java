@@ -30,6 +30,7 @@ import com.amcamp.domain.team.dto.response.TeamInviteCodeResponse;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.SprintErrorCode;
 import com.amcamp.global.exception.errorcode.TaskErrorCode;
+import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
 import com.amcamp.global.util.MemberUtil;
 import java.time.LocalDate;
@@ -286,7 +287,7 @@ public class TaskServiceTest extends IntegrationTest {
         }
 
         @Test
-        void 프로젝트_참가자가_아니면_에러를_반환한다() {
+        void 내가_담당하는_태스크_조회_시_프로젝트_참가자가_아니면_에러를_반환한다() {
             // given
             Member member = memberUtil.getCurrentMember();
             TeamInviteCodeResponse teamInviteCodeResponse = teamService.getInviteCode(1L);
@@ -305,9 +306,32 @@ public class TaskServiceTest extends IntegrationTest {
             teamService.joinTeam(new TeamInviteCodeRequest(teamInviteCodeResponse.inviteCode()));
 
             // when & then
-            assertThatThrownBy(() -> taskService.getTasksBySprint(1l))
+            assertThatThrownBy(() -> taskService.getTasksByMember(1l))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED.getMessage());
+        }
+
+        @Test
+        void 프로젝트_태스크_조회_시_팀_참가자가_아니면_에러를_반환한다() {
+            // given
+            Member member = memberUtil.getCurrentMember();
+            TeamInviteCodeResponse teamInviteCodeResponse = teamService.getInviteCode(1L);
+            TaskCreateRequest taskRequest1 =
+                    new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID);
+            taskService.createTask(taskRequest1);
+            TaskCreateRequest taskRequest2 =
+                    new TaskCreateRequest(1L, "mvp 완성", TaskDifficulty.HIGH);
+            taskService.createTask(taskRequest2);
+
+            Member nonMember =
+                    memberRepository.save(
+                            Member.createMember("nonMember", "testProfileImageUrl", null));
+            loginAs(nonMember);
+
+            // when & then
+            assertThatThrownBy(() -> taskService.getTasksBySprint(1l))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED.getMessage());
         }
 
         @Test

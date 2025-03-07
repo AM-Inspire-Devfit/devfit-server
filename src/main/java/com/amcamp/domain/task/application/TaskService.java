@@ -129,18 +129,12 @@ public class TaskService {
         taskRepository.delete(task);
     }
 
-    private void validateTaskNotAssignedForSos(Task task) {
-        if (task.getAssignedStatus() == AssignedStatus.NOT_ASSIGNED) {
-            throw new CommonException(TaskErrorCode.TASK_NOT_ASSIGNED);
-        }
-    }
-
     @Transactional(readOnly = true)
     public List<TaskInfoResponse> getTasksBySprint(Long sprintId) {
         final Member currentMember = memberUtil.getCurrentMember();
         final Sprint sprint = findBySprintId(sprintId);
         final Project project = sprint.getProject();
-        //        validateProjectParticipant(project, project.getTeam(), currentMember);
+        validateTeamParticipant(project.getTeam(), currentMember);
         return TaskInfoResponse.from(taskRepository.findBySprintId(sprintId));
     }
 
@@ -153,6 +147,20 @@ public class TaskService {
                 validateProjectParticipant(project, project.getTeam(), currentMember);
         return TaskInfoResponse.from(
                 taskRepository.findBySprintIdAndAssignee(sprintId, projectParticipant));
+    }
+
+    private void validateTaskNotAssignedForSos(Task task) {
+        if (task.getAssignedStatus() == AssignedStatus.NOT_ASSIGNED) {
+            throw new CommonException(TaskErrorCode.TASK_NOT_ASSIGNED);
+        }
+    }
+
+    private void validateTeamParticipant(Team team, Member currentMember) {
+        TeamParticipant teamParticipant =
+                teamParticipantRepository
+                        .findByMemberAndTeam(currentMember, team)
+                        .orElseThrow(
+                                () -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED));
     }
 
     private void validateTaskModify(Member member, Task task) {
