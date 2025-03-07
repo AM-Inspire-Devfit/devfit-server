@@ -61,4 +61,27 @@ public class ProjectController {
         projectService.updateProjectTodoInfo(projectId, request);
         return ResponseEntity.ok().build();
     }
+
+    // delete
+    @Operation(summary = "프로젝트 삭제", description = "프로젝트를 삭제합니다.")
+    @DeleteMapping("/{projectId}/")
+    public ResponseEntity<Void> projectDelete(@PathVariable Long projectId) {
+        projectService.deleteProject(projectId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "프로젝트 나가기", description = "프로젝트에 참여중인 프로젝트 참여자 정보를 삭제합니다.")
+    @DeleteMapping("/{projectId}/leave")
+    public ResponseEntity<Void> projectParticipantDelete(@PathVariable Long projectId) {
+        projectService.deleteProjectParticipant(projectId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "admin 권한 양도", description = "프로젝트 Admin 권한을 양도합니다.")
+    @PostMapping("/{projectId}/admin/change")
+    public ResponseEntity<Void> projectAdminChange(
+            @PathVariable Long projectId, @Valid @RequestBody ProjectAdminChangeRequest request) {
+        projectService.changeProjectAdmin(projectId, request.newAdminId());
+        return ResponseEntity.ok().build();
+    }
 }

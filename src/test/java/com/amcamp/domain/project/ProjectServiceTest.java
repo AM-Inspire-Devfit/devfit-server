@@ -45,7 +45,9 @@ public class ProjectServiceTest extends IntegrationTest {
 
     private Member member;
     private Member anotherMember;
-
+    private String title = "projectTitle";
+    private String goal = "projectTitle";
+    private String description = "projectGoal";
     private LocalDate startDt = LocalDate.of(2026, 1, 1);
     private LocalDate dueDt = LocalDate.of(2026, 12, 1);
 
@@ -59,6 +61,37 @@ public class ProjectServiceTest extends IntegrationTest {
 
     private void logout() {
         SecurityContextHolder.clearContext();
+    }
+
+    private TeamInviteCodeRequest teamInviteCodeRequest;
+
+    private Long getTeamId() {
+        TeamCreateRequest teamCreateRequest = new TeamCreateRequest("팀 이름", "팀 설명");
+        String inviteCode = teamService.createTeam(teamCreateRequest).inviteCode();
+        teamInviteCodeRequest = new TeamInviteCodeRequest(inviteCode);
+        Long teamId = teamService.getTeamByCode(teamInviteCodeRequest).teamId();
+        return teamId;
+    }
+
+    void createTestProject() {
+        Long teamId = getTeamId();
+        ProjectCreateRequest request =
+                new ProjectCreateRequest(teamId, title, goal, startDt, dueDt, description);
+
+        projectService.createProject(request);
+    }
+
+    void createTestProject(
+            Long teamId,
+            String title,
+            String goal,
+            LocalDate startDt,
+            LocalDate dueDt,
+            String description) {
+        ProjectCreateRequest request =
+                new ProjectCreateRequest(teamId, title, goal, startDt, dueDt, description);
+
+        projectService.createProject(request);
     }
 
     @BeforeEach
@@ -92,30 +125,16 @@ public class ProjectServiceTest extends IntegrationTest {
     @Test
     void 프로젝트를_생성하면_정상적으로_저장된다() {
         // given
-        TeamCreateRequest teamCreateRequest = new TeamCreateRequest("팀 이름", "팀 설명");
-        String inviteCode = teamService.createTeam(teamCreateRequest).inviteCode();
-        TeamInviteCodeRequest teamInviteCodeRequest = new TeamInviteCodeRequest(inviteCode);
-        Long teamId = teamService.getTeamByCode(teamInviteCodeRequest).teamId();
-
-        ProjectCreateRequest request =
-                new ProjectCreateRequest(
-                        teamId,
-                        "testProjectTitle",
-                        "testProjectGoal",
-                        startDt,
-                        dueDt,
-                        "testProjectDescription");
-
+        Long teamId = getTeamId();
         // when
-        projectService.createProject(request);
+        createTestProject(teamId, title, goal, startDt, dueDt, description);
 
         // then
         Project project = projectRepository.findById(1L).get();
         assertThat(project.getId()).isEqualTo(1L);
         assertThat(project)
                 .extracting("id", "title", "description", "goal")
-                .containsExactlyInAnyOrder(
-                        1L, "testProjectTitle", "testProjectDescription", "testProjectGoal");
+                .containsExactlyInAnyOrder(1L, title, goal, description);
     }
 
     @Nested
@@ -123,45 +142,23 @@ public class ProjectServiceTest extends IntegrationTest {
         @Test
         void 팀_ID로_조회하면_전체_프로젝트가_정상적으로_반환된다() {
             // given
-            TeamCreateRequest teamCreateRequest = new TeamCreateRequest("팀 이름", "팀 설명");
-            String inviteCode = teamService.createTeam(teamCreateRequest).inviteCode();
-            TeamInviteCodeRequest teamInviteCodeRequest = new TeamInviteCodeRequest(inviteCode);
-            Long teamId = teamService.getTeamByCode(teamInviteCodeRequest).teamId();
-
-            ProjectCreateRequest request1 =
-                    new ProjectCreateRequest(
-                            teamId,
-                            "project1",
-                            "projectGoal",
-                            startDt,
-                            dueDt,
-                            "projectDescription");
-            ProjectCreateRequest request2 =
-                    new ProjectCreateRequest(
-                            teamId,
-                            "project1",
-                            "projectGoal",
-                            startDt,
-                            dueDt,
-                            "projectDescription");
-
-            projectService.createProject(request1);
+            Long teamId = getTeamId();
+            createTestProject(teamId, "project1", goal, startDt, dueDt, description);
             // member logout 후 anotherMember 로그인
             logout();
             loginAs(anotherMember);
             // 팀 참가
             teamService.joinTeam(teamInviteCodeRequest);
             // anotherMember 새 프로젝트 생성
-            projectService.createProject(request2);
+            createTestProject(teamId, "project2", goal, startDt, dueDt, description);
 
             // when
-
             List<ProjectParticipationInfoResponse> foundResponse =
                     projectService.getProjectListInfo(teamId);
 
             foundResponse.stream()
                     .filter(ProjectParticipationInfoResponse::isParticipate)
-                    .forEach(r -> assertThat(r.projectInfo().projectTitle()).isEqualTo("project1"));
+                    .forEach(r -> assertThat(r.projectInfo().projectTitle()).isEqualTo("project2"));
             foundResponse.stream()
                     .filter(f -> !f.isParticipate())
                     .forEach(r -> assertThat(r.projectInfo().projectTitle()).isEqualTo("project1"));
@@ -170,21 +167,7 @@ public class ProjectServiceTest extends IntegrationTest {
         @Test
         void 프로젝트를_ID로_조회하면_정상적으로_반환된다() {
             // given
-            TeamCreateRequest teamCreateRequest = new TeamCreateRequest("팀 이름", "팀 설명");
-            String inviteCode = teamService.createTeam(teamCreateRequest).inviteCode();
-            TeamInviteCodeRequest teamInviteCodeRequest = new TeamInviteCodeRequest(inviteCode);
-            Long teamId = teamService.getTeamByCode(teamInviteCodeRequest).teamId();
-
-            ProjectCreateRequest request =
-                    new ProjectCreateRequest(
-                            teamId,
-                            "testProjectTitle",
-                            "testProjectGoal",
-                            startDt,
-                            dueDt,
-                            "testProjectDescription");
-
-            projectService.createProject(request);
+            createTestProject();
             Project project = projectRepository.findById(1L).get();
             // when
             ProjectInfoResponse foundResponse = projectService.getProjectInfo(1L);
@@ -226,30 +209,17 @@ public class ProjectServiceTest extends IntegrationTest {
         String updatedTitle = "updatedProjectTitle";
         String updatedGoal = "updatedProjectGoal";
         String updatedDescription = "updatedProjectDescription";
-        TeamInviteCodeRequest teamInviteCodeRequest;
 
-        void createTestProject() {
-            TeamCreateRequest teamCreateRequest = new TeamCreateRequest("팀 이름", "팀 설명");
-            String inviteCode = teamService.createTeam(teamCreateRequest).inviteCode();
-            teamInviteCodeRequest = new TeamInviteCodeRequest(inviteCode);
-            Long teamId = teamService.getTeamByCode(teamInviteCodeRequest).teamId();
-
-            ProjectCreateRequest request =
-                    new ProjectCreateRequest(
-                            teamId,
-                            originalTitle,
-                            originalGoal,
-                            startDt,
-                            dueDt,
-                            originalDescription);
-
-            projectService.createProject(request);
+        void createOriginalProject() {
+            Long teamId = getTeamId();
+            createTestProject(
+                    teamId, originalTitle, originalGoal, startDt, dueDt, originalDescription);
         }
 
         @Test
         void 프로젝트_기본정보를_수정하면_정상적으로_수정된다() {
             // given
-            createTestProject();
+            createOriginalProject();
             // when
             projectService.updateProjectBasicInfo(
                     1L,
@@ -265,7 +235,7 @@ public class ProjectServiceTest extends IntegrationTest {
         @Test
         void 팀_참여자가_아닌_사용자는_프로젝트_수정이_제한된다() {
             // given
-            createTestProject();
+            createOriginalProject();
             logout();
             // 팀에 속하지 않은 사용자 로그인
             loginAs(anotherMember);
@@ -284,7 +254,7 @@ public class ProjectServiceTest extends IntegrationTest {
         @Test
         void 프로젝트_참여자가_아닌_팀_참가자는_수정이_제한된다() {
             // given
-            createTestProject();
+            createOriginalProject();
             logout();
             // 다른 팀 멤버
             loginAs(anotherMember);
@@ -305,7 +275,7 @@ public class ProjectServiceTest extends IntegrationTest {
         @Test
         void 프로젝트_기본정보를_타이틀만_수정하면_타이틀만_수정된다() {
             // given
-            createTestProject();
+            createOriginalProject();
             // when
             projectService.updateProjectBasicInfo(
                     1L, new ProjectBasicInfoUpdateRequest(updatedTitle, null, null));
@@ -319,7 +289,7 @@ public class ProjectServiceTest extends IntegrationTest {
         @Test
         void 프로젝트_기본정보를_목표만_수정하면_목표만_수정된다() {
             // given
-            createTestProject();
+            createOriginalProject();
             // when
             projectService.updateProjectBasicInfo(
                     1L, new ProjectBasicInfoUpdateRequest(null, updatedGoal, null));
@@ -333,7 +303,7 @@ public class ProjectServiceTest extends IntegrationTest {
         @Test
         void 프로젝트_기본정보를_상세설명만_수정하면_상세설명만_수정된다() {
             // given
-            createTestProject();
+            createOriginalProject();
             // when
             projectService.updateProjectBasicInfo(
                     1L, new ProjectBasicInfoUpdateRequest(null, null, updatedDescription));
@@ -347,7 +317,7 @@ public class ProjectServiceTest extends IntegrationTest {
         @Test
         void 프로젝트_일정정보를_수정하면_정상적으로_수정된다() {
             // given
-            createTestProject();
+            createOriginalProject();
             // when
             LocalDate updatedStartDt = LocalDate.of(2026, 1, 15);
             LocalDate updatedDueDt = LocalDate.of(2027, 12, 1);
@@ -366,7 +336,7 @@ public class ProjectServiceTest extends IntegrationTest {
         @Test
         void 잘못된_날짜를_입력하면_오류가_발생한다() {
             // given
-            createTestProject();
+            createOriginalProject();
             // when
             LocalDate updatedStartDt = LocalDate.of(2027, 1, 1);
             LocalDate updatedDueDt = LocalDate.of(2026, 1, 1);
@@ -378,6 +348,59 @@ public class ProjectServiceTest extends IntegrationTest {
             assertThatThrownBy(() -> projectService.updateProjectTodoInfo(1L, request))
                     .isInstanceOf(CommonException.class)
                     .hasMessageContaining(GlobalErrorCode.INVALID_DATE_ERROR.getMessage());
+        }
+    }
+
+    @Nested
+    class 프로젝트_삭제_및_나가기 {
+        @Test
+        void 프로젝트를_삭제하면_정상적으로_삭제된다() {
+            // given
+            createTestProject();
+            // when
+            projectService.deleteProject(1L);
+            // then
+            assertThatThrownBy(() -> projectService.getProjectInfo(1L))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(ProjectErrorCode.PROJECT_NOT_FOUND.getMessage());
+        }
+
+        //		@Test
+        //		void 권한이_없으면_삭제가_거부된다(){
+        //			//given
+        //			createTestProject();
+        //			//권한 수정
+        //			//when
+        //			projectService.deleteProjectParticipant(1L);
+        //			//then
+        //			assertThatThrownBy(()->projectService.getProjectInfo(1L))
+        //				.isInstanceOf(CommonException.class)
+        //				.hasMessageContaining(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED.getMessage());
+        //		}
+
+        //        @Test
+        //        void 프로젝트_참가자가_2명_이상이면_admin은_프로젝트를_못나간다() {
+        //            // given
+        //            createTestProject();
+        //            // when
+        //			//project 일반 멤버 추가
+        //            // then
+        //            assertThatThrownBy(() -> projectService.deleteProjectParticipant(1L))
+        //                    .isInstanceOf(CommonException.class)
+        //                    .hasMessageContaining(
+        //                            ProjectErrorCode.PROJECT_ADMIN_CANNOT_LEAVE.getMessage());
+        //        }
+
+        @Test
+        void 프로젝트_참가자가_admin_1명이면_프로젝트가_삭제된다() {
+            // given
+            createTestProject();
+            // when
+            projectService.deleteProjectParticipant(1L);
+            // then
+            assertThatThrownBy(() -> projectService.getProjectInfo(1L))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(ProjectErrorCode.PROJECT_NOT_FOUND.getMessage());
         }
     }
 }
