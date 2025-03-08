@@ -18,9 +18,9 @@ public class FeedbackController {
     private final FeedbackService feedbackService;
 
     @Operation(
-            summary = "GPT 기반 피드백 메시지 개선",
+            summary = "OpenAI 기반 피드백 메시지 개선",
             description = "사용자가 입력한 피드백을 AI가 분석하여 부드럽고 명확하게 개선합니다.")
-    @PostMapping(value = "/refine")
+    @PostMapping(value = "/refinement")
     public FeedbackRefineResponse feedbackRefine(
             @Valid @RequestBody OriginalFeedbackRequest request) {
         return feedbackService.refineFeedback(request);
