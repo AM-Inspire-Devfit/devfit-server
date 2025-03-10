@@ -5,6 +5,7 @@ import com.amcamp.domain.meeting.domain.Meeting;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ToDoInfo;
 import com.amcamp.domain.project.domain.ToDoStatus;
+import com.amcamp.domain.rank.domain.Rank;
 import com.amcamp.domain.task.domain.Task;
 import jakarta.persistence.*;
 import java.time.LocalDate;
@@ -44,7 +45,7 @@ public class Sprint extends BaseTimeEntity {
 
     // 기여도
     @OneToMany(mappedBy = "sprint", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<SprintContribution> contributions = new ArrayList<>();
+    private List<Rank> rank = new ArrayList<>();
 
     @Builder(access = AccessLevel.PRIVATE)
     private Sprint(Project project, String title, String goal, ToDoInfo toDoInfo) {
