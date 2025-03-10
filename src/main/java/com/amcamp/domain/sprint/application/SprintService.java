@@ -113,7 +113,9 @@ public class SprintService {
         final Member currentMember = memberUtil.getCurrentMember();
         final Project project = findByProjectId(projectId);
 
-        validateProjectParticipant(project, project.getTeam(), currentMember);
+        teamParticipantRepository
+                .findByMemberAndTeam(currentMember, project.getTeam())
+                .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED));
 
         return sprintRepository.findAllSprintByProjectId(projectId, lastSprintId);
     }
