@@ -8,8 +8,6 @@ import com.amcamp.domain.task.domain.Task;
 import com.amcamp.domain.task.domain.TaskDifficulty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
 public record TaskInfoResponse(
         @Schema(description = "태스크 아이디", example = "1") Long taskId,
@@ -53,47 +51,5 @@ public record TaskInfoResponse(
                 null,
                 null,
                 null);
-    }
-
-    public static List<TaskInfoResponse> from(List<Task> taskList) {
-        List<TaskInfoResponse> result = new ArrayList<>();
-        for (Task task : taskList) {
-            TaskInfoResponse t;
-            if (task.getAssignee() != null && task.getAssignedStatus() == AssignedStatus.ASSIGNED) {
-                t =
-                        new TaskInfoResponse(
-                                task.getId(),
-                                task.getDescription(),
-                                task.getTaskDifficulty(),
-                                task.getToDoInfo().getStartDt(),
-                                task.getToDoInfo().getDueDt(),
-                                task.getToDoInfo().getToDoStatus(),
-                                task.getAssignedStatus(),
-                                task.getSosStatus(),
-                                task.getAssignee().getTeamParticipant().getMember().getId(),
-                                task.getAssignee().getTeamParticipant().getMember().getNickname(),
-                                task.getAssignee()
-                                        .getTeamParticipant()
-                                        .getMember()
-                                        .getProfileImageUrl());
-            } else {
-                t =
-                        new TaskInfoResponse(
-                                task.getId(),
-                                task.getDescription(),
-                                task.getTaskDifficulty(),
-                                task.getToDoInfo().getStartDt(),
-                                task.getToDoInfo().getDueDt(),
-                                task.getToDoInfo().getToDoStatus(),
-                                task.getAssignedStatus(),
-                                task.getSosStatus(),
-                                null,
-                                null,
-                                null);
-            }
-
-            result.add(t);
-        }
-        return result;
     }
 }

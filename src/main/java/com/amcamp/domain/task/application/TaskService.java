@@ -21,6 +21,7 @@ import com.amcamp.domain.team.domain.TeamParticipant;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.*;
 import com.amcamp.global.util.MemberUtil;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -135,7 +136,21 @@ public class TaskService {
         final Sprint sprint = findBySprintId(sprintId);
         final Project project = sprint.getProject();
         validateTeamParticipant(project.getTeam(), currentMember);
-        return TaskInfoResponse.from(taskRepository.findBySprintId(sprintId));
+
+        List<TaskInfoResponse> result = new ArrayList<>();
+        List<Task> taskList = taskRepository.findBySprintId(sprintId);
+        for (Task task : taskList) {
+            TaskInfoResponse t;
+            if (task.getAssignee() != null && task.getAssignedStatus() == AssignedStatus.ASSIGNED) {
+                t =
+                        TaskInfoResponse.from(
+                                task, task.getAssignee().getTeamParticipant().getMember());
+            } else {
+                t = TaskInfoResponse.from(task);
+            }
+            result.add(t);
+        }
+        return result;
     }
 
     @Transactional(readOnly = true)
@@ -145,8 +160,22 @@ public class TaskService {
         final Project project = sprint.getProject();
         ProjectParticipant projectParticipant =
                 validateProjectParticipant(project, project.getTeam(), currentMember);
-        return TaskInfoResponse.from(
-                taskRepository.findBySprintIdAndAssignee(sprintId, projectParticipant));
+
+        List<TaskInfoResponse> result = new ArrayList<>();
+        List<Task> taskList =
+                taskRepository.findBySprintIdAndAssignee(sprintId, projectParticipant);
+        for (Task task : taskList) {
+            TaskInfoResponse t;
+            if (task.getAssignee() != null && task.getAssignedStatus() == AssignedStatus.ASSIGNED) {
+                t =
+                        TaskInfoResponse.from(
+                                task, task.getAssignee().getTeamParticipant().getMember());
+            } else {
+                t = TaskInfoResponse.from(task);
+            }
+            result.add(t);
+        }
+        return result;
     }
 
     private void validateTaskNotAssignedForSos(Task task) {
