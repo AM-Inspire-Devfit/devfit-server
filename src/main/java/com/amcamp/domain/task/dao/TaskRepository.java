@@ -15,6 +15,6 @@ public interface TaskRepository extends JpaRepository<Task, Long>, TaskRepositor
 
     int countBySprintAndTaskDifficulty(Sprint sprint, TaskDifficulty taskDifficulty);
 
-    int countBySprintAndTaskDifficultyAndAssignee(
-            Sprint sprint, ProjectParticipant assginee, TaskDifficulty taskDifficulty);
+    int countBySprintAndAssigneeAndTaskDifficulty(
+            Sprint sprint, ProjectParticipant assignee, TaskDifficulty taskDifficulty);
 }

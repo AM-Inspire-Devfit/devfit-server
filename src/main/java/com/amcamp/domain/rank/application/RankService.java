@@ -114,13 +114,13 @@ public class RankService {
         int lowTask = taskRepository.countBySprintAndTaskDifficulty(sprint, TaskDifficulty.LOW);
 
         int highTaskCompleted =
-                taskRepository.countBySprintAndTaskDifficultyAndAssignee(
+                taskRepository.countBySprintAndAssigneeAndTaskDifficulty(
                         sprint, participant, TaskDifficulty.HIGH);
         int midTaskCompleted =
-                taskRepository.countBySprintAndTaskDifficultyAndAssignee(
+                taskRepository.countBySprintAndAssigneeAndTaskDifficulty(
                         sprint, participant, TaskDifficulty.MID);
         int lowTaskCompleted =
-                taskRepository.countBySprintAndTaskDifficultyAndAssignee(
+                taskRepository.countBySprintAndAssigneeAndTaskDifficulty(
                         sprint, participant, TaskDifficulty.LOW);
 
         int maxScore = 20 * highTask + 10 * midTask + lowTask * 5;
