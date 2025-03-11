@@ -2,6 +2,7 @@ package com.amcamp.domain.sprint.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 
 import com.amcamp.IntegrationTest;
 import com.amcamp.domain.member.dao.MemberRepository;
@@ -26,13 +27,16 @@ import com.amcamp.domain.team.domain.TeamParticipant;
 import com.amcamp.domain.team.domain.TeamParticipantRole;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.GlobalErrorCode;
+import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.SprintErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
 import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Slice;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -172,6 +176,37 @@ public class SprintServiceTest extends IntegrationTest {
             // then
             assertThat(sprintRepository.findAll()).isEmpty();
             assertThat(sprintRepository.count()).isEqualTo(0);
+        }
+    }
+
+    @Nested
+    class 프로젝트별_스프린트_목록을_조회할_때 {
+        @Test
+        void 프로젝트가_존재하지_않으면_예외가_발생한다() {
+            // when & then
+            assertThatThrownBy(() -> sprintService.findAllSprint(999L, null))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(ProjectErrorCode.PROJECT_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        void 프로젝트가_존재한다면_첫_번쨰_스프린트를_반환한다() {
+            // given
+            List<Sprint> sprintList =
+                    List.of(
+                            Sprint.createSprint(project, "1", "testDescription1", startDt, dueDt),
+                            Sprint.createSprint(project, "2", "testDescription2", startDt, dueDt),
+                            Sprint.createSprint(project, "3", "testDescription3", startDt, dueDt));
+            sprintRepository.saveAll(sprintList);
+
+            // when
+            Slice<SprintInfoResponse> results = sprintService.findAllSprint(project.getId(), null);
+
+            // then
+            assertThat(results.getSize()).isEqualTo(1);
+            assertThat(results)
+                    .extracting("id", "title", "goal")
+                    .containsExactlyInAnyOrder(tuple(1L, "1", "testDescription1"));
         }
     }
 }

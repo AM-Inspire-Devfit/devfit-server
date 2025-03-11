@@ -25,6 +25,7 @@ import com.amcamp.global.util.MemberUtil;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -105,6 +106,18 @@ public class SprintService {
         for (int i = 0; i < sprintList.size(); i++) {
             sprintList.get(i).updateSprintTitle(String.valueOf(i + 1));
         }
+    }
+
+    @Transactional(readOnly = true)
+    public Slice<SprintInfoResponse> findAllSprint(Long projectId, Long lastSprintId) {
+        final Member currentMember = memberUtil.getCurrentMember();
+        final Project project = findByProjectId(projectId);
+
+        teamParticipantRepository
+                .findByMemberAndTeam(currentMember, project.getTeam())
+                .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED));
+
+        return sprintRepository.findAllSprintByProjectId(projectId, lastSprintId);
     }
 
     private Sprint findBySprintId(Long sprintId) {

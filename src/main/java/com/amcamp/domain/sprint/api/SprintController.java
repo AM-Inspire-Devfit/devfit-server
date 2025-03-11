@@ -6,9 +6,11 @@ import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintToDoUpdateRequest;
 import com.amcamp.domain.sprint.dto.response.SprintInfoResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -48,5 +50,15 @@ public class SprintController {
     public ResponseEntity<Void> sprintDelete(@PathVariable Long sprintId) {
         sprintService.deleteSprint(sprintId);
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @Operation(summary = "프로젝트별 스프린트 목록 조회", description = "특정 프로젝트의 스프린트 목록을 조회합니다.")
+    @GetMapping("/{projectId}")
+    public Slice<SprintInfoResponse> sprintFindAll(
+            @PathVariable Long projectId,
+            @Parameter(description = "이전 페이지의 스프린트 ID (첫 페이지는 비워두세요)")
+                    @RequestParam(required = false)
+                    Long lastSprintId) {
+        return sprintService.findAllSprint(projectId, lastSprintId);
     }
 }
