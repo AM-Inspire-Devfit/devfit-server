@@ -384,6 +384,43 @@ public class ProjectServiceTest extends IntegrationTest {
         }
 
         @Test
+        void 프로젝트_멤버_수가_15명을_초과하면_가입신청이_제한된다() {
+            // given
+            Long teamId = getTeamId();
+            createTestProject(teamId);
+            logout();
+
+            for (int i = 0; i < 14; i++) {
+                Member tmpMember =
+                        Member.createMember(
+                                "tmpMember" + i,
+                                "testProfileImageUrl",
+                                OauthInfo.createOauthInfo("testOauthId", "testOauthProvider"));
+
+                memberRepository.save(tmpMember);
+                loginAs(tmpMember);
+                teamService.joinTeam(teamInviteCodeRequest);
+                projectService.requestToProjectRegistration(1L);
+                logout();
+            }
+
+            loginAs(memberAdmin);
+            for (long registrationId = 1L; registrationId < 15L; registrationId++) {
+                projectService.approveProjectRegistration(1L, (registrationId));
+            }
+            logout();
+
+            loginAs(member1);
+            teamService.joinTeam(teamInviteCodeRequest);
+
+            // when
+            assertThatThrownBy(() -> projectService.requestToProjectRegistration(1L))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(
+                            ProjectErrorCode.PROJECT_PARTICIPANT_LIMIT_EXCEED.getMessage());
+        }
+
+        @Test
         void 프로젝트_가입신청_목록을_조회하면_정상적으로_조회된다() {
             // given
             Long teamId = getTeamId();

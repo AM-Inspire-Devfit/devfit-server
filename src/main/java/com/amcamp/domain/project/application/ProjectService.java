@@ -149,6 +149,9 @@ public class ProjectService {
     public void requestToProjectRegistration(Long projectId) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
+        if (projectParticipantRepository.findAllByProject(project).size() >= 15) {
+            throw new CommonException(ProjectErrorCode.PROJECT_PARTICIPANT_LIMIT_EXCEED);
+        }
         TeamParticipant requester = validateProjectRegistrationAlreadyExists(member, project);
         projectRegistrationRepository.save(ProjectRegistration.createRequest(project, requester));
     }

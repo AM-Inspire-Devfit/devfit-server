@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum ProjectErrorCode implements BaseErrorCode {
     PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "project 를 찾을 수 없습니다."),
-
+    PROJECT_PARTICIPANT_LIMIT_EXCEED(HttpStatus.NOT_FOUND, "project 별 최대 참여 가능 참여자 수를 초과했습니다."),
     PROJECT_PARTICIPATION_REQUIRED(HttpStatus.FORBIDDEN, "해당 프로젝트 참여자가 아닙니다."),
     UNAUTHORIZED_ACCESS(HttpStatus.FORBIDDEN, "권한이 없습니다."),
     PROJECT_ADMIN_CANNOT_LEAVE(
