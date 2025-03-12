@@ -12,6 +12,7 @@ import com.amcamp.domain.project.application.ProjectService;
 import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
 import com.amcamp.domain.rank.application.RankService;
 import com.amcamp.domain.rank.dto.response.BasicRankInfoResponse;
+import com.amcamp.domain.rank.dto.response.RankInfoResponse;
 import com.amcamp.domain.sprint.application.SprintService;
 import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
 import com.amcamp.domain.task.application.TaskService;
@@ -27,6 +28,7 @@ import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
 import com.amcamp.global.util.MemberUtil;
 import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -167,7 +169,50 @@ public class RankServiceTest extends IntegrationTest {
             Member member = memberUtil.getCurrentMember();
             BasicRankInfoResponse basicRankInfoResponse = rankService.getRankByMember(1L);
             assertThat(basicRankInfoResponse.memberId()).isEqualTo(member.getId());
-            assertThat(basicRankInfoResponse.Contribution()).isEqualTo(61.0);
+            assertThat(basicRankInfoResponse.contribution()).isEqualTo(61.0);
+        }
+    }
+
+    @Nested
+    class 프로젝트_기여도_조회_시 {
+        @Test
+        void 팀_참여자가_아니라면_에러반환() {
+            Member newMember = memberRepository.save(Member.createMember("member", null, null));
+            loginAs(newMember);
+
+            assertThatThrownBy(() -> rankService.getRankBySprint(1L))
+                    .isInstanceOf(
+                            new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED).getClass())
+                    .hasMessage(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED.getMessage());
+        }
+
+        @Test
+        void 스프린트가_존재하지_않으면_에러_반환() {
+            Member member = memberUtil.getCurrentMember();
+            assertThatThrownBy(() -> rankService.getRankByMember(2L))
+                    .isInstanceOf(new CommonException(SprintErrorCode.SPRINT_NOT_FOUND).getClass())
+                    .hasMessage(SprintErrorCode.SPRINT_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        void 태스크가_존재하지_않으면_에러_반환() {
+            SprintCreateRequest sprintRequest =
+                    new SprintCreateRequest(
+                            1L, "2차 스프린트", LocalDate.of(2026, 2, 1), LocalDate.of(2026, 3, 1));
+            sprintService.createSprint(sprintRequest);
+            assertThatThrownBy(() -> rankService.getRankBySprint(2L))
+                    .isInstanceOf(
+                            new CommonException(SprintErrorCode.TASK_NOT_CREATED_YET).getClass())
+                    .hasMessage(SprintErrorCode.TASK_NOT_CREATED_YET.getMessage());
+        }
+
+        @Test
+        void 팀_참여자라면_기여도_반환() {
+            Member member = memberUtil.getCurrentMember();
+            List<RankInfoResponse> rankInfoResponse = rankService.getRankBySprint(1L);
+            assertThat(rankInfoResponse.get(0).memberId()).isEqualTo(member.getId());
+            assertThat(rankInfoResponse.get(0).contribution()).isEqualTo(61.0);
+            assertThat(rankInfoResponse.get(0).placement()).isEqualTo(1);
         }
     }
 }

@@ -7,7 +7,7 @@ public record BasicRankInfoResponse(
         @Schema(description = "랭크 아이디", example = "1") Long rankId,
         @Schema(description = "스프린트 아이디", example = "1") Long sprintId,
         @Schema(description = "멤버 아이디", example = "1") Long memberId,
-        @Schema(description = "기여도", example = "68.1") Double Contribution) {
+        @Schema(description = "기여도", example = "68.1") Double contribution) {
 
     public static BasicRankInfoResponse from(Rank rank) {
         return new BasicRankInfoResponse(

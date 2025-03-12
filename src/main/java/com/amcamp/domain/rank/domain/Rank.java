@@ -54,7 +54,7 @@ public class Rank extends BaseTimeEntity {
         this.contribution = contribution;
     }
 
-    public void updatePlacement(int i) {
+    public void updatePlacement(int placement) {
         this.placement = placement;
     }
 }
