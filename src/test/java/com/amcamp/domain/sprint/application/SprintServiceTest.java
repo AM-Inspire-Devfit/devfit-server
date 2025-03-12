@@ -20,6 +20,10 @@ import com.amcamp.domain.sprint.dto.request.SprintBasicUpdateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintToDoUpdateRequest;
 import com.amcamp.domain.sprint.dto.response.SprintInfoResponse;
+import com.amcamp.domain.task.application.TaskService;
+import com.amcamp.domain.task.dao.TaskRepository;
+import com.amcamp.domain.task.domain.TaskDifficulty;
+import com.amcamp.domain.task.dto.request.TaskCreateRequest;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.dao.TeamRepository;
 import com.amcamp.domain.team.domain.Team;
@@ -29,6 +33,7 @@ import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.GlobalErrorCode;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.SprintErrorCode;
+import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
 import java.time.LocalDate;
 import java.util.List;
@@ -47,14 +52,24 @@ public class SprintServiceTest extends IntegrationTest {
     private final LocalDate dueDt = LocalDate.of(2026, 3, 1);
 
     @Autowired private SprintService sprintService;
+    @Autowired private TaskService taskService;
     @Autowired private SprintRepository sprintRepository;
     @Autowired private MemberRepository memberRepository;
     @Autowired private TeamRepository teamRepository;
     @Autowired private TeamParticipantRepository teamParticipantRepository;
     @Autowired private ProjectRepository projectRepository;
     @Autowired private ProjectParticipantRepository projectParticipantRepository;
+    @Autowired private TaskRepository taskRepository;
 
     private Project project;
+
+    private void loginAs(Member member) {
+        UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());
+        UsernamePasswordAuthenticationToken token =
+                new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(token);
+    }
 
     @BeforeEach
     void setUp() {
@@ -183,32 +198,95 @@ public class SprintServiceTest extends IntegrationTest {
 
     @Nested
     class 프로젝트별_스프린트_목록을_조회할_때 {
+		@Test
+		void 프로젝트가_존재하지_않으면_예외가_발생한다() {
+			// when & then
+			assertThatThrownBy(() -> sprintService.findAllSprint(999L, null))
+				.isInstanceOf(CommonException.class)
+				.hasMessage(ProjectErrorCode.PROJECT_NOT_FOUND.getMessage());
+		}
+
+		@Test
+		void 프로젝트가_존재한다면_첫_번쨰_스프린트를_반환한다() {
+			// given
+			List<Sprint> sprintList =
+				List.of(
+					Sprint.createSprint(project, "1", "testDescription1", startDt, dueDt),
+					Sprint.createSprint(project, "2", "testDescription2", startDt, dueDt),
+					Sprint.createSprint(project, "3", "testDescription3", startDt, dueDt));
+			sprintRepository.saveAll(sprintList);
+
+			// when
+			Slice<SprintInfoResponse> results = sprintService.findAllSprint(project.getId(), null);
+
+			// then
+			assertThat(results.getSize()).isEqualTo(1);
+			assertThat(results)
+				.extracting("id", "title", "goal")
+				.containsExactlyInAnyOrder(tuple(1L, "1", "testDescription1"));
+		}
+	}
+    class 진척도_조회_시 {
         @Test
-        void 프로젝트가_존재하지_않으면_예외가_발생한다() {
-            // when & then
-            assertThatThrownBy(() -> sprintService.findAllSprint(999L, null))
+        void 팀참가자가_아니면_에러를_반환한다() {
+            sprintRepository.save(
+                    Sprint.createSprint(project, "testTitle", "testDescription", startDt, dueDt));
+
+            Member nonMember =
+                    memberRepository.save(
+                            Member.createMember("nonMember", "testProfileImageUrl", null));
+            loginAs(nonMember);
+
+            assertThatThrownBy(() -> sprintService.getSprintProgress(1L))
                     .isInstanceOf(CommonException.class)
-                    .hasMessage(ProjectErrorCode.PROJECT_NOT_FOUND.getMessage());
+                    .hasMessage(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED.getMessage());
         }
 
         @Test
-        void 프로젝트가_존재한다면_첫_번쨰_스프린트를_반환한다() {
-            // given
-            List<Sprint> sprintList =
-                    List.of(
-                            Sprint.createSprint(project, "1", "testDescription1", startDt, dueDt),
-                            Sprint.createSprint(project, "2", "testDescription2", startDt, dueDt),
-                            Sprint.createSprint(project, "3", "testDescription3", startDt, dueDt));
-            sprintRepository.saveAll(sprintList);
+        void 스프린트가_존재하지않으면_에러를_반환한다() {
+            sprintRepository.save(
+                    Sprint.createSprint(project, "testTitle", "testDescription", startDt, dueDt));
+            assertThatThrownBy(() -> sprintService.getSprintProgress(2L))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(SprintErrorCode.SPRINT_NOT_FOUND.getMessage());
+        }
 
-            // when
-            Slice<SprintInfoResponse> results = sprintService.findAllSprint(project.getId(), null);
+        @Test
+        void 스프린트내_태스크가_없으면_에러를_반환한다() {
+            sprintRepository.save(
+                    Sprint.createSprint(project, "testTitle", "testDescription", startDt, dueDt));
+            assertThatThrownBy(() -> sprintService.getSprintProgress(1L))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(SprintErrorCode.TASK_NOT_CREATED_YET.getMessage());
+        }
 
-            // then
-            assertThat(results.getSize()).isEqualTo(1);
-            assertThat(results)
-                    .extracting("id", "title", "goal")
-                    .containsExactlyInAnyOrder(tuple(1L, "1", "testDescription1"));
+        @Test
+        void 스프린트의_진척도를_반환한다() {
+            Sprint sprint =
+                    sprintRepository.save(
+                            Sprint.createSprint(
+                                    project, "testTitle", "testDescription", startDt, dueDt));
+
+            // when & then # of completed Task is 0
+            taskService.createTask(new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID));
+            taskService.createTask(new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID));
+            taskService.createTask(new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID));
+
+            assertThat(sprintService.getSprintProgress(sprint.getId()).progress()).isEqualTo(0.0);
+
+            // when & then # of completed Task is 1
+            taskService.assignTask(1L);
+            taskService.updateTaskToDoInfo(1L);
+
+            assertThat(sprintService.getSprintProgress(sprint.getId()).progress()).isEqualTo(33);
+
+            // when & then # of completed Task is 3
+            taskService.assignTask(2L);
+            taskService.updateTaskToDoInfo(2L);
+            taskService.assignTask(3L);
+            taskService.updateTaskToDoInfo(3L);
+
+            assertThat(sprintService.getSprintProgress(sprint.getId()).progress()).isEqualTo(100);
         }
     }
 }

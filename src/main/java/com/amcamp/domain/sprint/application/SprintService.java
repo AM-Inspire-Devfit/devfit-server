@@ -23,6 +23,7 @@ import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.util.MemberUtil;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -124,11 +125,17 @@ public class SprintService {
         final Sprint sprint = findBySprintId(sprintId);
         validateTeamParticipant(sprint.getProject().getTeam(), currentMember);
 
-        int totalTasks = taskRepository.countBySprint(sprint);
-        Double completedTasks =
+        int totalTasks =
+                Optional.ofNullable(taskRepository.countBySprint(sprint))
+                        .filter(count -> count != 0)
+                        .orElseThrow(
+                                () -> new CommonException(SprintErrorCode.TASK_NOT_CREATED_YET));
+        int completedTasks =
                 taskRepository.countBySprintAndTodoStatus(sprint, ToDoStatus.COMPLETED);
 
-        Double progress = completedTasks / totalTasks;
+        Double progress = (double) (completedTasks * 100 / totalTasks);
+        sprint.updateProgress(progress);
+
         return SprintProgressResponse.from(sprintId, progress);
     }
 

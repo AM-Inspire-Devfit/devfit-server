@@ -24,5 +24,5 @@ public interface TaskRepository extends JpaRepository<Task, Long>, TaskRepositor
 
     @Query(
             "SELECT COUNT(t) FROM Task t WHERE t.sprint = :sprint AND t.toDoInfo.toDoStatus = :toDoStatus")
-    Double countBySprintAndTodoStatus(Sprint sprint, ToDoStatus toDoStatus);
+    int countBySprintAndTodoStatus(Sprint sprint, ToDoStatus toDoStatus);
 }
