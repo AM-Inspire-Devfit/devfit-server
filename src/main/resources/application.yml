@@ -8,6 +8,7 @@ spring:
       - redis
       - security
       - s3
+      - openai
 
 spring-doc:
   default-consumes-media-type: application/json
