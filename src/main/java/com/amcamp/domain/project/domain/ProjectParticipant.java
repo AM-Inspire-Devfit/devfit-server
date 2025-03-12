@@ -7,7 +7,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.lang.Nullable;
 
 @Entity
 @NoArgsConstructor
@@ -33,11 +32,6 @@ public class ProjectParticipant extends BaseTimeEntity {
     // 프로젝트 내 권한
     @Enumerated(EnumType.STRING)
     private ProjectParticipantRole projectRole;
-
-    // 사용자 지정 역할
-    @Nullable
-    @Column(name = "position")
-    private String ProjectPosition;
 
     @Builder(access = AccessLevel.PRIVATE)
     private ProjectParticipant(
