@@ -3,7 +3,9 @@ package com.amcamp.domain.project.api;
 import com.amcamp.domain.project.application.ProjectService;
 import com.amcamp.domain.project.dto.request.*;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
-import com.amcamp.domain.project.dto.response.ProjectParticipationInfoResponse;
+import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
+import com.amcamp.domain.project.dto.response.ProjectParticipantInfoResponse;
+import com.amcamp.domain.project.dto.response.ProjectRegistrationInfoResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -21,6 +23,9 @@ public class ProjectController {
 
     private final ProjectService projectService;
 
+    // project
+
+    // create
     @Operation(summary = "프로젝트 생성", description = "새로운 프로젝트를 생성합니다.")
     @PostMapping("/create")
     public ResponseEntity<Void> projectCreate(
@@ -29,18 +34,19 @@ public class ProjectController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @Operation(
-            summary = "전체 프로젝트 목록 조회",
-            description = "팀 ID를 통해 사용자가 참여 중인 프로젝트와 참여 중이지 않은 프로젝트를 나누어 조회합니다.")
-    @GetMapping("/{teamId}/list")
-    public List<ProjectParticipationInfoResponse> projectListInfo(@PathVariable Long teamId) {
-        return projectService.getProjectListInfo(teamId);
-    }
-
+    // read
     @Operation(summary = "프로젝트 조회", description = "프로젝트 ID를 통해 프로젝트 정보를 조회합니다.")
     @GetMapping("/{projectId}")
     public ProjectInfoResponse projectInfo(@PathVariable Long projectId) {
         return projectService.getProjectInfo(projectId);
+    }
+
+    @Operation(
+            summary = "전체 프로젝트 목록 조회",
+            description = "팀 ID를 통해 사용자가 참여 중인 프로젝트와 참여 중이지 않은 프로젝트를 나누어 조회합니다.")
+    @GetMapping("/{teamId}/list")
+    public List<ProjectListInfoResponse> projectListInfo(@PathVariable Long teamId) {
+        return projectService.getProjectListInfo(teamId);
     }
 
     // update
@@ -68,6 +74,65 @@ public class ProjectController {
     public ResponseEntity<Void> projectDelete(@PathVariable Long projectId) {
         projectService.deleteProject(projectId);
         return ResponseEntity.ok().build();
+    }
+
+    // project member
+    @Operation(summary = "프로젝트 가입 신청", description = "프로젝트 가입 신청 요청을 보냅니다.")
+    @PostMapping("/{projectId}/registration")
+    public ResponseEntity<Void> projectRegister(@PathVariable Long projectId) {
+        projectService.requestToProjectRegistration(projectId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "프로젝트 가입 신청 조회", description = "프로젝트 가입 신청 정보를 조회합니다.")
+    @GetMapping("/{projectId}/registration")
+    public List<ProjectRegistrationInfoResponse> projectRegistrationGet(
+            @PathVariable Long projectId) {
+        return projectService.getProjectRegistrationList(projectId);
+    }
+
+    @Operation(summary = "프로젝트 가입 신청 목록 조회", description = "현재 프로젝트에 신청된 가입 요청 목록을 조회합니다.")
+    @GetMapping("/{projectId}/registration/list")
+    public ProjectRegistrationInfoResponse projectRegistrationListGet(
+            @PathVariable Long projectId, @RequestParam Long projectRegisterId) {
+        return projectService.getProjectRegistration(projectId, projectRegisterId);
+    }
+
+    @Operation(summary = "프로젝트 가입 신청 승인", description = "프로젝트 가입 신청을 승인합니다.")
+    @PutMapping("/{projectId}/registration/approve")
+    public ResponseEntity<Void> projectRegistrationApprove(
+            @PathVariable Long projectId, @RequestParam Long projectRegisterId) {
+        projectService.approveProjectRegistration(projectId, projectRegisterId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "프로젝트 가입 신청 거부", description = "프로젝트 가입 신청을 거부합니다.")
+    @PutMapping("/{projectId}/registration/reject")
+    public ResponseEntity<Void> projectRegistrationReject(
+            @PathVariable Long projectId, @RequestParam Long projectRegisterId) {
+        projectService.rejectProjectRegistration(projectId, projectRegisterId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "프로젝트 가입 신청 취소", description = "프로젝트 가입 신청을 취소합니다.")
+    @DeleteMapping("/{projectId}/registration/cancel")
+    public ResponseEntity<Void> projectRegistrationDelete(
+            @PathVariable Long projectId, @RequestParam Long projectRegisterId) {
+        projectService.deleteProjectRegistration(projectId, projectRegisterId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "프로젝트 참가자 정보 조회", description = "프로젝트 참여자 정보를 조회합니다.")
+    @GetMapping("/{projectId}/me")
+    public ProjectParticipantInfoResponse projectParticipantGet(@PathVariable Long projectId) {
+        return projectService.getProjectParticipant(projectId);
+    }
+
+    @Operation(summary = "프로젝트 참가자 목록 조회", description = "현재 프로젝트에 참여하고 있는 참가자 전체 목록을 조회합니다. ")
+    @GetMapping("/{projectId}/participants")
+    public List<ProjectParticipantInfoResponse> projectParticipantListGet(
+            @PathVariable Long projectId) {
+        return projectService.getProjectParticipantList(projectId);
     }
 
     @Operation(summary = "프로젝트 나가기", description = "프로젝트에 참여중인 프로젝트 참여자 정보를 삭제합니다.")

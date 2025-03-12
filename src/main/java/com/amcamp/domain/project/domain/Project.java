@@ -33,8 +33,8 @@ public class Project extends BaseTimeEntity {
     // 설명
     @Lob private String description;
 
-    // 프로젝트 목표
-    @Lob private String goal;
+    //    // 프로젝트 목표
+    //    @Lob private String goal;
 
     @Embedded private ToDoInfo toDoInfo;
 
@@ -43,33 +43,25 @@ public class Project extends BaseTimeEntity {
 
     // 캘린더
     @Builder(access = AccessLevel.PRIVATE)
-    private Project(Team team, String title, String description, String goal, ToDoInfo toDoInfo) {
+    private Project(Team team, String title, String description, ToDoInfo toDoInfo) {
         this.team = team;
         this.title = title;
         this.description = description;
-        this.goal = goal;
         this.toDoInfo = toDoInfo;
     }
 
     public static Project createProject(
-            Team team,
-            String title,
-            String description,
-            String goal,
-            LocalDate startDt,
-            LocalDate dueDt) {
+            Team team, String title, String description, LocalDate startDt, LocalDate dueDt) {
         return Project.builder()
                 .team(team)
                 .title(title)
                 .description(description)
-                .goal(goal)
                 .toDoInfo(ToDoInfo.createToDoInfo(startDt, dueDt))
                 .build();
     }
 
-    public void updateBasic(String title, String goal, String description) {
+    public void updateBasic(String title, String description) {
         this.title = (title != null) ? title : this.title;
-        this.goal = (goal != null) ? goal : this.goal;
         this.description = (description != null) ? description : this.description;
     }
 }

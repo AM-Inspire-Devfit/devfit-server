@@ -77,13 +77,15 @@ public class SprintServiceTest extends IntegrationTest {
                 TeamParticipant.createParticipant(member, team, TeamParticipantRole.ADMIN);
         teamParticipantRepository.save(teamParticipant);
 
-        project =
-                Project.createProject(
-                        team, "testTitle", "testDescription", "testGoal", startDt, dueDt);
+        project = Project.createProject(team, "testTitle", "testDescription", startDt, dueDt);
         projectRepository.save(project);
         ProjectParticipant projectParticipant =
                 ProjectParticipant.createProjectParticipant(
-                        teamParticipant, project, ProjectParticipantRole.ADMIN);
+                        teamParticipant,
+                        project,
+                        member.getNickname(),
+                        member.getProfileImageUrl(),
+                        ProjectParticipantRole.ADMIN);
         projectParticipantRepository.save(projectParticipant);
     }
 
