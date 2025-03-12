@@ -198,34 +198,35 @@ public class SprintServiceTest extends IntegrationTest {
 
     @Nested
     class 프로젝트별_스프린트_목록을_조회할_때 {
-		@Test
-		void 프로젝트가_존재하지_않으면_예외가_발생한다() {
-			// when & then
-			assertThatThrownBy(() -> sprintService.findAllSprint(999L, null))
-				.isInstanceOf(CommonException.class)
-				.hasMessage(ProjectErrorCode.PROJECT_NOT_FOUND.getMessage());
-		}
+        @Test
+        void 프로젝트가_존재하지_않으면_예외가_발생한다() {
+            // when & then
+            assertThatThrownBy(() -> sprintService.findAllSprint(999L, null))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(ProjectErrorCode.PROJECT_NOT_FOUND.getMessage());
+        }
 
-		@Test
-		void 프로젝트가_존재한다면_첫_번쨰_스프린트를_반환한다() {
-			// given
-			List<Sprint> sprintList =
-				List.of(
-					Sprint.createSprint(project, "1", "testDescription1", startDt, dueDt),
-					Sprint.createSprint(project, "2", "testDescription2", startDt, dueDt),
-					Sprint.createSprint(project, "3", "testDescription3", startDt, dueDt));
-			sprintRepository.saveAll(sprintList);
+        @Test
+        void 프로젝트가_존재한다면_첫_번쨰_스프린트를_반환한다() {
+            // given
+            List<Sprint> sprintList =
+                    List.of(
+                            Sprint.createSprint(project, "1", "testDescription1", startDt, dueDt),
+                            Sprint.createSprint(project, "2", "testDescription2", startDt, dueDt),
+                            Sprint.createSprint(project, "3", "testDescription3", startDt, dueDt));
+            sprintRepository.saveAll(sprintList);
 
-			// when
-			Slice<SprintInfoResponse> results = sprintService.findAllSprint(project.getId(), null);
+            // when
+            Slice<SprintInfoResponse> results = sprintService.findAllSprint(project.getId(), null);
 
-			// then
-			assertThat(results.getSize()).isEqualTo(1);
-			assertThat(results)
-				.extracting("id", "title", "goal")
-				.containsExactlyInAnyOrder(tuple(1L, "1", "testDescription1"));
-		}
-	}
+            // then
+            assertThat(results.getSize()).isEqualTo(1);
+            assertThat(results)
+                    .extracting("id", "title", "goal")
+                    .containsExactlyInAnyOrder(tuple(1L, "1", "testDescription1"));
+        }
+    }
+
     class 진척도_조회_시 {
         @Test
         void 팀참가자가_아니면_에러를_반환한다() {

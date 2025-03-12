@@ -60,8 +60,8 @@ public class SprintController {
             @Parameter(description = "이전 페이지의 스프린트 ID (첫 페이지는 비워두세요)")
                     @RequestParam(required = false)
                     Long lastSprintId) {
-		return sprintService.findAllSprint(projectId, lastSprintId);
-	}
+        return sprintService.findAllSprint(projectId, lastSprintId);
+    }
 
     @Operation(summary = "스프린트 진척도 조회", description = "스프린트의 진척도를 조회합니다.")
     @DeleteMapping("/{sprintId}/progress")

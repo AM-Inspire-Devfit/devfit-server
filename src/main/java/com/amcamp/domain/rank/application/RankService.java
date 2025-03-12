@@ -54,7 +54,7 @@ public class RankService {
         Member member = memberUtil.getCurrentMember();
         Sprint sprint = findBySprintId(sprintId);
         Project project = sprint.getProject();
-        validateProjectParticipant(project, project.getTeam(), member);
+        validateTeamParticipant(project.getTeam(), member);
 
         List<ProjectParticipant> participantList =
                 projectParticipantRepository.findAllByProject(project);
@@ -79,6 +79,14 @@ public class RankService {
             rankInfoResponseList.add(RankInfoResponse.from(rank));
         }
         return rankInfoResponseList;
+    }
+
+    private void validateTeamParticipant(Team team, Member member) {
+        TeamParticipant teamParticipant =
+                teamParticipantRepository
+                        .findByMemberAndTeam(member, team)
+                        .orElseThrow(
+                                () -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED));
     }
 
     private ProjectParticipant validateProjectParticipant(

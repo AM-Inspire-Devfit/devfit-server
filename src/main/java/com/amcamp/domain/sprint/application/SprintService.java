@@ -111,15 +111,16 @@ public class SprintService {
 
     @Transactional(readOnly = true)
     public Slice<SprintInfoResponse> findAllSprint(Long projectId, Long lastSprintId) {
-		final Member currentMember = memberUtil.getCurrentMember();
-		final Project project = findByProjectId(projectId);
+        final Member currentMember = memberUtil.getCurrentMember();
+        final Project project = findByProjectId(projectId);
 
-		teamParticipantRepository
-			.findByMemberAndTeam(currentMember, project.getTeam())
-			.orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED));
+        teamParticipantRepository
+                .findByMemberAndTeam(currentMember, project.getTeam())
+                .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED));
 
-		return sprintRepository.findAllSprintByProjectId(projectId, lastSprintId);
-	}
+        return sprintRepository.findAllSprintByProjectId(projectId, lastSprintId);
+    }
+
     public SprintProgressResponse getSprintProgress(Long sprintId) {
         final Member currentMember = memberUtil.getCurrentMember();
         final Sprint sprint = findBySprintId(sprintId);
