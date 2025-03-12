@@ -474,6 +474,19 @@ public class ProjectServiceTest extends IntegrationTest {
         }
 
         @Test
+        void 이미_가입된_프로젝트_참여자가_가입신청하면_예외가_발생한다() {
+            // given
+            Long teamId = getTeamId();
+            createTestProject(teamId);
+
+            // when,then
+            assertThatThrownBy(() -> projectService.requestToProjectRegistration(1L))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(
+                            ProjectErrorCode.PROJECT_PARTICIPANT_ALREADY_EXISTS.getMessage());
+        }
+
+        @Test
         void 프로젝트_가입을_승인하면_정상적으로_승인된다() {
             // given
             Long teamId = getTeamId();
@@ -695,7 +708,7 @@ public class ProjectServiceTest extends IntegrationTest {
             // when
             projectService.changeProjectAdmin(1L, newAdminId);
             projectService.deleteProjectParticipant(1L);
-            // thensrc/test/java/com/amcamp/domain/project/ProjectServiceTest.java
+            // then
             assertThat(projectService.getProjectParticipant(1L).projectNickname())
                     .isEqualTo(String.valueOf(ProjectParticipantUnknown.NICKNAME));
         }

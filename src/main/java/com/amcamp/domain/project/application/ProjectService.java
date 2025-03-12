@@ -152,7 +152,9 @@ public class ProjectService {
         if (projectParticipantRepository.findAllByProject(project).size() >= 15) {
             throw new CommonException(ProjectErrorCode.PROJECT_PARTICIPANT_LIMIT_EXCEED);
         }
+
         TeamParticipant requester = validateProjectRegistrationAlreadyExists(member, project);
+
         projectRegistrationRepository.save(ProjectRegistration.createRequest(project, requester));
     }
 
@@ -260,10 +262,23 @@ public class ProjectService {
     private TeamParticipant validateProjectRegistrationAlreadyExists(
             Member member, Project project) {
         TeamParticipant participant = getValidTeamParticipant(member, project.getTeam());
+        if (projectParticipantRepository
+                .findByProjectAndTeamParticipant(project, participant)
+                .isPresent()) {
+            throw new CommonException(ProjectErrorCode.PROJECT_PARTICIPANT_ALREADY_EXISTS);
+        }
         if (projectRegistrationRepository.findByRequester(participant).isPresent()) {
             throw new CommonException(ProjectErrorCode.PROJECT_REGISTRATION_ALREADY_EXISTS);
-        } else {
-            return participant;
+        }
+        return participant;
+    }
+
+    private void validateProjectParticipantAlreadyExists(
+            Project project, TeamParticipant participant) {
+        if (projectParticipantRepository
+                .findByProjectAndTeamParticipant(project, participant)
+                .isPresent()) {
+            throw new CommonException(ProjectErrorCode.PROJECT_REGISTRATION_ALREADY_EXISTS);
         }
     }
 
