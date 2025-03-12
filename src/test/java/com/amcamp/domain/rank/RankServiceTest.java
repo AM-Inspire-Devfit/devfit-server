@@ -151,6 +151,18 @@ public class RankServiceTest extends IntegrationTest {
         }
 
         @Test
+        void 태스크가_존재하지_않으면_에러_반환() {
+            SprintCreateRequest sprintRequest =
+                    new SprintCreateRequest(
+                            1L, "2차 스프린트", LocalDate.of(2026, 2, 1), LocalDate.of(2026, 3, 1));
+            sprintService.createSprint(sprintRequest);
+            assertThatThrownBy(() -> rankService.getRankByMember(2L))
+                    .isInstanceOf(
+                            new CommonException(SprintErrorCode.TASK_NOT_CREATED_YET).getClass())
+                    .hasMessage(SprintErrorCode.TASK_NOT_CREATED_YET.getMessage());
+        }
+
+        @Test
         void 프로젝트_참여자라면_기여도_반환() {
             Member member = memberUtil.getCurrentMember();
             BasicRankInfoResponse basicRankInfoResponse = rankService.getRankByMember(1L);

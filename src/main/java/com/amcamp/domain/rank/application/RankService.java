@@ -124,6 +124,10 @@ public class RankService {
                         sprint, participant, TaskDifficulty.LOW);
 
         int maxScore = 20 * highTask + 10 * midTask + lowTask * 5;
+        if (maxScore == 0) {
+            throw new CommonException(SprintErrorCode.TASK_NOT_CREATED_YET);
+        }
+
         int total = (20 * highTaskCompleted + 10 * midTaskCompleted + 5 * lowTaskCompleted) * 100;
         return (double) (total / maxScore);
     }
