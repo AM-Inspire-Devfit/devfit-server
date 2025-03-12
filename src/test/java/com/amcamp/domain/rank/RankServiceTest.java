@@ -212,7 +212,6 @@ public class RankServiceTest extends IntegrationTest {
             List<RankInfoResponse> rankInfoResponse = rankService.getRankBySprint(1L);
             assertThat(rankInfoResponse.get(0).memberId()).isEqualTo(member.getId());
             assertThat(rankInfoResponse.get(0).contribution()).isEqualTo(61.0);
-            assertThat(rankInfoResponse.get(0).placement()).isEqualTo(1);
         }
     }
 }

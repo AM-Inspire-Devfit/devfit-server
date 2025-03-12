@@ -21,7 +21,6 @@ import com.amcamp.global.exception.errorcode.SprintErrorCode;
 import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.util.MemberUtil;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -60,25 +59,15 @@ public class RankService {
                 projectParticipantRepository.findAllByProject(project);
 
         // 랭크 불러오기
-        List<Rank> rankList = new ArrayList<>();
         for (ProjectParticipant participant : participantList) {
-            Rank rank = validateRank(sprint, participant);
-            rankList.add(rank);
+            validateRank(sprint, participant);
         }
-
-        // 등위 처리
-        rankList.sort(Comparator.comparingDouble(Rank::getContribution).reversed());
-
-        int placement = 1;
+        List<Rank> rankList = rankRepository.findBySprintOrderByContributionDesc(sprint);
+        List<RankInfoResponse> result = new ArrayList<>();
         for (Rank rank : rankList) {
-            rank.updatePlacement(placement++);
+            result.add(RankInfoResponse.from(rank));
         }
-
-        List<RankInfoResponse> rankInfoResponseList = new ArrayList<>();
-        for (Rank rank : rankList) {
-            rankInfoResponseList.add(RankInfoResponse.from(rank));
-        }
-        return rankInfoResponseList;
+        return result;
     }
 
     private void validateTeamParticipant(Team team, Member member) {

@@ -27,17 +27,16 @@ public class Rank extends BaseTimeEntity {
     @JoinColumn(name = "participant_id")
     private ProjectParticipant participant;
 
-    // 등위
-    private Integer placement;
+    //    // 등위
+    //    private Integer placement;
 
     // 기여도 점수/비율
     private Double contribution;
 
     @Builder(access = AccessLevel.PRIVATE)
-    Rank(Sprint sprint, ProjectParticipant participant, Integer placement, Double contribution) {
+    Rank(Sprint sprint, ProjectParticipant participant, Double contribution) {
         this.sprint = sprint;
         this.participant = participant;
-        this.placement = placement;
         this.contribution = contribution;
     }
 
@@ -52,9 +51,5 @@ public class Rank extends BaseTimeEntity {
 
     public void updateContribution(Double contribution) {
         this.contribution = contribution;
-    }
-
-    public void updatePlacement(int placement) {
-        this.placement = placement;
     }
 }
