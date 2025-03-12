@@ -86,7 +86,7 @@ public class ProjectController {
 
     @Operation(summary = "프로젝트 가입 신청 조회", description = "프로젝트 가입 신청 정보를 조회합니다.")
     @GetMapping("/{projectId}/registration")
-    public List<ProjectRegistrationInfoResponse> projectRegistrationListGet(
+    public List<ProjectRegistrationInfoResponse> projectRegistrationGet(
             @PathVariable Long projectId) {
         return projectService.getProjectRegistrationList(projectId);
     }

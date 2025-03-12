@@ -11,7 +11,7 @@ public record ProjectRegistrationInfoResponse(
         @Schema(description = "프로젝트 가입 요청자 아이디", example = "1") Long requesterId,
         @Schema(description = "프로젝트 가입 요청 진행 상태", example = "REQUEST_PENDING")
                 ProjectRegistrationStatus projectRegistrationStatus,
-        @Schema(description = "프로젝트 시작 날짜", example = "2024-01-01") LocalDate lastModifiedAt) {
+        @Schema(description = "최종 수정 날짜", example = "2024-01-01") LocalDate lastModifiedAt) {
 
     public static ProjectRegistrationInfoResponse from(ProjectRegistration projectRegistration) {
         return new ProjectRegistrationInfoResponse(
