@@ -45,7 +45,7 @@ public class ProjectService {
     public void createProject(ProjectCreateRequest request) {
         Member member = memberUtil.getCurrentMember();
         Team team = getTeam(request.teamId());
-        TeamParticipant teamParticipant = getTeamParticipant(member, team);
+        TeamParticipant teamParticipant = getValidTeamParticipant(member, team);
         Project project =
                 projectRepository.save(
                         Project.createProject(
@@ -58,14 +58,18 @@ public class ProjectService {
 
         projectParticipantRepository.save(
                 ProjectParticipant.createProjectParticipant(
-                        teamParticipant, project, ProjectParticipantRole.ADMIN));
+                        teamParticipant,
+                        project,
+                        member.getNickname(),
+                        member.getProfileImageUrl(),
+                        ProjectParticipantRole.ADMIN));
     }
 
     @Transactional(readOnly = true)
     public ProjectInfoResponse getProjectInfo(Long projectId) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
-        getProjectParticipant(member, project);
+        getValidTeamParticipant(member, project.getTeam());
         return ProjectInfoResponse.from(project);
     }
 
@@ -73,7 +77,7 @@ public class ProjectService {
     public List<ProjectListInfoResponse> getProjectListInfo(Long teamId) {
         List<Project> projectList = projectRepositoryCustom.findAllByTeamId(teamId);
         Member member = memberUtil.getCurrentMember();
-        TeamParticipant teamParticipant = getTeamParticipant(member, getTeam(teamId));
+        TeamParticipant teamParticipant = getValidTeamParticipant(member, getTeam(teamId));
         return projectList.stream()
                 .map(
                         p ->
@@ -87,14 +91,14 @@ public class ProjectService {
     public void updateProjectBasicInfo(Long projectId, ProjectBasicInfoUpdateRequest request) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
-        getProjectParticipant(member, project);
+        getValidProjectParticipant(member, project);
         project.updateBasic(request.title(), request.goal(), request.description());
     }
 
     public void updateProjectTodoInfo(Long projectId, ProjectTodoInfoUpdateRequest request) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
-        getProjectParticipant(member, project);
+        getValidProjectParticipant(member, project);
         project.getToDoInfo()
                 .updateToDoInfo(request.startDt(), request.DueDt(), request.toDoStatus());
     }
@@ -111,7 +115,7 @@ public class ProjectService {
     public void deleteProjectParticipant(Long projectId) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
-        ProjectParticipant participant = getProjectParticipant(member, project);
+        ProjectParticipant participant = getValidProjectParticipant(member, project);
         if (isProjectAdmin(member, project)) {
             boolean hasOtherParticipants =
                     projectParticipantRepository.existsByProjectAndProjectRoleNot(
@@ -136,7 +140,7 @@ public class ProjectService {
                 memberRepository
                         .findById(newAdminId)
                         .orElseThrow(() -> new CommonException(MemberErrorCode.MEMBER_NOT_FOUND));
-        ProjectParticipant newAdmin = getProjectParticipant(newAdminMember, project);
+        ProjectParticipant newAdmin = getValidProjectParticipant(newAdminMember, project);
 
         currentAdmin.changeRole(ProjectParticipantRole.MEMBER);
         newAdmin.changeRole(ProjectParticipantRole.ADMIN);
@@ -174,7 +178,11 @@ public class ProjectService {
         ProjectRegistration registration = getProjectRegistrationById(registrationId);
         projectParticipantRepository.save(
                 ProjectParticipant.createProjectParticipant(
-                        registration.getRequester(), project, ProjectParticipantRole.MEMBER));
+                        registration.getRequester(),
+                        project,
+                        registration.getRequester().getMember().getNickname(),
+                        registration.getRequester().getMember().getProfileImageUrl(),
+                        ProjectParticipantRole.MEMBER));
         registration.updateStatus(ProjectRegistrationStatus.APPROVED);
     }
 
@@ -188,7 +196,7 @@ public class ProjectService {
     public void deleteProjectRegistration(Long projectId, Long projectRegisterId) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
-        TeamParticipant teamParticipant = getTeamParticipant(member, project.getTeam());
+        TeamParticipant teamParticipant = getValidTeamParticipant(member, project.getTeam());
         ProjectRegistration registration = getProjectRegistrationById(projectRegisterId);
 
         if (teamParticipant.equals(registration.getRequester())) {
@@ -202,14 +210,14 @@ public class ProjectService {
     public ProjectParticipantInfoResponse getProjectParticipant(Long projectId) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
-        ProjectParticipant participant = getProjectParticipant(member, project);
+        ProjectParticipant participant = getValidProjectParticipant(member, project);
         return ProjectParticipantInfoResponse.from(participant);
     }
 
     public List<ProjectParticipantInfoResponse> getProjectParticipantList(Long projectId) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
-        getProjectParticipant(member, project);
+        getValidProjectParticipant(member, project);
         return projectParticipantRepository.findAllByProject(project).stream()
                 .map(ProjectParticipantInfoResponse::from)
                 .collect(Collectors.toList());
@@ -227,14 +235,14 @@ public class ProjectService {
                 .orElseThrow(() -> new CommonException(ProjectErrorCode.PROJECT_NOT_FOUND));
     }
 
-    private TeamParticipant getTeamParticipant(Member member, Team team) {
+    private TeamParticipant getValidTeamParticipant(Member member, Team team) {
         return teamParticipantRepository
                 .findByMemberAndTeam(member, team)
                 .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED));
     }
 
-    private ProjectParticipant getProjectParticipant(Member member, Project project) {
-        TeamParticipant teamParticipant = getTeamParticipant(member, project.getTeam());
+    private ProjectParticipant getValidProjectParticipant(Member member, Project project) {
+        TeamParticipant teamParticipant = getValidTeamParticipant(member, project.getTeam());
         return projectParticipantRepository
                 .findByProjectAndTeamParticipant(project, teamParticipant)
                 .orElseThrow(
@@ -249,7 +257,7 @@ public class ProjectService {
 
     private TeamParticipant validateProjectRegistrationAlreadyExists(
             Member member, Project project) {
-        TeamParticipant participant = getTeamParticipant(member, project.getTeam());
+        TeamParticipant participant = getValidTeamParticipant(member, project.getTeam());
         if (projectRegistrationRepository.findByRequester(participant).isPresent()) {
             throw new CommonException(ProjectErrorCode.PROJECT_REGISTRATION_ALREADY_EXISTS);
         } else {
@@ -265,7 +273,7 @@ public class ProjectService {
     }
 
     private ProjectParticipant validateProjectAdmin(Member member, Project project) {
-        ProjectParticipant participant = getProjectParticipant(member, project);
+        ProjectParticipant participant = getValidProjectParticipant(member, project);
         if (!participant.getProjectRole().equals(ProjectParticipantRole.ADMIN)) {
             throw new CommonException(ProjectErrorCode.UNAUTHORIZED_ACCESS);
         }
@@ -273,7 +281,7 @@ public class ProjectService {
     }
 
     private boolean isProjectAdmin(Member member, Project project) {
-        ProjectParticipant participant = getProjectParticipant(member, project);
+        ProjectParticipant participant = getValidProjectParticipant(member, project);
         return participant.getProjectRole().equals(ProjectParticipantRole.ADMIN);
     }
 

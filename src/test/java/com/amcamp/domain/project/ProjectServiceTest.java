@@ -541,7 +541,7 @@ public class ProjectServiceTest extends IntegrationTest {
             // given
             Long teamId = getTeamId();
             createTestProject(teamId);
-            logout();
+            logout(); // 어드민 로그아웃
             loginAs(member1);
             teamService.joinTeam(teamInviteCodeRequest);
 
@@ -549,8 +549,8 @@ public class ProjectServiceTest extends IntegrationTest {
             projectService.requestToProjectRegistration(1L);
 
             // then
-            logout();
-            loginAs(memberAdmin);
+            logout(); // member project 가입 신청 후 로그아웃
+            loginAs(memberAdmin); // admin 다시 로그인 후 가입 승인
             ProjectRegistrationInfoResponse registrationInfo =
                     projectService.getProjectRegistration(1L, 1L);
             projectService.approveProjectRegistration(1L, registrationInfo.registrationId());
@@ -558,8 +558,9 @@ public class ProjectServiceTest extends IntegrationTest {
             // then
             logout();
             loginAs(member1);
+            projectService.getProjectParticipantList(1L).forEach(System.out::println);
             ProjectParticipantInfoResponse myInfo = projectService.getProjectParticipant(1L);
-            assertThat(myInfo.nickname()).isEqualTo(member1.getNickname());
+            assertThat(myInfo.projectNickname()).isEqualTo(member1.getNickname());
             assertThat(myInfo.role()).isEqualTo(ProjectParticipantRole.MEMBER);
         }
 
@@ -568,13 +569,13 @@ public class ProjectServiceTest extends IntegrationTest {
             // given
             Long teamId = getTeamId();
             createTestProject(teamId);
-            logout();
+            logout(); // admin 로그아웃
 
             // when
             loginAs(member1);
             teamService.joinTeam(teamInviteCodeRequest);
             projectService.requestToProjectRegistration(1L);
-            logout();
+            logout(); //
 
             loginAs(member2);
             teamService.joinTeam(teamInviteCodeRequest);

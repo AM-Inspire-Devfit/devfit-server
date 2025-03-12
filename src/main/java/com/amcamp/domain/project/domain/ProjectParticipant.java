@@ -26,6 +26,10 @@ public class ProjectParticipant extends BaseTimeEntity {
     @JoinColumn(name = "project_id")
     private Project project;
 
+    private String projectNickname;
+
+    private String projectProfile;
+
     // 프로젝트 내 권한
     @Enumerated(EnumType.STRING)
     private ProjectParticipantRole projectRole;
@@ -37,17 +41,29 @@ public class ProjectParticipant extends BaseTimeEntity {
 
     @Builder(access = AccessLevel.PRIVATE)
     private ProjectParticipant(
-            TeamParticipant teamParticipant, Project project, ProjectParticipantRole projectRole) {
+            TeamParticipant teamParticipant,
+            Project project,
+            String projectNickname,
+            String projectProfile,
+            ProjectParticipantRole projectRole) {
         this.teamParticipant = teamParticipant;
         this.project = project;
+        this.projectNickname = projectNickname;
+        this.projectProfile = projectProfile;
         this.projectRole = projectRole;
     }
 
     public static ProjectParticipant createProjectParticipant(
-            TeamParticipant teamParticipant, Project project, ProjectParticipantRole projectRole) {
+            TeamParticipant teamParticipant,
+            Project project,
+            String projectNickname,
+            String projectProfile,
+            ProjectParticipantRole projectRole) {
         return ProjectParticipant.builder()
                 .teamParticipant(teamParticipant)
                 .project(project)
+                .projectNickname(projectNickname)
+                .projectProfile(projectProfile)
                 .projectRole(projectRole)
                 .build();
     }
