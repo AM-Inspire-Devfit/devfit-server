@@ -65,4 +65,9 @@ public class ProjectParticipant extends BaseTimeEntity {
     public void changeRole(ProjectParticipantRole projectRole) {
         this.projectRole = projectRole;
     }
+
+    public void changeParticipantToUnknown() {
+        this.projectNickname = String.valueOf(ProjectParticipantUnknown.NICKNAME);
+        this.projectProfile = String.valueOf(ProjectParticipantUnknown.PROFILE_URL);
+    }
 }

@@ -126,7 +126,7 @@ public class ProjectService {
             projectParticipantRepository.deleteAllByProject(project);
             projectRepository.delete(project);
         } else {
-            projectParticipantRepository.delete(participant);
+            participant.changeParticipantToUnknown();
         }
     }
 

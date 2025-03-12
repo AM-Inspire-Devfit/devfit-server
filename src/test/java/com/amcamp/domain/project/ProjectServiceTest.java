@@ -695,11 +695,9 @@ public class ProjectServiceTest extends IntegrationTest {
             // when
             projectService.changeProjectAdmin(1L, newAdminId);
             projectService.deleteProjectParticipant(1L);
-            // then
-            assertThatThrownBy(() -> projectService.getProjectParticipant(1L))
-                    .isInstanceOf(CommonException.class)
-                    .hasMessageContaining(
-                            ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED.getMessage());
+            // thensrc/test/java/com/amcamp/domain/project/ProjectServiceTest.java
+            assertThat(projectService.getProjectParticipant(1L).projectNickname())
+                    .isEqualTo(String.valueOf(ProjectParticipantUnknown.NICKNAME));
         }
     }
 }
