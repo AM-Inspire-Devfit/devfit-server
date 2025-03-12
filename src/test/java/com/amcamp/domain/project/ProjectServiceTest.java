@@ -53,11 +53,10 @@ public class ProjectServiceTest extends IntegrationTest {
     private Member memberAdmin;
     private Member member1;
     private Member member2;
-    private String title = "projectTitle";
-    private String goal = "projectTitle";
-    private String description = "projectGoal";
-    private LocalDate startDt = LocalDate.of(2026, 1, 1);
-    private LocalDate dueDt = LocalDate.of(2026, 12, 1);
+    private final String title = "projectTitle";
+    private final String description = "projectDescription";
+    private final LocalDate startDt = LocalDate.of(2026, 1, 1);
+    private final LocalDate dueDt = LocalDate.of(2026, 12, 1);
 
     private void loginAs(Member member) {
         UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());
@@ -77,40 +76,34 @@ public class ProjectServiceTest extends IntegrationTest {
         TeamCreateRequest teamCreateRequest = new TeamCreateRequest("팀 이름", "팀 설명");
         String inviteCode = teamService.createTeam(teamCreateRequest).inviteCode();
         teamInviteCodeRequest = new TeamInviteCodeRequest(inviteCode);
-        Long teamId = teamService.getTeamByCode(teamInviteCodeRequest).teamId();
-        return teamId;
+        return teamService.getTeamByCode(teamInviteCodeRequest).teamId();
     }
 
     void createTestProject() {
         Long teamId = getTeamId();
         ProjectCreateRequest request =
-                new ProjectCreateRequest(teamId, title, goal, startDt, dueDt, description);
+                new ProjectCreateRequest(teamId, title, startDt, dueDt, description);
 
         projectService.createProject(request);
     }
 
     void createTestProject(Long teamId) {
         ProjectCreateRequest request =
-                new ProjectCreateRequest(teamId, title, goal, startDt, dueDt, description);
+                new ProjectCreateRequest(teamId, title, startDt, dueDt, description);
 
         projectService.createProject(request);
     }
 
     void createTestProject(
-            Long teamId,
-            String title,
-            String goal,
-            LocalDate startDt,
-            LocalDate dueDt,
-            String description) {
+            Long teamId, String title, LocalDate startDt, LocalDate dueDt, String description) {
         ProjectCreateRequest request =
-                new ProjectCreateRequest(teamId, title, goal, startDt, dueDt, description);
+                new ProjectCreateRequest(teamId, title, startDt, dueDt, description);
 
         projectService.createProject(request);
     }
 
     @BeforeEach
-    private void setUp() {
+    public void setUp() {
         memberAdmin =
                 Member.createMember(
                         "memberAdmin",
@@ -150,14 +143,14 @@ public class ProjectServiceTest extends IntegrationTest {
         // given
         Long teamId = getTeamId();
         // when
-        createTestProject(teamId, title, goal, startDt, dueDt, description);
+        createTestProject(teamId, title, startDt, dueDt, description);
 
         // then
         Project project = projectRepository.findById(1L).get();
         assertThat(project.getId()).isEqualTo(1L);
         assertThat(project)
-                .extracting("id", "title", "description", "goal")
-                .containsExactlyInAnyOrder(1L, title, goal, description);
+                .extracting("id", "title", "description")
+                .containsExactlyInAnyOrder(1L, title, description);
     }
 
     @Nested
@@ -166,14 +159,14 @@ public class ProjectServiceTest extends IntegrationTest {
         void 팀_ID로_조회하면_전체_프로젝트가_정상적으로_반환된다() {
             // given
             Long teamId = getTeamId();
-            createTestProject(teamId, "project1", goal, startDt, dueDt, description);
+            createTestProject(teamId, "project1", startDt, dueDt, description);
             // member logout 후 anotherMember 로그인
             logout();
             loginAs(member1);
             // 팀 참가
             teamService.joinTeam(teamInviteCodeRequest);
             // anotherMember 새 프로젝트 생성
-            createTestProject(teamId, "project2", goal, startDt, dueDt, description);
+            createTestProject(teamId, "project2", startDt, dueDt, description);
 
             // when
             List<ProjectListInfoResponse> foundResponse = projectService.getProjectListInfo(teamId);
@@ -197,17 +190,11 @@ public class ProjectServiceTest extends IntegrationTest {
 
             assertThat(foundResponse)
                     .extracting(
-                            "projectId",
-                            "projectTitle",
-                            "projectDescription",
-                            "projectGoal",
-                            "startDt",
-                            "dueDt")
+                            "projectId", "projectTitle", "projectDescription", "startDt", "dueDt")
                     .containsExactlyInAnyOrder(
                             project.getId(),
                             project.getTitle(),
                             project.getDescription(),
-                            project.getGoal(),
                             project.getToDoInfo().getStartDt(),
                             project.getToDoInfo().getDueDt());
         }
@@ -234,8 +221,7 @@ public class ProjectServiceTest extends IntegrationTest {
 
         void createOriginalProject() {
             Long teamId = getTeamId();
-            createTestProject(
-                    teamId, originalTitle, originalGoal, startDt, dueDt, originalDescription);
+            createTestProject(teamId, originalTitle, startDt, dueDt, originalDescription);
         }
 
         @Test
@@ -250,7 +236,6 @@ public class ProjectServiceTest extends IntegrationTest {
             Project updatedProject = projectRepository.findById(1L).get();
             // then
             assertThat(updatedProject.getTitle()).isEqualTo(updatedTitle);
-            assertThat(updatedProject.getGoal()).isEqualTo(updatedGoal);
             assertThat(updatedProject.getDescription()).isEqualTo(updatedDescription);
         }
 
@@ -304,7 +289,6 @@ public class ProjectServiceTest extends IntegrationTest {
             Project updatedProject = projectRepository.findById(1L).get();
             // then
             assertThat(updatedProject.getTitle()).isEqualTo(updatedTitle);
-            assertThat(updatedProject.getGoal()).isEqualTo(originalGoal);
             assertThat(updatedProject.getDescription()).isEqualTo(originalDescription);
         }
 
@@ -318,7 +302,6 @@ public class ProjectServiceTest extends IntegrationTest {
             Project updatedProject = projectRepository.findById(1L).get();
             // then
             assertThat(updatedProject.getTitle()).isEqualTo(originalTitle);
-            assertThat(updatedProject.getGoal()).isEqualTo(updatedGoal);
             assertThat(updatedProject.getDescription()).isEqualTo(originalDescription);
         }
 
@@ -332,7 +315,6 @@ public class ProjectServiceTest extends IntegrationTest {
             Project updatedProject = projectRepository.findById(1L).get();
             // then
             assertThat(updatedProject.getTitle()).isEqualTo(originalTitle);
-            assertThat(updatedProject.getGoal()).isEqualTo(originalGoal);
             assertThat(updatedProject.getDescription()).isEqualTo(updatedDescription);
         }
 

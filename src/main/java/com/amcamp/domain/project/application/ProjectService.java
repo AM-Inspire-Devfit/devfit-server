@@ -52,7 +52,6 @@ public class ProjectService {
                                 team,
                                 normalizeProjectTitle(request.projectTitle()),
                                 request.projectDescription(),
-                                request.projectGoal(),
                                 request.startDt(),
                                 request.dueDt()));
 
@@ -92,7 +91,7 @@ public class ProjectService {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
         getValidProjectParticipant(member, project);
-        project.updateBasic(request.title(), request.goal(), request.description());
+        project.updateBasic(request.title(), request.description());
     }
 
     public void updateProjectTodoInfo(Long projectId, ProjectTodoInfoUpdateRequest request) {
