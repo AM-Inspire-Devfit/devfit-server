@@ -273,15 +273,6 @@ public class ProjectService {
         return participant;
     }
 
-    private void validateProjectParticipantAlreadyExists(
-            Project project, TeamParticipant participant) {
-        if (projectParticipantRepository
-                .findByProjectAndTeamParticipant(project, participant)
-                .isPresent()) {
-            throw new CommonException(ProjectErrorCode.PROJECT_REGISTRATION_ALREADY_EXISTS);
-        }
-    }
-
     private ProjectRegistration getProjectRegistrationById(Long registrationId) {
         return projectRegistrationRepository
                 .findById(registrationId)
