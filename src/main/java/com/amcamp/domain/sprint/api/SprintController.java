@@ -5,6 +5,7 @@ import com.amcamp.domain.sprint.dto.request.SprintBasicUpdateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintToDoUpdateRequest;
 import com.amcamp.domain.sprint.dto.response.SprintInfoResponse;
+import com.amcamp.domain.sprint.dto.response.SprintProgressResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -59,6 +60,12 @@ public class SprintController {
             @Parameter(description = "이전 페이지의 스프린트 ID (첫 페이지는 비워두세요)")
                     @RequestParam(required = false)
                     Long lastSprintId) {
-        return sprintService.findAllSprint(projectId, lastSprintId);
+		return sprintService.findAllSprint(projectId, lastSprintId);
+	}
+
+    @Operation(summary = "스프린트 진척도 조회", description = "스프린트의 진척도를 조회합니다.")
+    @DeleteMapping("/{sprintId}/progress")
+    public SprintProgressResponse sprintProgress(@PathVariable Long sprintId) {
+        return sprintService.getSprintProgress(sprintId);
     }
 }

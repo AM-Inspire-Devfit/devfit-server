@@ -47,12 +47,16 @@ public class Sprint extends BaseTimeEntity {
     @OneToMany(mappedBy = "sprint", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Rank> rank = new ArrayList<>();
 
+    // 진척도
+    private Double progress;
+
     @Builder(access = AccessLevel.PRIVATE)
-    private Sprint(Project project, String title, String goal, ToDoInfo toDoInfo) {
+    private Sprint(Project project, String title, String goal, ToDoInfo toDoInfo, Double progress) {
         this.project = project;
         this.title = title;
         this.goal = goal;
         this.toDoInfo = toDoInfo;
+        this.progress = progress;
     }
 
     public static Sprint createSprint(
@@ -62,6 +66,7 @@ public class Sprint extends BaseTimeEntity {
                 .title(title)
                 .goal(goal)
                 .toDoInfo(ToDoInfo.createToDoInfo(startDt, dueDt))
+                .progress(0.0)
                 .build();
     }
 
@@ -75,5 +80,9 @@ public class Sprint extends BaseTimeEntity {
 
     public void updateSprintTitle(String title) {
         this.title = title;
+    }
+
+    public void updateProgress(Double progress) {
+        this.progress = progress;
     }
 }
