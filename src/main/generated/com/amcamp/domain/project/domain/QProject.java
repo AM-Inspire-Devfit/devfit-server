@@ -29,8 +29,6 @@ public class QProject extends EntityPathBase<Project> {
 
     public final StringPath description = createString("description");
 
-    public final StringPath goal = createString("goal");
-
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
     public final ListPath<com.amcamp.domain.sprint.domain.Sprint, com.amcamp.domain.sprint.domain.QSprint> sprints = this.<com.amcamp.domain.sprint.domain.Sprint, com.amcamp.domain.sprint.domain.QSprint>createList("sprints", com.amcamp.domain.sprint.domain.Sprint.class, com.amcamp.domain.sprint.domain.QSprint.class, PathInits.DIRECT2);

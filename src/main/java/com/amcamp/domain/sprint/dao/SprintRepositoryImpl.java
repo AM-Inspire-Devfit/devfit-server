@@ -33,7 +33,8 @@ public class SprintRepositoryImpl implements SprintRepositoryCustom {
                                         sprint.goal,
                                         sprint.toDoInfo.startDt,
                                         sprint.toDoInfo.dueDt,
-                                        sprint.toDoInfo.toDoStatus))
+                                        sprint.toDoInfo.toDoStatus,
+                                        sprint.progress))
                         .from(sprint)
                         .where(lastSprintId(lastSprintId), sprint.project.id.eq(projectId))
                         .orderBy(sprint.title.asc())

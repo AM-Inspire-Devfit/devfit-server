@@ -31,7 +31,9 @@ public class QProjectParticipant extends EntityPathBase<ProjectParticipant> {
 
     public final QProject project;
 
-    public final StringPath ProjectPosition = createString("ProjectPosition");
+    public final StringPath projectNickname = createString("projectNickname");
+
+    public final StringPath projectProfile = createString("projectProfile");
 
     public final EnumPath<ProjectParticipantRole> projectRole = createEnum("projectRole", ProjectParticipantRole.class);
 

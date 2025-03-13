@@ -80,7 +80,6 @@ public class RankServiceTest extends IntegrationTest {
                 new ProjectCreateRequest(
                         teamId,
                         "testProjectTitle",
-                        "testProjectGoal",
                         LocalDate.of(2026, 1, 1),
                         LocalDate.of(2026, 12, 1),
                         "testProjectDescription");
