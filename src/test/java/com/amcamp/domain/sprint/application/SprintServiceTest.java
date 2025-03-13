@@ -22,8 +22,6 @@ import com.amcamp.domain.sprint.dto.request.SprintToDoUpdateRequest;
 import com.amcamp.domain.sprint.dto.response.SprintInfoResponse;
 import com.amcamp.domain.task.application.TaskService;
 import com.amcamp.domain.task.dao.TaskRepository;
-import com.amcamp.domain.task.domain.TaskDifficulty;
-import com.amcamp.domain.task.dto.request.TaskCreateRequest;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.dao.TeamRepository;
 import com.amcamp.domain.team.domain.Team;
@@ -33,7 +31,6 @@ import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.GlobalErrorCode;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.SprintErrorCode;
-import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
 import java.time.LocalDate;
 import java.util.List;
@@ -224,70 +221,6 @@ public class SprintServiceTest extends IntegrationTest {
             assertThat(results)
                     .extracting("id", "title", "goal")
                     .containsExactlyInAnyOrder(tuple(1L, "1", "testDescription1"));
-        }
-    }
-
-    class 진척도_조회_시 {
-        @Test
-        void 팀참가자가_아니면_에러를_반환한다() {
-            sprintRepository.save(
-                    Sprint.createSprint(project, "testTitle", "testDescription", startDt, dueDt));
-
-            Member nonMember =
-                    memberRepository.save(
-                            Member.createMember("nonMember", "testProfileImageUrl", null));
-            loginAs(nonMember);
-
-            assertThatThrownBy(() -> sprintService.getSprintProgress(1L))
-                    .isInstanceOf(CommonException.class)
-                    .hasMessage(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED.getMessage());
-        }
-
-        @Test
-        void 스프린트가_존재하지않으면_에러를_반환한다() {
-            sprintRepository.save(
-                    Sprint.createSprint(project, "testTitle", "testDescription", startDt, dueDt));
-            assertThatThrownBy(() -> sprintService.getSprintProgress(2L))
-                    .isInstanceOf(CommonException.class)
-                    .hasMessage(SprintErrorCode.SPRINT_NOT_FOUND.getMessage());
-        }
-
-        @Test
-        void 스프린트내_태스크가_없으면_에러를_반환한다() {
-            sprintRepository.save(
-                    Sprint.createSprint(project, "testTitle", "testDescription", startDt, dueDt));
-            assertThatThrownBy(() -> sprintService.getSprintProgress(1L))
-                    .isInstanceOf(CommonException.class)
-                    .hasMessage(SprintErrorCode.TASK_NOT_CREATED_YET.getMessage());
-        }
-
-        @Test
-        void 스프린트의_진척도를_반환한다() {
-            Sprint sprint =
-                    sprintRepository.save(
-                            Sprint.createSprint(
-                                    project, "testTitle", "testDescription", startDt, dueDt));
-
-            // when & then # of completed Task is 0
-            taskService.createTask(new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID));
-            taskService.createTask(new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID));
-            taskService.createTask(new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID));
-
-            assertThat(sprintService.getSprintProgress(sprint.getId()).progress()).isEqualTo(0.0);
-
-            // when & then # of completed Task is 1
-            taskService.assignTask(1L);
-            taskService.updateTaskToDoInfo(1L);
-
-            assertThat(sprintService.getSprintProgress(sprint.getId()).progress()).isEqualTo(33);
-
-            // when & then # of completed Task is 3
-            taskService.assignTask(2L);
-            taskService.updateTaskToDoInfo(2L);
-            taskService.assignTask(3L);
-            taskService.updateTaskToDoInfo(3L);
-
-            assertThat(sprintService.getSprintProgress(sprint.getId()).progress()).isEqualTo(100);
         }
     }
 }

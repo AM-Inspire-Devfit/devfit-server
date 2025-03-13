@@ -6,6 +6,7 @@ import com.amcamp.domain.project.dao.ProjectRepository;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.project.domain.ProjectParticipantRole;
+import com.amcamp.domain.project.domain.ToDoStatus;
 import com.amcamp.domain.sprint.dao.SprintRepository;
 import com.amcamp.domain.sprint.domain.Sprint;
 import com.amcamp.domain.task.dao.TaskRepository;
@@ -76,9 +77,19 @@ public class TaskService {
         validateTaskModify(currentMember, task);
         task.updateTaskStatus();
 
+        sprint.updateProgress(getSprintProgress(sprint));
+
         return findProjectParticipantMember(task) != null
                 ? TaskInfoResponse.from(task, findProjectParticipantMember(task))
                 : TaskInfoResponse.from(task);
+    }
+
+    private Double getSprintProgress(Sprint sprint) {
+        int totalTasks = taskRepository.countBySprint(sprint);
+        int completedTasks =
+                taskRepository.countBySprintAndTodoStatus(sprint, ToDoStatus.COMPLETED);
+        Double progress = (double) (completedTasks * 100 / totalTasks);
+        return progress;
     }
 
     public TaskInfoResponse updateTaskSOS(Long taskId) {
@@ -89,7 +100,6 @@ public class TaskService {
 
         validateProjectParticipant(project, project.getTeam(), currentMember);
         validateTaskNotAssignedForSos(task);
-        //        validateTaskModify(currentMember, task);
         task.updateTaskSOS();
 
         return findProjectParticipantMember(task) != null

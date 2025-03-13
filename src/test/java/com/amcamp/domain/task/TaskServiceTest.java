@@ -9,8 +9,11 @@ import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.domain.OauthInfo;
 import com.amcamp.domain.project.application.ProjectService;
+import com.amcamp.domain.project.domain.ToDoStatus;
 import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
 import com.amcamp.domain.sprint.application.SprintService;
+import com.amcamp.domain.sprint.dao.SprintRepository;
+import com.amcamp.domain.sprint.domain.Sprint;
 import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
 import com.amcamp.domain.task.application.TaskService;
 import com.amcamp.domain.task.dao.TaskRepository;
@@ -30,6 +33,7 @@ import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
 import com.amcamp.global.util.MemberUtil;
 import java.time.LocalDate;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -48,6 +52,7 @@ public class TaskServiceTest extends IntegrationTest {
     @Autowired private SprintService sprintService;
     @Autowired private TaskService taskService;
     @Autowired private TaskRepository taskRepository;
+    @Autowired private SprintRepository sprintRepository;
 
     private void loginAs(Member member) {
         UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());
@@ -142,6 +147,14 @@ public class TaskServiceTest extends IntegrationTest {
         //        }
 
         @Test
+        void 태스크가_존재하지않으면_예외처리() {
+            Member member = memberUtil.getCurrentMember();
+            Assertions.assertThatThrownBy(() -> taskService.updateTaskToDoInfo(1L))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(TaskErrorCode.TASK_NOT_FOUND.getMessage());
+        }
+
+        @Test
         void 정상적으로_기본_기한정보를_수정_한다() {
             // given
             Member member = memberUtil.getCurrentMember();
@@ -189,6 +202,50 @@ public class TaskServiceTest extends IntegrationTest {
                                                                     TaskErrorCode.TASK_NOT_FOUND)))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(TaskErrorCode.TASK_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        void 정상적으로_진행상태를_수정한다() {
+            Sprint sprint =
+                    sprintRepository
+                            .findById(1L)
+                            .orElseThrow(
+                                    () -> new CommonException(SprintErrorCode.SPRINT_NOT_FOUND));
+
+            // when & then # of completed Task is 0
+            taskService.createTask(new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID));
+            taskService.createTask(new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID));
+            taskService.createTask(new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID));
+
+            assertThat(sprint.getProgress()).isEqualTo(0);
+
+            // when & then # of completed Task is 1
+            taskService.assignTask(1L);
+            taskService.updateTaskToDoInfo(1L);
+
+            Sprint sprint1 =
+                    sprintRepository
+                            .findById(1L)
+                            .orElseThrow(
+                                    () -> new CommonException(SprintErrorCode.SPRINT_NOT_FOUND));
+            Task task =
+                    taskRepository
+                            .findById(1L)
+                            .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
+            assertThat(task.getTaskStatus()).isEqualTo(TaskStatus.COMPLETED);
+            assertThat(sprint1.getProgress()).isEqualTo(33);
+
+            // when & then # of completed Task is 3
+            taskService.assignTask(2L);
+            taskService.updateTaskToDoInfo(2L);
+            taskService.assignTask(3L);
+            taskService.updateTaskToDoInfo(3L);
+            Sprint sprint2 =
+                    sprintRepository
+                            .findById(1L)
+                            .orElseThrow(
+                                    () -> new CommonException(SprintErrorCode.SPRINT_NOT_FOUND));
+            assertThat(sprint2.getProgress()).isEqualTo(100);
         }
     }
 
@@ -276,10 +333,6 @@ public class TaskServiceTest extends IntegrationTest {
 
             taskService.assignTask(task.getId()); // 첫번쨰 태스크에만 담당자 배정
 
-            // when & then
-            //            assertThatThrownBy(() -> taskService.getTasksBySprint(2l))
-            //                    .isInstanceOf(CommonException.class)
-            //                    .hasMessage(SprintErrorCode.SPRINT_NOT_FOUND.getMessage());
             assertThatThrownBy(() -> taskService.getTasksBySprint(2l, 0L, 3))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(SprintErrorCode.SPRINT_NOT_FOUND.getMessage());

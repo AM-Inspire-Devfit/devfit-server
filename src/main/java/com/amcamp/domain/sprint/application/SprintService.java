@@ -10,8 +10,6 @@ import com.amcamp.domain.sprint.dto.request.SprintBasicUpdateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintToDoUpdateRequest;
 import com.amcamp.domain.sprint.dto.response.SprintInfoResponse;
-import com.amcamp.domain.sprint.dto.response.SprintProgressResponse;
-import com.amcamp.domain.task.dao.TaskRepository;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.domain.Team;
 import com.amcamp.domain.team.domain.TeamParticipant;
@@ -23,7 +21,6 @@ import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.util.MemberUtil;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -39,7 +36,6 @@ public class SprintService {
     private final ProjectRepository projectRepository;
     private final TeamParticipantRepository teamParticipantRepository;
     private final ProjectParticipantRepository projectParticipantRepository;
-    private final TaskRepository taskRepository;
 
     public SprintInfoResponse createSprint(SprintCreateRequest request) {
         final Member currentMember = memberUtil.getCurrentMember();
@@ -119,33 +115,6 @@ public class SprintService {
                 .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED));
 
         return sprintRepository.findAllSprintByProjectId(projectId, lastSprintId);
-    }
-
-    public SprintProgressResponse getSprintProgress(Long sprintId) {
-        final Member currentMember = memberUtil.getCurrentMember();
-        final Sprint sprint = findBySprintId(sprintId);
-        validateTeamParticipant(sprint.getProject().getTeam(), currentMember);
-
-        int totalTasks =
-                Optional.ofNullable(taskRepository.countBySprint(sprint))
-                        .filter(count -> count != 0)
-                        .orElseThrow(
-                                () -> new CommonException(SprintErrorCode.TASK_NOT_CREATED_YET));
-        int completedTasks =
-                taskRepository.countBySprintAndTodoStatus(sprint, ToDoStatus.COMPLETED);
-
-        Double progress = (double) (completedTasks * 100 / totalTasks);
-        sprint.updateProgress(progress);
-
-        return SprintProgressResponse.from(sprintId, progress);
-    }
-
-    private void validateTeamParticipant(Team team, Member currentMember) {
-        TeamParticipant teamParticipant =
-                teamParticipantRepository
-                        .findByMemberAndTeam(currentMember, team)
-                        .orElseThrow(
-                                () -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED));
     }
 
     private Sprint findBySprintId(Long sprintId) {
