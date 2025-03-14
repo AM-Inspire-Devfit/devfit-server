@@ -24,6 +24,8 @@ public class QSprint extends EntityPathBase<Sprint> {
 
     public final com.amcamp.domain.common.model.QBaseTimeEntity _super = new com.amcamp.domain.common.model.QBaseTimeEntity(this);
 
+    public final ListPath<com.amcamp.domain.contribution.domain.Contribution, com.amcamp.domain.contribution.domain.QContribution> contribution = this.<com.amcamp.domain.contribution.domain.Contribution, com.amcamp.domain.contribution.domain.QContribution>createList("score", com.amcamp.domain.contribution.domain.Contribution.class, com.amcamp.domain.contribution.domain.QContribution.class, PathInits.DIRECT2);
+
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdDt = _super.createdDt;
 
@@ -34,8 +36,6 @@ public class QSprint extends EntityPathBase<Sprint> {
     public final NumberPath<Double> progress = createNumber("progress", Double.class);
 
     public final com.amcamp.domain.project.domain.QProject project;
-
-    public final ListPath<com.amcamp.domain.rank.domain.Rank, com.amcamp.domain.rank.domain.QRank> rank = this.<com.amcamp.domain.rank.domain.Rank, com.amcamp.domain.rank.domain.QRank>createList("rank", com.amcamp.domain.rank.domain.Rank.class, com.amcamp.domain.rank.domain.QRank.class, PathInits.DIRECT2);
 
     public final ListPath<com.amcamp.domain.task.domain.Task, com.amcamp.domain.task.domain.QTask> tasks = this.<com.amcamp.domain.task.domain.Task, com.amcamp.domain.task.domain.QTask>createList("tasks", com.amcamp.domain.task.domain.Task.class, com.amcamp.domain.task.domain.QTask.class, PathInits.DIRECT2);
 

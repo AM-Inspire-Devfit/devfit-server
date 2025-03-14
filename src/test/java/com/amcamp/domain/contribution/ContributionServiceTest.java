@@ -1,18 +1,18 @@
-package com.amcamp.domain.rank;
+package com.amcamp.domain.contribution;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 import com.amcamp.IntegrationTest;
+import com.amcamp.domain.contribution.application.ContributionService;
+import com.amcamp.domain.contribution.dto.response.BasicContributionInfoResponse;
+import com.amcamp.domain.contribution.dto.response.ContributionInfoResponse;
 import com.amcamp.domain.member.application.MemberService;
 import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.domain.OauthInfo;
 import com.amcamp.domain.project.application.ProjectService;
 import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
-import com.amcamp.domain.rank.application.RankService;
-import com.amcamp.domain.rank.dto.response.BasicRankInfoResponse;
-import com.amcamp.domain.rank.dto.response.RankInfoResponse;
 import com.amcamp.domain.sprint.application.SprintService;
 import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
 import com.amcamp.domain.task.application.TaskService;
@@ -37,7 +37,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
-public class RankServiceTest extends IntegrationTest {
+public class ContributionServiceTest extends IntegrationTest {
     @Autowired private MemberService memberService;
     @Autowired private TeamService teamService;
     @Autowired private MemberRepository memberRepository;
@@ -45,7 +45,7 @@ public class RankServiceTest extends IntegrationTest {
     @Autowired private ProjectService projectService;
     @Autowired private SprintService sprintService;
     @Autowired private TaskService taskService;
-    @Autowired private RankService rankService;
+    @Autowired private ContributionService contributionService;
     @Autowired private TaskRepository taskRepository;
 
     private void loginAs(Member member) {
@@ -125,7 +125,7 @@ public class RankServiceTest extends IntegrationTest {
             Member newMember = memberRepository.save(Member.createMember("member", null, null));
             loginAs(newMember);
 
-            assertThatThrownBy(() -> rankService.getRankByMember(1L))
+            assertThatThrownBy(() -> contributionService.getContributionByMember(1L))
                     .isInstanceOf(
                             new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED).getClass())
                     .hasMessage(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED.getMessage());
@@ -136,7 +136,7 @@ public class RankServiceTest extends IntegrationTest {
             // 프로젝트 참여 코드 필요
             //
             //
-            //			assertThatThrownBy(() -> rankService.getRankByMember(1L))
+            //			assertThatThrownBy(() -> contributionService.getContributionByMember(1L))
             //				.isInstanceOf(
             //					new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED)
             //						.getClass())
@@ -146,7 +146,7 @@ public class RankServiceTest extends IntegrationTest {
         @Test
         void 스프린트가_존재하지_않으면_에러_반환() {
             Member member = memberUtil.getCurrentMember();
-            assertThatThrownBy(() -> rankService.getRankByMember(2L))
+            assertThatThrownBy(() -> contributionService.getContributionByMember(2L))
                     .isInstanceOf(new CommonException(SprintErrorCode.SPRINT_NOT_FOUND).getClass())
                     .hasMessage(SprintErrorCode.SPRINT_NOT_FOUND.getMessage());
         }
@@ -157,7 +157,7 @@ public class RankServiceTest extends IntegrationTest {
                     new SprintCreateRequest(
                             1L, "2차 스프린트", LocalDate.of(2026, 2, 1), LocalDate.of(2026, 3, 1));
             sprintService.createSprint(sprintRequest);
-            assertThatThrownBy(() -> rankService.getRankByMember(2L))
+            assertThatThrownBy(() -> contributionService.getContributionByMember(2L))
                     .isInstanceOf(
                             new CommonException(SprintErrorCode.TASK_NOT_CREATED_YET).getClass())
                     .hasMessage(SprintErrorCode.TASK_NOT_CREATED_YET.getMessage());
@@ -166,9 +166,10 @@ public class RankServiceTest extends IntegrationTest {
         @Test
         void 프로젝트_참여자라면_기여도_반환() {
             Member member = memberUtil.getCurrentMember();
-            BasicRankInfoResponse basicRankInfoResponse = rankService.getRankByMember(1L);
-            assertThat(basicRankInfoResponse.memberId()).isEqualTo(member.getId());
-            assertThat(basicRankInfoResponse.contribution()).isEqualTo(61.0);
+            BasicContributionInfoResponse basicContributionInfoResponse =
+                    contributionService.getContributionByMember(1L);
+            assertThat(basicContributionInfoResponse.memberId()).isEqualTo(member.getId());
+            assertThat(basicContributionInfoResponse.score()).isEqualTo(61.0);
         }
     }
 
@@ -179,7 +180,7 @@ public class RankServiceTest extends IntegrationTest {
             Member newMember = memberRepository.save(Member.createMember("member", null, null));
             loginAs(newMember);
 
-            assertThatThrownBy(() -> rankService.getRankBySprint(1L))
+            assertThatThrownBy(() -> contributionService.getContributionBySprint(1L))
                     .isInstanceOf(
                             new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED).getClass())
                     .hasMessage(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED.getMessage());
@@ -188,7 +189,7 @@ public class RankServiceTest extends IntegrationTest {
         @Test
         void 스프린트가_존재하지_않으면_에러_반환() {
             Member member = memberUtil.getCurrentMember();
-            assertThatThrownBy(() -> rankService.getRankByMember(2L))
+            assertThatThrownBy(() -> contributionService.getContributionByMember(2L))
                     .isInstanceOf(new CommonException(SprintErrorCode.SPRINT_NOT_FOUND).getClass())
                     .hasMessage(SprintErrorCode.SPRINT_NOT_FOUND.getMessage());
         }
@@ -199,7 +200,7 @@ public class RankServiceTest extends IntegrationTest {
                     new SprintCreateRequest(
                             1L, "2차 스프린트", LocalDate.of(2026, 2, 1), LocalDate.of(2026, 3, 1));
             sprintService.createSprint(sprintRequest);
-            assertThatThrownBy(() -> rankService.getRankBySprint(2L))
+            assertThatThrownBy(() -> contributionService.getContributionBySprint(2L))
                     .isInstanceOf(
                             new CommonException(SprintErrorCode.TASK_NOT_CREATED_YET).getClass())
                     .hasMessage(SprintErrorCode.TASK_NOT_CREATED_YET.getMessage());
@@ -208,9 +209,10 @@ public class RankServiceTest extends IntegrationTest {
         @Test
         void 팀_참여자라면_기여도_반환() {
             Member member = memberUtil.getCurrentMember();
-            List<RankInfoResponse> rankInfoResponse = rankService.getRankBySprint(1L);
-            assertThat(rankInfoResponse.get(0).memberId()).isEqualTo(member.getId());
-            assertThat(rankInfoResponse.get(0).contribution()).isEqualTo(61.0);
+            List<ContributionInfoResponse> contributionInfoResponse =
+                    contributionService.getContributionBySprint(1L);
+            assertThat(contributionInfoResponse.get(0).memberId()).isEqualTo(member.getId());
+            assertThat(contributionInfoResponse.get(0).score()).isEqualTo(61.0);
         }
     }
 }

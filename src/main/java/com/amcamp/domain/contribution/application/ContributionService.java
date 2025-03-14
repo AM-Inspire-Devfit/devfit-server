@@ -1,13 +1,13 @@
-package com.amcamp.domain.rank.application;
+package com.amcamp.domain.contribution.application;
 
+import com.amcamp.domain.contribution.dao.ContributionRepository;
+import com.amcamp.domain.contribution.domain.Contribution;
+import com.amcamp.domain.contribution.dto.response.BasicContributionInfoResponse;
+import com.amcamp.domain.contribution.dto.response.ContributionInfoResponse;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.project.dao.ProjectParticipantRepository;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ProjectParticipant;
-import com.amcamp.domain.rank.dao.RankRepository;
-import com.amcamp.domain.rank.domain.Rank;
-import com.amcamp.domain.rank.dto.response.BasicRankInfoResponse;
-import com.amcamp.domain.rank.dto.response.RankInfoResponse;
 import com.amcamp.domain.sprint.dao.SprintRepository;
 import com.amcamp.domain.sprint.domain.Sprint;
 import com.amcamp.domain.task.dao.TaskRepository;
@@ -29,27 +29,27 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @Service
 @RequiredArgsConstructor
-public class RankService {
+public class ContributionService {
     private final MemberUtil memberUtil;
     private final SprintRepository sprintRepository;
-    private final RankRepository rankRepository;
+    private final ContributionRepository contributionRepository;
     private final TeamParticipantRepository teamParticipantRepository;
     private final ProjectParticipantRepository projectParticipantRepository;
     private final TaskRepository taskRepository;
 
-    public BasicRankInfoResponse getRankByMember(Long sprintId) {
+    public BasicContributionInfoResponse getContributionByMember(Long sprintId) {
         Member member = memberUtil.getCurrentMember();
         Sprint sprint = findBySprintId(sprintId);
         Project project = sprint.getProject();
         ProjectParticipant participant =
                 validateProjectParticipant(project, project.getTeam(), member);
 
-        Rank rank = validateRank(sprint, participant);
+        Contribution contribution = validateRank(sprint, participant);
 
-        return BasicRankInfoResponse.from(rank);
+        return BasicContributionInfoResponse.from(contribution);
     }
 
-    public List<RankInfoResponse> getRankBySprint(Long sprintId) {
+    public List<ContributionInfoResponse> getContributionBySprint(Long sprintId) {
         Member member = memberUtil.getCurrentMember();
         Sprint sprint = findBySprintId(sprintId);
         Project project = sprint.getProject();
@@ -62,10 +62,11 @@ public class RankService {
         for (ProjectParticipant participant : participantList) {
             validateRank(sprint, participant);
         }
-        List<Rank> rankList = rankRepository.findBySprintOrderByContributionDesc(sprint);
-        List<RankInfoResponse> result = new ArrayList<>();
-        for (Rank rank : rankList) {
-            result.add(RankInfoResponse.from(rank));
+        List<Contribution> contributionList =
+                contributionRepository.findBySprintOrderByScoreDesc(sprint);
+        List<ContributionInfoResponse> result = new ArrayList<>();
+        for (Contribution contribution : contributionList) {
+            result.add(ContributionInfoResponse.from(contribution));
         }
         return result;
     }
@@ -92,16 +93,17 @@ public class RankService {
                         () -> new CommonException(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED));
     }
 
-    private Rank validateRank(Sprint sprint, ProjectParticipant participant) {
-        Rank rank = rankRepository.findBySprintAndParticipant(sprint, participant);
+    private Contribution validateRank(Sprint sprint, ProjectParticipant participant) {
+        Contribution rank = contributionRepository.findBySprintAndParticipant(sprint, participant);
         Double contribution = getContribution(sprint, participant);
         if (rank != null) {
             rank.updateContribution(contribution);
             return rank;
         } else {
-            Rank newRank = Rank.createRank(sprint, participant, contribution);
-            rankRepository.save(newRank);
-            return newRank;
+            Contribution newContribution =
+                    Contribution.createContribution(sprint, participant, contribution);
+            contributionRepository.save(newContribution);
+            return newContribution;
         }
     }
 

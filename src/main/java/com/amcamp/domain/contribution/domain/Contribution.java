@@ -1,4 +1,4 @@
-package com.amcamp.domain.rank.domain;
+package com.amcamp.domain.contribution.domain;
 
 import com.amcamp.domain.common.model.BaseTimeEntity;
 import com.amcamp.domain.project.domain.ProjectParticipant;
@@ -12,10 +12,10 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class Rank extends BaseTimeEntity {
+public class Contribution extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "rank_id")
+    @Column(name = "contribution_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -27,29 +27,22 @@ public class Rank extends BaseTimeEntity {
     @JoinColumn(name = "participant_id")
     private ProjectParticipant participant;
 
-    //    // 등위
-    //    private Integer placement;
-
     // 기여도 점수/비율
-    private Double contribution;
+    private Double score;
 
     @Builder(access = AccessLevel.PRIVATE)
-    Rank(Sprint sprint, ProjectParticipant participant, Double contribution) {
+    Contribution(Sprint sprint, ProjectParticipant participant, Double score) {
         this.sprint = sprint;
         this.participant = participant;
-        this.contribution = contribution;
+        this.score = score;
     }
 
-    public static Rank createRank(
-            Sprint sprint, ProjectParticipant participant, Double contribution) {
-        return Rank.builder()
-                .sprint(sprint)
-                .participant(participant)
-                .contribution(contribution)
-                .build();
+    public static Contribution createContribution(
+            Sprint sprint, ProjectParticipant participant, Double score) {
+        return Contribution.builder().sprint(sprint).participant(participant).score(score).build();
     }
 
-    public void updateContribution(Double contribution) {
-        this.contribution = contribution;
+    public void updateContribution(Double score) {
+        this.score = score;
     }
 }

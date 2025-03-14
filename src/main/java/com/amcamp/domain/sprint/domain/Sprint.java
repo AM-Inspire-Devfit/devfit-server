@@ -2,10 +2,10 @@ package com.amcamp.domain.sprint.domain;
 
 import com.amcamp.domain.common.model.BaseTimeEntity;
 import com.amcamp.domain.meeting.domain.Meeting;
+import com.amcamp.domain.contribution.domain.Contribution;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ToDoInfo;
 import com.amcamp.domain.project.domain.ToDoStatus;
-import com.amcamp.domain.rank.domain.Rank;
 import com.amcamp.domain.task.domain.Task;
 import jakarta.persistence.*;
 import java.time.LocalDate;
@@ -45,7 +45,7 @@ public class Sprint extends BaseTimeEntity {
 
     // 기여도
     @OneToMany(mappedBy = "sprint", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Rank> rank = new ArrayList<>();
+    private List<Contribution> contribution = new ArrayList<>();
 
     // 진척도
     private Double progress;
