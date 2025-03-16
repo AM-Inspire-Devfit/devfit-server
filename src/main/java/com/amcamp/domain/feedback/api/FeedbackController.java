@@ -1,12 +1,14 @@
 package com.amcamp.domain.feedback.api;
 
 import com.amcamp.domain.feedback.application.FeedbackService;
+import com.amcamp.domain.feedback.dto.request.FeedbackSendRequest;
 import com.amcamp.domain.feedback.dto.request.OriginalFeedbackRequest;
 import com.amcamp.domain.feedback.dto.response.FeedbackRefineResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "7. 피드백 API", description = "피드백 관련 API입니다.")
@@ -24,5 +26,12 @@ public class FeedbackController {
     public FeedbackRefineResponse feedbackRefine(
             @Valid @RequestBody OriginalFeedbackRequest request) {
         return feedbackService.refineFeedback(request);
+    }
+
+    @Operation(summary = "개선된 피드백 메시지 전송", description = "사용자가 AI를 통해 개선한 피드백을 특정 팀원에게 전송합니다.")
+    @PostMapping(value = "/sent")
+    public ResponseEntity<Void> feedbackSend(@Valid @RequestBody FeedbackSendRequest request) {
+        feedbackService.sendFeedback(request);
+        return ResponseEntity.ok().build();
     }
 }
