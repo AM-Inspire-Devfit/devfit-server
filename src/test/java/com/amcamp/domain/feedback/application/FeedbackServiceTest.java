@@ -40,8 +40,8 @@ public class FeedbackServiceTest extends IntegrationTest {
 
     private final String feedbackMessage = "이번 스프린트에서 아주 잘해주셨습니다.";
 
-    private final LocalDate startDt = LocalDate.of(2026, 1, 2);
-    private final LocalDate dueDt = LocalDate.of(2026, 3, 1);
+    private final LocalDate startDt = LocalDate.now();
+    private final LocalDate dueDt = LocalDate.now();
 
     @Autowired private FeedbackService feedbackService;
     @Autowired private FeedbackRepository feedbackRepository;
@@ -56,6 +56,7 @@ public class FeedbackServiceTest extends IntegrationTest {
     private ProjectParticipant receiver;
     private ProjectParticipant anotherReceiver;
     private Sprint sprint;
+    private Project project;
 
     @BeforeEach
     void setUp() {
@@ -90,7 +91,7 @@ public class FeedbackServiceTest extends IntegrationTest {
                         TeamParticipant.createParticipant(
                                 receiverMember, team, TeamParticipantRole.USER));
 
-        Project project =
+        project =
                 projectRepository.save(
                         Project.createProject(
                                 team, "testTitle", "testDescription", startDt, dueDt));
@@ -214,6 +215,28 @@ public class FeedbackServiceTest extends IntegrationTest {
             assertThatThrownBy(() -> feedbackService.sendFeedback(request))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(FeedbackErrorCode.INVALID_PROJECT_PARTICIPANT.getMessage());
+        }
+
+        @Test
+        @Transactional
+        void 스프린트_마감_당일_날이_아니라면_예외가_발생한다() {
+            // given
+            sprint =
+                    sprintRepository.save(
+                            Sprint.createSprint(
+                                    project,
+                                    "testSprint",
+                                    "testGoal",
+                                    startDt,
+                                    LocalDate.of(2030, 1, 1)));
+
+            FeedbackSendRequest request =
+                    new FeedbackSendRequest(sprint.getId(), receiver.getId(), feedbackMessage);
+
+            // when & then
+            assertThatThrownBy(() -> feedbackService.sendFeedback(request))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(FeedbackErrorCode.FEEDBACK_DUE_DATE_ONLY.getMessage());
         }
     }
 }
