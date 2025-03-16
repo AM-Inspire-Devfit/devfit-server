@@ -51,9 +51,11 @@ public class FeedbackService {
         final ProjectParticipant receiver = findReceiver(request.receiverId());
 
         validateSenderIsNotReceiver(sender, receiver);
+        validateDuplicateFeedback(sender, receiver, sprint);
         validateSameProject(sender, receiver);
 
-        feedbackRepository.save(Feedback.createFeedback(receiver, sprint, request.message()));
+        feedbackRepository.save(
+                Feedback.createFeedback(sender, receiver, sprint, request.message()));
     }
 
     private Sprint findBySprintId(Long sprintId) {
@@ -91,6 +93,16 @@ public class FeedbackService {
     private void validateSameProject(ProjectParticipant sender, ProjectParticipant receiver) {
         if (!sender.getProject().equals(receiver.getProject())) {
             throw new CommonException(FeedbackErrorCode.INVALID_PROJECT_PARTICIPANT);
+        }
+    }
+
+    private void validateDuplicateFeedback(
+            ProjectParticipant sender, ProjectParticipant receiver, Sprint sprint) {
+        boolean feedbackExists =
+                feedbackRepository.existsBySenderAndReceiverAndSprint(sender, receiver, sprint);
+
+        if (feedbackExists) {
+            throw new CommonException(FeedbackErrorCode.FEEDBACK_ALREADY_SENT);
         }
     }
 }

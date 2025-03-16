@@ -11,6 +11,8 @@ public enum FeedbackErrorCode implements BaseErrorCode {
 
     INVALID_PROJECT_PARTICIPANT(HttpStatus.BAD_REQUEST, "같은 프로젝트에 속한 사람에게만 피드백을 보낼 수 있습니다."),
     CANNOT_SEND_FEEDBACK_TO_SELF(HttpStatus.BAD_REQUEST, "본인에게 피드백을 보낼 수 없습니다."),
+
+    FEEDBACK_ALREADY_SENT(HttpStatus.BAD_REQUEST, "이미 해당 사용자에게 피드백을 보냈습니다."),
     ;
 
     private final HttpStatus httpStatus;

@@ -19,8 +19,12 @@ public class Feedback {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_participant_id")
-    private ProjectParticipant participant;
+    @JoinColumn(name = "sender_id")
+    private ProjectParticipant sender;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "receiver_id")
+    private ProjectParticipant receiver;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sprint_id")
@@ -30,14 +34,21 @@ public class Feedback {
     private String message;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private Feedback(ProjectParticipant participant, Sprint sprint, String message) {
-        this.participant = participant;
+    private Feedback(
+            ProjectParticipant sender, ProjectParticipant receiver, Sprint sprint, String message) {
+        this.sender = sender;
+        this.receiver = receiver;
         this.sprint = sprint;
         this.message = message;
     }
 
     public static Feedback createFeedback(
-            ProjectParticipant participant, Sprint sprint, String message) {
-        return Feedback.builder().participant(participant).sprint(sprint).message(message).build();
+            ProjectParticipant sender, ProjectParticipant receiver, Sprint sprint, String message) {
+        return Feedback.builder()
+                .sender(sender)
+                .receiver(receiver)
+                .sprint(sprint)
+                .message(message)
+                .build();
     }
 }
