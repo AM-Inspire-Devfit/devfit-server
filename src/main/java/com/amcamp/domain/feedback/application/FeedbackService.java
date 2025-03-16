@@ -19,6 +19,7 @@ import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.SprintErrorCode;
 import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.util.MemberUtil;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +44,8 @@ public class FeedbackService {
     public void sendFeedback(FeedbackSendRequest request) {
         final Member currentMember = memberUtil.getCurrentMember();
         final Sprint sprint = findBySprintId(request.sprintId());
+
+        validateSprintDueDate(sprint);
 
         // 피드백을 보낼 대상
         final ProjectParticipant sender = findSender(currentMember, sprint.getProject());
@@ -103,6 +106,12 @@ public class FeedbackService {
 
         if (feedbackExists) {
             throw new CommonException(FeedbackErrorCode.FEEDBACK_ALREADY_SENT);
+        }
+    }
+
+    private void validateSprintDueDate(Sprint sprint) {
+        if (!sprint.getToDoInfo().getDueDt().isEqual(LocalDate.now())) {
+            throw new CommonException(FeedbackErrorCode.FEEDBACK_DUE_DATE_ONLY);
         }
     }
 }

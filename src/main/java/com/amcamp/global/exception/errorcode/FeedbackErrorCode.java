@@ -13,6 +13,8 @@ public enum FeedbackErrorCode implements BaseErrorCode {
     CANNOT_SEND_FEEDBACK_TO_SELF(HttpStatus.BAD_REQUEST, "본인에게 피드백을 보낼 수 없습니다."),
 
     FEEDBACK_ALREADY_SENT(HttpStatus.CONFLICT, "이미 해당 사용자에게 피드백을 보냈습니다."),
+
+    FEEDBACK_DUE_DATE_ONLY(HttpStatus.BAD_REQUEST, "스프린트 마감 당일에만 피드백을 전송할 수 있습니다."),
     ;
 
     private final HttpStatus httpStatus;
