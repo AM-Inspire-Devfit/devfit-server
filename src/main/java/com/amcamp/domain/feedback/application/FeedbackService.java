@@ -4,6 +4,7 @@ import com.amcamp.domain.feedback.dao.FeedbackRepository;
 import com.amcamp.domain.feedback.domain.Feedback;
 import com.amcamp.domain.feedback.dto.request.FeedbackSendRequest;
 import com.amcamp.domain.feedback.dto.request.OriginalFeedbackRequest;
+import com.amcamp.domain.feedback.dto.response.FeedbackInfoResponse;
 import com.amcamp.domain.feedback.dto.response.FeedbackRefineResponse;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.project.dao.ProjectParticipantRepository;
@@ -21,6 +22,7 @@ import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.util.MemberUtil;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,10 +63,32 @@ public class FeedbackService {
                 Feedback.createFeedback(sender, receiver, sprint, request.message()));
     }
 
+    @Transactional(readOnly = true)
+    public Slice<FeedbackInfoResponse> findSprintFeedbacksByParticipant(
+            Long projectParticipantId, Long sprintId, Long lastFeedbackId, int pageSize) {
+        final Member currentMember = memberUtil.getCurrentMember();
+        final Sprint sprint = findBySprintId(sprintId);
+        final ProjectParticipant projectParticipant =
+                findByProjectParticipantId(projectParticipantId);
+
+        validateParticipantMemberMismatch(projectParticipant, currentMember);
+        validateParticipantSprintMismatch(projectParticipant, sprint);
+
+        return feedbackRepository.findSprintFeedbacksByParticipant(
+                projectParticipantId, sprintId, lastFeedbackId, pageSize);
+    }
+
     private Sprint findBySprintId(Long sprintId) {
         return sprintRepository
                 .findById(sprintId)
                 .orElseThrow(() -> new CommonException(SprintErrorCode.SPRINT_NOT_FOUND));
+    }
+
+    private ProjectParticipant findByProjectParticipantId(Long projectParticipantId) {
+        return projectParticipantRepository
+                .findById(projectParticipantId)
+                .orElseThrow(
+                        () -> new CommonException(ProjectErrorCode.PROJECT_PARTICIPANT_NOT_FOUND));
     }
 
     private ProjectParticipant findSender(Member currentMember, Project project) {
@@ -112,6 +136,19 @@ public class FeedbackService {
     private void validateSprintDueDate(Sprint sprint) {
         if (!sprint.getToDoInfo().getDueDt().isEqual(LocalDate.now())) {
             throw new CommonException(FeedbackErrorCode.FEEDBACK_DUE_DATE_ONLY);
+        }
+    }
+
+    private void validateParticipantMemberMismatch(
+            ProjectParticipant participant, Member currentMember) {
+        if (!participant.getTeamParticipant().getMember().equals(currentMember)) {
+            throw new CommonException(ProjectErrorCode.PROJECT_PARTICIPANT_MEMBER_MISMATCH);
+        }
+    }
+
+    private void validateParticipantSprintMismatch(ProjectParticipant participant, Sprint sprint) {
+        if (!participant.getProject().equals(sprint.getProject())) {
+            throw new CommonException(ProjectErrorCode.PROJECT_SPRINT_MISMATCH);
         }
     }
 }
