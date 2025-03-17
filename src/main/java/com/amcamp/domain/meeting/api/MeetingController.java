@@ -1,0 +1,25 @@
+package com.amcamp.domain.meeting.api;
+
+import com.amcamp.domain.meeting.application.MeetingService;
+import com.amcamp.domain.meeting.dto.MeetingCreateRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@Tag(name = "8. 팀 미팅 API", description = "팀 미팅 관련 API입니다.")
+@RestController
+@RequiredArgsConstructor
+public class MeetingController {
+
+    private final MeetingService meetingService;
+
+    @Operation(summary = "미팅 생성", description = "새로운 미팅을 생성합니다.")
+    @PostMapping
+    public ResponseEntity<Void> meetingCreate(
+            @RequestParam Long sprintId, @RequestBody MeetingCreateRequest request) {
+        meetingService.createMeeting(sprintId, request);
+        return ResponseEntity.ok().build();
+    }
+}
