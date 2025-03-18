@@ -12,17 +12,19 @@ import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.domain.OauthInfo;
 import com.amcamp.domain.project.application.ProjectService;
+import com.amcamp.domain.project.dao.ProjectParticipantRepository;
 import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
 import com.amcamp.domain.sprint.application.SprintService;
 import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
 import com.amcamp.domain.task.application.TaskService;
-import com.amcamp.domain.task.dao.TaskRepository;
 import com.amcamp.domain.task.domain.TaskDifficulty;
 import com.amcamp.domain.task.dto.request.TaskCreateRequest;
 import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.domain.team.dto.request.TeamCreateRequest;
 import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
 import com.amcamp.global.exception.CommonException;
+import com.amcamp.global.exception.errorcode.ContributionErrorCode;
+import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.SprintErrorCode;
 import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
@@ -46,7 +48,7 @@ public class ContributionServiceTest extends IntegrationTest {
     @Autowired private SprintService sprintService;
     @Autowired private TaskService taskService;
     @Autowired private ContributionService contributionService;
-    @Autowired private TaskRepository taskRepository;
+    @Autowired private ProjectParticipantRepository projectParticipantRepository;
 
     private void loginAs(Member member) {
         UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());
@@ -133,37 +135,28 @@ public class ContributionServiceTest extends IntegrationTest {
 
         @Test
         void 프로젝트_참여자가_아니라면_에러반환() {
-            // 프로젝트 참여 코드 필요
-            //
-            //
-            //			assertThatThrownBy(() -> contributionService.getContributionByMember(1L))
-            //				.isInstanceOf(
-            //					new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED)
-            //						.getClass())
-            //				.hasMessage(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED.getMessage());
+            Member member = memberUtil.getCurrentMember();
+            assertThatThrownBy(() -> contributionService.getContributionByMember(2L))
+                    .isInstanceOf(
+                            new CommonException(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED)
+                                    .getClass())
+                    .hasMessage(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED.getMessage());
         }
 
         @Test
-        void 스프린트가_존재하지_않으면_에러_반환() {
-            Member member = memberUtil.getCurrentMember();
-            assertThatThrownBy(() -> contributionService.getContributionByMember(2L))
-                    .isInstanceOf(new CommonException(SprintErrorCode.SPRINT_NOT_FOUND).getClass())
-                    .hasMessage(SprintErrorCode.SPRINT_NOT_FOUND.getMessage());
-        }
+        void 태스크가_존재하지_않으면_빈_값_반환() {
+            SprintCreateRequest sprintRequest =
+                    new SprintCreateRequest(
+                            1L, "2차 스프린트", LocalDate.of(2026, 2, 1), LocalDate.of(2026, 3, 1));
+            sprintService.createSprint(sprintRequest);
 
-        //        @Test
-        //        void 태스크가_존재하지_않으면_에러_반환() {
-        //            SprintCreateRequest sprintRequest =
-        //                    new SprintCreateRequest(
-        //                            1L, "2차 스프린트", LocalDate.of(2026, 2, 1), LocalDate.of(2026, 3,
-        // 1));
-        //            sprintService.createSprint(sprintRequest);
-        //            assertThatThrownBy(() -> contributionService.getContributionByMember(2L))
-        //                    .isInstanceOf(
-        //                            new
-        // CommonException(SprintErrorCode.TASK_NOT_CREATED_YET).getClass())
-        //                    .hasMessage(SprintErrorCode.TASK_NOT_CREATED_YET.getMessage());
-        //        }
+            // when & then
+            assertThatThrownBy(() -> contributionService.getContributionByMember(1L))
+                    .isInstanceOf(
+                            new CommonException(ContributionErrorCode.CONTRIBUTION_NOT_FOUND)
+                                    .getClass())
+                    .hasMessage(ContributionErrorCode.CONTRIBUTION_NOT_FOUND.getMessage());
+        }
 
         @Test
         void 프로젝트_참여자라면_기여도_반환() {
@@ -191,25 +184,25 @@ public class ContributionServiceTest extends IntegrationTest {
         @Test
         void 스프린트가_존재하지_않으면_에러_반환() {
             Member member = memberUtil.getCurrentMember();
-            assertThatThrownBy(() -> contributionService.getContributionByMember(2L))
+            assertThatThrownBy(() -> contributionService.getContributionBySprint(2L))
                     .isInstanceOf(new CommonException(SprintErrorCode.SPRINT_NOT_FOUND).getClass())
                     .hasMessage(SprintErrorCode.SPRINT_NOT_FOUND.getMessage());
         }
 
-        //
-        //        @Test
-        //        void 태스크가_존재하지_않으면_에러_반환() {
-        //            SprintCreateRequest sprintRequest =
-        //                    new SprintCreateRequest(
-        //                            1L, "2차 스프린트", LocalDate.of(2026, 2, 1), LocalDate.of(2026, 3,
-        // 1));
-        //            sprintService.createSprint(sprintRequest);
-        //            assertThatThrownBy(() -> contributionService.getContributionBySprint(2L))
-        //                    .isInstanceOf(
-        //                            new
-        // CommonException(SprintErrorCode.TASK_NOT_CREATED_YET).getClass())
-        //                    .hasMessage(SprintErrorCode.TASK_NOT_CREATED_YET.getMessage());
-        //        }
+        @Test
+        void 태스크가_존재하지_않으면_빈_값_반환() {
+            SprintCreateRequest sprintRequest =
+                    new SprintCreateRequest(
+                            1L, "2차 스프린트", LocalDate.of(2026, 2, 1), LocalDate.of(2026, 3, 1));
+            sprintService.createSprint(sprintRequest);
+
+            // when
+            List<ContributionInfoResponse> contributions =
+                    contributionService.getContributionBySprint(2L);
+
+            // then
+            assertThat(contributions.isEmpty()).isEqualTo(true);
+        }
 
         @Test
         void 팀_참여자라면_기여도_반환() {

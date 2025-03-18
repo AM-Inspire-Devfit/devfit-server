@@ -20,9 +20,10 @@ public class ContributionController {
     private final ContributionService contributionService;
 
     @Operation(summary = "개별 회원 기여도 조회", description = "스프린트별 개별 회원의 기여도를 조회합니다.")
-    @GetMapping("/{sprintId}/me")
-    public BasicContributionInfoResponse contributionByMember(@PathVariable Long sprintId) {
-        return contributionService.getContributionByMember(sprintId);
+    @GetMapping("/{projectParticipantId}")
+    public BasicContributionInfoResponse contributionByMember(
+            @PathVariable Long projectParticipantId) {
+        return contributionService.getContributionByMember(projectParticipantId);
     }
 
     @Operation(summary = "프로젝트 내 회원 기여도 조회", description = "프로젝트 페이지에서 스프린트별 기여도를 조회합니다.")

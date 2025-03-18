@@ -10,7 +10,6 @@ import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.sprint.dao.SprintRepository;
 import com.amcamp.domain.sprint.domain.Sprint;
-import com.amcamp.domain.task.dao.TaskRepository;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.domain.Team;
 import com.amcamp.domain.team.domain.TeamParticipant;
@@ -35,17 +34,28 @@ public class ContributionService {
     private final ContributionRepository contributionRepository;
     private final TeamParticipantRepository teamParticipantRepository;
     private final ProjectParticipantRepository projectParticipantRepository;
-    private final TaskRepository taskRepository;
 
-    public BasicContributionInfoResponse getContributionByMember(Long sprintId) {
+    public BasicContributionInfoResponse getContributionByMember(Long projectParticipantId) {
         Member member = memberUtil.getCurrentMember();
-        Sprint sprint = validateSprint(sprintId);
+
+        // 현재 접속자의 프로젝트 참여 정보 확인
+        ProjectParticipant currentParticipant =
+                projectParticipantRepository
+                        .findById(projectParticipantId)
+                        .orElseThrow(
+                                () ->
+                                        new CommonException(
+                                                ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED));
+        Sprint sprint =
+                validateSprint(currentParticipant.getProject()); // 해당프로젝트의 가장 마지막으로 생성된 스프린트 불러오기
         Project project = sprint.getProject();
-        ProjectParticipant participant =
+        ProjectParticipant projectParticipant =
                 validateProjectParticipant(project, project.getTeam(), member);
-
-        Contribution contribution = validateContribution(sprint, participant);
-
+        // 현재 접속 중인 회원이 레포지토리에서 불러온 프로젝트 참가자와 동일한지 확인 -> 동일하지 않으면 에러 반환
+        if (!projectParticipant.equals(currentParticipant)) {
+            throw new CommonException(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED);
+        }
+        Contribution contribution = validateContribution(sprint, currentParticipant);
         return BasicContributionInfoResponse.from(contribution);
     }
 
@@ -91,6 +101,12 @@ public class ContributionService {
     private Sprint validateSprint(Long sprintId) {
         return sprintRepository
                 .findById(sprintId)
+                .orElseThrow(() -> new CommonException(SprintErrorCode.SPRINT_NOT_FOUND));
+    }
+
+    private Sprint validateSprint(Project project) {
+        return sprintRepository
+                .findTopByProjectOrderByCreatedDtDesc(project)
                 .orElseThrow(() -> new CommonException(SprintErrorCode.SPRINT_NOT_FOUND));
     }
 
