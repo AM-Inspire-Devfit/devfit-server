@@ -39,9 +39,9 @@ public class FeedbackController {
     }
 
     @Operation(summary = "피드백 메시지 조회", description = "특정 프로젝트 참여자가 스프린트에서 받은 피드백을 조회합니다.")
-    @GetMapping("/{projectParticipantId}")
+    @GetMapping("/{projectId}")
     public Slice<FeedbackInfoResponse> participantFindSprintFeedbacks(
-            @PathVariable Long projectParticipantId,
+            @PathVariable Long projectId,
             @Parameter(description = "피드백을 조회할 스프린트 ID") @RequestParam Long sprintId,
             @Parameter(description = "이전 페이지의 마지막 피드백 ID (첫 페이지는 비워두세요)")
                     @RequestParam(required = false)
@@ -49,6 +49,6 @@ public class FeedbackController {
             @Parameter(description = "페이지당 피드백 수", example = "1") @RequestParam(value = "size")
                     int pageSize) {
         return feedbackService.findSprintFeedbacksByParticipant(
-                projectParticipantId, sprintId, lastFeedbackId, pageSize);
+                projectId, sprintId, lastFeedbackId, pageSize);
     }
 }

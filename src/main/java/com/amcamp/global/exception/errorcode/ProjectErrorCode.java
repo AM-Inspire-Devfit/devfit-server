@@ -17,8 +17,6 @@ public enum ProjectErrorCode implements BaseErrorCode {
     PROJECT_REGISTRATION_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 프로젝트 가입 요청이 생성되어 있습니다"),
     PROJECT_REGISTRATION_NOT_FOUND(HttpStatus.NOT_FOUND, "project 가입 요청을 찾을 수 없습니다."),
 
-    PROJECT_PARTICIPANT_NOT_FOUND(HttpStatus.NOT_FOUND, "프로젝트 참여자를 찾을 수 없습니다."),
-    PROJECT_PARTICIPANT_MEMBER_MISMATCH(HttpStatus.FORBIDDEN, "요청한 프로젝트 참여자가 로그인된 사용자와 일치하지 않습니다."),
     PROJECT_SPRINT_MISMATCH(HttpStatus.FORBIDDEN, "요청한 스프린트는 현재 참여 중인 프로젝트의 스프린트가 아닙니다."),
     ;
 
