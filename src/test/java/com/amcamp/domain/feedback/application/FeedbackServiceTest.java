@@ -62,7 +62,6 @@ public class FeedbackServiceTest extends IntegrationTest {
     private Sprint anotherSprint;
     private Project project;
     private Project anotherProject;
-    private Feedback feedback;
 
     @BeforeEach
     void setUp() {
@@ -116,8 +115,8 @@ public class FeedbackServiceTest extends IntegrationTest {
                         ProjectParticipant.createProjectParticipant(
                                 teamParticipantUser,
                                 project,
-                                senderMember.getNickname(),
-                                senderMember.getProfileImageUrl(),
+                                receiverMember.getNickname(),
+                                receiverMember.getProfileImageUrl(),
                                 ProjectParticipantRole.MEMBER));
 
         anotherReceiver =
@@ -268,7 +267,7 @@ public class FeedbackServiceTest extends IntegrationTest {
             // when
             Slice<FeedbackInfoResponse> result =
                     feedbackService.findSprintFeedbacksByParticipant(
-                            receiver.getId(), sprint.getId(), null, 1);
+                            project.getId(), sprint.getId(), null, 1);
 
             // then
             assertThat(result).isNotNull();
@@ -277,21 +276,21 @@ public class FeedbackServiceTest extends IntegrationTest {
         }
 
         @Test
-        void 요청한_프로젝트_참여자_ID가_로그인된_사용자와_일치하지_않는다면_예외가_발생한다() {
+        void 요청한_프로젝트가_로그인된_사용자가_참여한_프로젝트가_아니라면_예외가_발생한다() {
             // given
-            feedbackRepository.save(
-                    Feedback.createFeedback(sender, receiver, sprint, feedbackMessage));
 
-            // 로그인한 사용자를 sender로 변경
+            // sender는 project(1)에만 참여 중이고,
+            // receiver는 project(1)와 anotherProject(2) 둘 다 참여 중이므로
+            // 검증을 명확히 하기 위해 로그인한 사용자를 sender로 변경
             setAuthenticatedUser(sender.getTeamParticipant().getMember());
 
             // when & then
             assertThatThrownBy(
                             () ->
                                     feedbackService.findSprintFeedbacksByParticipant(
-                                            receiver.getId(), sprint.getId(), null, 1))
+                                            anotherProject.getId(), sprint.getId(), null, 1))
                     .isInstanceOf(CommonException.class)
-                    .hasMessage(ProjectErrorCode.PROJECT_PARTICIPANT_MEMBER_MISMATCH.getMessage());
+                    .hasMessage(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED.getMessage());
         }
 
         @Test
@@ -300,7 +299,7 @@ public class FeedbackServiceTest extends IntegrationTest {
             assertThatThrownBy(
                             () ->
                                     feedbackService.findSprintFeedbacksByParticipant(
-                                            receiver.getId(), anotherSprint.getId(), null, 1))
+                                            project.getId(), anotherSprint.getId(), null, 1))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(ProjectErrorCode.PROJECT_SPRINT_MISMATCH.getMessage());
         }
@@ -311,20 +310,20 @@ public class FeedbackServiceTest extends IntegrationTest {
             assertThatThrownBy(
                             () ->
                                     feedbackService.findSprintFeedbacksByParticipant(
-                                            receiver.getId(), sprint.getId(), null, 1))
+                                            project.getId(), sprint.getId(), null, 1))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(FeedbackErrorCode.FEEDBACK_NOT_EXISTS.getMessage());
         }
 
         @Test
-        void 프로젝트_참가자_ID가_존재하지_않는_경우_예외가_발생한다() {
+        void 프로젝트가_존재하지_않는_경우_예외가_발생한다() {
             // when & then
             assertThatThrownBy(
                             () ->
                                     feedbackService.findSprintFeedbacksByParticipant(
                                             999L, sprint.getId(), null, 1))
                     .isInstanceOf(CommonException.class)
-                    .hasMessage(ProjectErrorCode.PROJECT_PARTICIPANT_NOT_FOUND.getMessage());
+                    .hasMessage(ProjectErrorCode.PROJECT_NOT_FOUND.getMessage());
         }
 
         @Test
@@ -332,7 +331,7 @@ public class FeedbackServiceTest extends IntegrationTest {
             assertThatThrownBy(
                             () ->
                                     feedbackService.findSprintFeedbacksByParticipant(
-                                            receiver.getId(), 999L, null, 1))
+                                            project.getId(), 999L, null, 1))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(SprintErrorCode.SPRINT_NOT_FOUND.getMessage());
         }
