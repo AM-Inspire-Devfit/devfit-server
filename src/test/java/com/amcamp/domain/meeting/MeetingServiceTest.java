@@ -122,13 +122,13 @@ public class MeetingServiceTest extends IntegrationTest {
 
     // 미팅 생성
     void createTestMeeting(Long sprintId) {
-        MeetingCreateRequest request = new MeetingCreateRequest(meetingTitle, meetingDt);
-        meetingService.createMeeting(sprintId, request);
+        MeetingCreateRequest request = new MeetingCreateRequest(1L, meetingTitle, meetingDt);
+        meetingService.createMeeting(request);
     }
 
     void createTestMeeting(Long sprintId, LocalDateTime meetingDt) {
-        MeetingCreateRequest request = new MeetingCreateRequest(meetingTitle, meetingDt);
-        meetingService.createMeeting(sprintId, request);
+        MeetingCreateRequest request = new MeetingCreateRequest(1L, meetingTitle, meetingDt);
+        meetingService.createMeeting(request);
     }
 
     @BeforeEach

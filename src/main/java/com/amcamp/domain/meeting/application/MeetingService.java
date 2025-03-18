@@ -35,9 +35,9 @@ public class MeetingService {
     private final MemberUtil memberUtil;
 
     // 미팅 생성
-    public void createMeeting(Long sprintId, MeetingCreateRequest request) {
+    public void createMeeting(MeetingCreateRequest request) {
         Member member = memberUtil.getCurrentMember();
-        Sprint sprint = getValidateSprint(member, sprintId);
+        Sprint sprint = getValidateSprint(member, request.sprintId());
         validateMeetingDtInSprintPeriod(sprint, request.meetingDate());
         meetingRepository.save(
                 Meeting.createMeeting(request.title(), request.meetingDate(), sprint));

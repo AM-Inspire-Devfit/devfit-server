@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 public record MeetingCreateRequest(
+        @Schema(description = "스프린트 아이디", example = "1") @NotNull Long sprintId,
         @Schema(description = "미팅 타이틀", example = "중간 점검 회의") @NotBlank String title,
         @Schema(description = "미팅 날짜, 시간", example = "2026-03-01T15:17:00") @NotNull
                 LocalDateTime meetingDate) {}
