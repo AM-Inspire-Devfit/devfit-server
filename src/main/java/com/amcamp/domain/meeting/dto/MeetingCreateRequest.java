@@ -7,4 +7,5 @@ import java.time.LocalDateTime;
 
 public record MeetingCreateRequest(
         @Schema(description = "미팅 타이틀", example = "중간 점검 회의") @NotBlank String title,
-        @Schema(description = "미팅 날짜, 시간", example = "회의 일시") @NotNull LocalDateTime meetingDate) {}
+        @Schema(description = "미팅 날짜, 시간", example = "2026-03-01T15:17:00") @NotNull
+                LocalDateTime meetingDate) {}
