@@ -5,6 +5,7 @@ import com.amcamp.domain.meeting.dto.MeetingCreateRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +21,6 @@ public class MeetingController {
     @PostMapping("/{meetingId}")
     public ResponseEntity<Void> meetingCreate(@RequestBody MeetingCreateRequest request) {
         meetingService.createMeeting(request);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }
