@@ -39,6 +39,7 @@ public class MeetingService {
         Member member = memberUtil.getCurrentMember();
         Sprint sprint = getValidateSprint(member, request.sprintId());
         validateMeetingDtInSprintPeriod(sprint, request.meetingDate());
+        validateMeetingDtAndTitle(request.title(), request.meetingDate());
         meetingRepository.save(
                 Meeting.createMeeting(request.title(), request.meetingDate(), sprint));
     }
@@ -72,6 +73,12 @@ public class MeetingService {
                         .orElseThrow(() -> new CommonException(SprintErrorCode.SPRINT_NOT_FOUND));
         validateProjectParticipant(member, sprint.getProject());
         return sprint;
+    }
+
+    private void validateMeetingDtAndTitle(String title, LocalDateTime meetingDt) {
+        if (meetingRepository.findMeetingByTitleAndMeetingDt(title, meetingDt).isPresent()) {
+            throw new CommonException(MeetingErrorCode.MEETING_ALREADY_EXISTS);
+        }
     }
 
     private Meeting getMeetingById(Long meetingId) {
