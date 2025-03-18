@@ -4,11 +4,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 import com.amcamp.IntegrationTest;
+import com.amcamp.domain.contribution.dao.ContributionRepository;
+import com.amcamp.domain.contribution.domain.Contribution;
 import com.amcamp.domain.member.application.MemberService;
 import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.domain.OauthInfo;
 import com.amcamp.domain.project.application.ProjectService;
+import com.amcamp.domain.project.dao.ProjectParticipantRepository;
+import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.project.domain.ToDoStatus;
 import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
 import com.amcamp.domain.sprint.application.SprintService;
@@ -22,16 +26,16 @@ import com.amcamp.domain.task.dto.request.TaskBasicInfoUpdateRequest;
 import com.amcamp.domain.task.dto.request.TaskCreateRequest;
 import com.amcamp.domain.task.dto.response.TaskInfoResponse;
 import com.amcamp.domain.team.application.TeamService;
+import com.amcamp.domain.team.dao.TeamParticipantRepository;
+import com.amcamp.domain.team.domain.TeamParticipant;
 import com.amcamp.domain.team.dto.request.TeamCreateRequest;
 import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
 import com.amcamp.domain.team.dto.response.TeamInviteCodeResponse;
 import com.amcamp.global.exception.CommonException;
-import com.amcamp.global.exception.errorcode.ProjectErrorCode;
-import com.amcamp.global.exception.errorcode.SprintErrorCode;
-import com.amcamp.global.exception.errorcode.TaskErrorCode;
-import com.amcamp.global.exception.errorcode.TeamErrorCode;
+import com.amcamp.global.exception.errorcode.*;
 import com.amcamp.global.security.PrincipalDetails;
 import com.amcamp.global.util.MemberUtil;
+import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,6 +57,9 @@ public class TaskServiceTest extends IntegrationTest {
     @Autowired private TaskService taskService;
     @Autowired private TaskRepository taskRepository;
     @Autowired private SprintRepository sprintRepository;
+    @Autowired private ContributionRepository contributionRepository;
+    @Autowired private ProjectParticipantRepository projectParticipantRepository;
+    @Autowired private TeamParticipantRepository teamParticipantRepository;
 
     private void loginAs(Member member) {
         UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());
@@ -149,7 +156,7 @@ public class TaskServiceTest extends IntegrationTest {
         @Test
         void 태스크가_존재하지않으면_예외처리() {
             Member member = memberUtil.getCurrentMember();
-            Assertions.assertThatThrownBy(() -> taskService.updateTaskToDoInfo(1L))
+            Assertions.assertThatThrownBy(() -> taskService.updateTaskStatus(1L))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(TaskErrorCode.TASK_NOT_FOUND.getMessage());
         }
@@ -185,7 +192,7 @@ public class TaskServiceTest extends IntegrationTest {
             //			assertThat(response.projectNickname()).isEqualTo(member.getNickname());
 
             // when & then - finished
-            response = taskService.updateTaskToDoInfo(1L);
+            response = taskService.updateTaskStatus(1L);
             assertThat(response.taskStatus()).isEqualTo(TaskStatus.COMPLETED);
 
             // when - delete
@@ -205,12 +212,31 @@ public class TaskServiceTest extends IntegrationTest {
         }
 
         @Test
+        @Transactional
         void 정상적으로_진행상태를_수정한다() {
             Sprint sprint =
                     sprintRepository
                             .findById(1L)
                             .orElseThrow(
                                     () -> new CommonException(SprintErrorCode.SPRINT_NOT_FOUND));
+
+            TeamParticipant teamParticipant =
+                    teamParticipantRepository
+                            .findByMemberAndTeam(
+                                    memberUtil.getCurrentMember(), sprint.getProject().getTeam())
+                            .orElseThrow(
+                                    () ->
+                                            new CommonException(
+                                                    TeamErrorCode.TEAM_PARTICIPANT_REQUIRED));
+
+            ProjectParticipant participant =
+                    projectParticipantRepository
+                            .findByProjectAndTeamParticipant(sprint.getProject(), teamParticipant)
+                            .orElseThrow(
+                                    () ->
+                                            new CommonException(
+                                                    ProjectErrorCode
+                                                            .PROJECT_PARTICIPATION_REQUIRED));
 
             // when & then # of completed Task is 0
             taskService.createTask(new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID));
@@ -221,31 +247,34 @@ public class TaskServiceTest extends IntegrationTest {
 
             // when & then # of completed Task is 1
             taskService.assignTask(1L);
-            taskService.updateTaskToDoInfo(1L);
+            taskService.updateTaskStatus(1L);
 
-            Sprint sprint1 =
-                    sprintRepository
-                            .findById(1L)
+            Contribution contribution =
+                    contributionRepository
+                            .findBySprintAndParticipant(sprint, participant)
                             .orElseThrow(
-                                    () -> new CommonException(SprintErrorCode.SPRINT_NOT_FOUND));
+                                    () ->
+                                            new CommonException(
+                                                    ContributionErrorCode.CONTRIBUTION_NOT_FOUND));
+
+            assertThat(contribution.getScore()).isEqualTo(33);
+
             Task task =
                     taskRepository
                             .findById(1L)
                             .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
+
             assertThat(task.getTaskStatus()).isEqualTo(TaskStatus.COMPLETED);
-            assertThat(sprint1.getProgress()).isEqualTo(33);
+            assertThat(sprint.getProgress()).isEqualTo(33);
 
             // when & then # of completed Task is 3
             taskService.assignTask(2L);
-            taskService.updateTaskToDoInfo(2L);
+            taskService.updateTaskStatus(2L);
             taskService.assignTask(3L);
-            taskService.updateTaskToDoInfo(3L);
-            Sprint sprint2 =
-                    sprintRepository
-                            .findById(1L)
-                            .orElseThrow(
-                                    () -> new CommonException(SprintErrorCode.SPRINT_NOT_FOUND));
-            assertThat(sprint2.getProgress()).isEqualTo(100);
+            taskService.updateTaskStatus(3L);
+
+            assertThat(sprint.getProgress()).isEqualTo(100);
+            assertThat(contribution.getScore()).isEqualTo(100);
         }
     }
 

@@ -42,7 +42,7 @@ public class Contribution extends BaseTimeEntity {
         return Contribution.builder().sprint(sprint).participant(participant).score(score).build();
     }
 
-    public void updateContribution(Double score) {
+    public void updateScore(Double score) {
         this.score = score;
     }
 }

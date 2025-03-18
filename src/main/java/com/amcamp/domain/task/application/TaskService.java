@@ -1,5 +1,7 @@
 package com.amcamp.domain.task.application;
 
+import com.amcamp.domain.contribution.dao.ContributionRepository;
+import com.amcamp.domain.contribution.domain.Contribution;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.project.dao.ProjectParticipantRepository;
 import com.amcamp.domain.project.dao.ProjectRepository;
@@ -13,6 +15,7 @@ import com.amcamp.domain.task.dao.TaskRepository;
 import com.amcamp.domain.task.domain.AssignedStatus;
 import com.amcamp.domain.task.domain.SOSStatus;
 import com.amcamp.domain.task.domain.Task;
+import com.amcamp.domain.task.domain.TaskDifficulty;
 import com.amcamp.domain.task.dto.request.TaskBasicInfoUpdateRequest;
 import com.amcamp.domain.task.dto.request.TaskCreateRequest;
 import com.amcamp.domain.task.dto.response.TaskInfoResponse;
@@ -31,194 +34,231 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class TaskService {
-    private final MemberUtil memberUtil;
-    private final TaskRepository taskRepository;
-    private final SprintRepository sprintRepository;
-    private final ProjectParticipantRepository projectParticipantRepository;
-    private final TeamParticipantRepository teamParticipantRepository;
-    private final ProjectRepository projectRepository;
+	private final MemberUtil memberUtil;
+	private final TaskRepository taskRepository;
+	private final SprintRepository sprintRepository;
+	private final ProjectParticipantRepository projectParticipantRepository;
+	private final TeamParticipantRepository teamParticipantRepository;
+	private final ProjectRepository projectRepository;
+	private final ContributionRepository contributionRepository;
 
-    public TaskInfoResponse createTask(TaskCreateRequest request) {
-        final Member currentMember = memberUtil.getCurrentMember();
-        final Sprint sprint = findBySprintId(request.sprintId());
-        final Project project = sprint.getProject();
-        validateProjectParticipant(project, project.getTeam(), currentMember);
-        Task task =
-                taskRepository.save(
-                        Task.createTask(sprint, request.description(), request.taskDifficulty()));
+	public TaskInfoResponse createTask(TaskCreateRequest request) {
+		final Member currentMember = memberUtil.getCurrentMember();
+		final Sprint sprint = findBySprintId(request.sprintId());
+		final Project project = sprint.getProject();
+		validateProjectParticipant(project, project.getTeam(), currentMember);
+		Task task =
+			taskRepository.save(
+				Task.createTask(sprint, request.description(), request.taskDifficulty()));
 
-        return findProjectParticipantMember(task) != null
-                ? TaskInfoResponse.from(task, findProjectParticipantMember(task))
-                : TaskInfoResponse.from(task);
-    }
+		return findProjectParticipantMember(task) != null
+			? TaskInfoResponse.from(task, findProjectParticipantMember(task))
+			: TaskInfoResponse.from(task);
+	}
 
-    public TaskInfoResponse updateTaskBasicInfo(Long taskId, TaskBasicInfoUpdateRequest request) {
-        final Member currentMember = memberUtil.getCurrentMember();
-        final Task task = findByTaskId(taskId);
-        final Sprint sprint = findBySprintId(task.getSprint().getId());
-        final Project project = sprint.getProject();
+	public TaskInfoResponse updateTaskBasicInfo(Long taskId, TaskBasicInfoUpdateRequest request) {
+		final Member currentMember = memberUtil.getCurrentMember();
+		final Task task = findByTaskId(taskId);
+		final Sprint sprint = findBySprintId(task.getSprint().getId());
+		final Project project = sprint.getProject();
 
-        validateProjectParticipant(project, project.getTeam(), currentMember);
-        validateTaskModify(currentMember, task);
-        task.updateTaskBasicInfo(request);
+		validateProjectParticipant(project, project.getTeam(), currentMember);
+		validateTaskModify(currentMember, task);
+		task.updateTaskBasicInfo(request);
 
-        return findProjectParticipantMember(task) != null
-                ? TaskInfoResponse.from(task, findProjectParticipantMember(task))
-                : TaskInfoResponse.from(task);
-    }
+		return findProjectParticipantMember(task) != null
+			? TaskInfoResponse.from(task, findProjectParticipantMember(task))
+			: TaskInfoResponse.from(task);
+	}
 
-    public TaskInfoResponse updateTaskToDoInfo(Long taskId) {
-        final Member currentMember = memberUtil.getCurrentMember();
-        final Task task = findByTaskId(taskId);
-        final Sprint sprint = findBySprintId(task.getSprint().getId());
-        final Project project = sprint.getProject();
+	public TaskInfoResponse updateTaskStatus(Long taskId) {
+		final Member currentMember = memberUtil.getCurrentMember();
+		final Task task = findByTaskId(taskId);
+		final Sprint sprint = findBySprintId(task.getSprint().getId());
+		final Project project = sprint.getProject();
 
-        validateProjectParticipant(project, project.getTeam(), currentMember);
-        validateTaskModify(currentMember, task);
-        task.updateTaskStatus();
+		ProjectParticipant participant =
+			validateProjectParticipant(project, project.getTeam(), currentMember);
+		validateTaskModify(currentMember, task);
 
-        sprint.updateProgress(getSprintProgress(sprint));
+		task.updateTaskStatus();
+		Contribution contribution = validateContribution(sprint, participant);
+		sprint.updateProgress(getSprintProgress(sprint));
+		contribution.updateScore(getScore(sprint, participant));
 
-        return findProjectParticipantMember(task) != null
-                ? TaskInfoResponse.from(task, findProjectParticipantMember(task))
-                : TaskInfoResponse.from(task);
-    }
+		return findProjectParticipantMember(task) != null
+			? TaskInfoResponse.from(task, findProjectParticipantMember(task))
+			: TaskInfoResponse.from(task);
+	}
 
-    private Double getSprintProgress(Sprint sprint) {
-        int totalTasks = taskRepository.countBySprint(sprint);
-        int completedTasks =
-                taskRepository.countBySprintAndTodoStatus(sprint, ToDoStatus.COMPLETED);
-        Double progress = (double) (completedTasks * 100 / totalTasks);
-        return progress;
-    }
+	public TaskInfoResponse updateTaskSOS(Long taskId) {
+		final Member currentMember = memberUtil.getCurrentMember();
+		final Task task = findByTaskId(taskId);
+		final Sprint sprint = findBySprintId(task.getSprint().getId());
+		final Project project = sprint.getProject();
 
-    public TaskInfoResponse updateTaskSOS(Long taskId) {
-        final Member currentMember = memberUtil.getCurrentMember();
-        final Task task = findByTaskId(taskId);
-        final Sprint sprint = findBySprintId(task.getSprint().getId());
-        final Project project = sprint.getProject();
+		validateProjectParticipant(project, project.getTeam(), currentMember);
+		validateTaskNotAssignedForSos(task);
+		task.updateTaskSOS();
 
-        validateProjectParticipant(project, project.getTeam(), currentMember);
-        validateTaskNotAssignedForSos(task);
-        task.updateTaskSOS();
+		return findProjectParticipantMember(task) != null
+			? TaskInfoResponse.from(task, findProjectParticipantMember(task))
+			: TaskInfoResponse.from(task);
+	}
 
-        return findProjectParticipantMember(task) != null
-                ? TaskInfoResponse.from(task, findProjectParticipantMember(task))
-                : TaskInfoResponse.from(task);
-    }
+	public TaskInfoResponse assignTask(Long taskId) {
+		final Member currentMember = memberUtil.getCurrentMember();
+		final Task task = findByTaskId(taskId);
+		final Sprint sprint = findBySprintId(task.getSprint().getId());
+		final Project project = sprint.getProject();
 
-    public TaskInfoResponse assignTask(Long taskId) {
-        final Member currentMember = memberUtil.getCurrentMember();
-        final Task task = findByTaskId(taskId);
-        final Sprint sprint = findBySprintId(task.getSprint().getId());
-        final Project project = sprint.getProject();
+		ProjectParticipant projectParticipant =
+			validateProjectParticipant(project, project.getTeam(), currentMember);
 
-        ProjectParticipant projectParticipant =
-                validateProjectParticipant(project, project.getTeam(), currentMember);
+		if (task.getAssignedStatus() != AssignedStatus.NOT_ASSIGNED
+			&& task.getAssignee() != null
+			&& task.getSosStatus() != SOSStatus.SOS) {
+			throw new CommonException(TaskErrorCode.TASK_ALREADY_ASSIGNED);
+		}
 
-        if (task.getAssignedStatus() != AssignedStatus.NOT_ASSIGNED
-                && task.getAssignee() != null
-                && task.getSosStatus() != SOSStatus.SOS) {
-            throw new CommonException(TaskErrorCode.TASK_ALREADY_ASSIGNED);
-        }
+		task.assignTask(projectParticipant);
+		return findProjectParticipantMember(task) != null
+			? TaskInfoResponse.from(task, findProjectParticipantMember(task))
+			: TaskInfoResponse.from(task);
+	}
 
-        task.assignTask(projectParticipant);
-        return findProjectParticipantMember(task) != null
-                ? TaskInfoResponse.from(task, findProjectParticipantMember(task))
-                : TaskInfoResponse.from(task);
-    }
+	public void deleteTask(Long taskId) {
+		final Member currentMember = memberUtil.getCurrentMember();
+		final Task task = findByTaskId(taskId);
+		final Sprint sprint = findBySprintId(task.getSprint().getId());
+		final Project project = sprint.getProject();
 
-    public void deleteTask(Long taskId) {
-        final Member currentMember = memberUtil.getCurrentMember();
-        final Task task = findByTaskId(taskId);
-        final Sprint sprint = findBySprintId(task.getSprint().getId());
-        final Project project = sprint.getProject();
+		validateProjectParticipant(project, project.getTeam(), currentMember);
+		validateTaskModify(currentMember, task);
+		taskRepository.delete(task);
+	}
 
-        validateProjectParticipant(project, project.getTeam(), currentMember);
-        validateTaskModify(currentMember, task);
-        taskRepository.delete(task);
-    }
+	@Transactional(readOnly = true)
+	public Slice<TaskInfoResponse> getTasksBySprint(Long sprintId, Long lastTaskId, int size) {
+		final Member currentMember = memberUtil.getCurrentMember();
+		final Sprint sprint = findBySprintId(sprintId);
+		final Project project = sprint.getProject();
+		validateTeamParticipant(project.getTeam(), currentMember);
+		return taskRepository.findBySprint(sprintId, lastTaskId, size);
+	}
 
-    @Transactional(readOnly = true)
-    public Slice<TaskInfoResponse> getTasksBySprint(Long sprintId, Long lastTaskId, int size) {
-        final Member currentMember = memberUtil.getCurrentMember();
-        final Sprint sprint = findBySprintId(sprintId);
-        final Project project = sprint.getProject();
-        validateTeamParticipant(project.getTeam(), currentMember);
-        return taskRepository.findBySprint(sprintId, lastTaskId, size);
-    }
+	@Transactional(readOnly = true)
+	public Slice<TaskInfoResponse> getTasksByMember(Long sprintId, Long lastTaskId, int size) {
+		final Member currentMember = memberUtil.getCurrentMember();
+		final Sprint sprint = findBySprintId(sprintId);
+		final Project project = sprint.getProject();
+		ProjectParticipant projectParticipant =
+			validateProjectParticipant(project, project.getTeam(), currentMember);
+		return taskRepository.findBySprintAndAssignee(
+			sprintId, projectParticipant, lastTaskId, size);
+	}
 
-    @Transactional(readOnly = true)
-    public Slice<TaskInfoResponse> getTasksByMember(Long sprintId, Long lastTaskId, int size) {
-        final Member currentMember = memberUtil.getCurrentMember();
-        final Sprint sprint = findBySprintId(sprintId);
-        final Project project = sprint.getProject();
-        ProjectParticipant projectParticipant =
-                validateProjectParticipant(project, project.getTeam(), currentMember);
-        return taskRepository.findBySprintAndAssignee(
-                sprintId, projectParticipant, lastTaskId, size);
-    }
+	private Double getScore (Sprint sprint, ProjectParticipant participant){
+		int highTask = taskRepository.countBySprintAndTaskDifficulty(sprint, TaskDifficulty.HIGH);
+		int midTask = taskRepository.countBySprintAndTaskDifficulty(sprint, TaskDifficulty.MID);
+		int lowTask = taskRepository.countBySprintAndTaskDifficulty(sprint, TaskDifficulty.LOW);
 
-    private void validateTaskNotAssignedForSos(Task task) {
-        if (task.getAssignedStatus() == AssignedStatus.NOT_ASSIGNED) {
-            throw new CommonException(TaskErrorCode.TASK_NOT_ASSIGNED);
-        }
-    }
+		int highTaskCompleted =
+			taskRepository.countBySprintAndAssigneeAndTaskDifficulty(
+				sprint, participant, TaskDifficulty.HIGH);
+		int midTaskCompleted =
+			taskRepository.countBySprintAndAssigneeAndTaskDifficulty(
+				sprint, participant, TaskDifficulty.MID);
+		int lowTaskCompleted =
+			taskRepository.countBySprintAndAssigneeAndTaskDifficulty(
+				sprint, participant, TaskDifficulty.LOW);
 
-    private void validateTeamParticipant(Team team, Member currentMember) {
-        TeamParticipant teamParticipant =
-                teamParticipantRepository
-                        .findByMemberAndTeam(currentMember, team)
-                        .orElseThrow(
-                                () -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED));
-    }
+		int maxScore = 20 * highTask + 10 * midTask + lowTask * 5;
+		if (maxScore == 0) {
+			throw new CommonException(SprintErrorCode.TASK_NOT_CREATED_YET);
+		}
 
-    private void validateTaskModify(Member member, Task task) {
-        if (task.getAssignedStatus() != AssignedStatus.NOT_ASSIGNED || task.getAssignee() != null) {
-            if (!task.getAssignee().getProjectRole().equals(ProjectParticipantRole.ADMIN)
-                    || !member.equals(task.getAssignee().getTeamParticipant().getMember())) {
-                throw new CommonException(TaskErrorCode.TASK_MODIFY_FORBIDDEN);
-            }
-        }
-    }
+		int total = (20 * highTaskCompleted + 10 * midTaskCompleted + 5 * lowTaskCompleted) * 100;
+		return (double) (total / maxScore);
+	}
 
-    private ProjectParticipant validateProjectParticipant(
-            Project project, Team team, Member currentMember) {
-        TeamParticipant teamParticipant =
-                teamParticipantRepository
-                        .findByMemberAndTeam(currentMember, team)
-                        .orElseThrow(
-                                () -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED));
+	private Contribution validateContribution (Sprint sprint, ProjectParticipant participant){
+		return contributionRepository
+			.findBySprintAndParticipant(sprint, participant)
+			.orElseGet(
+				() ->
+					contributionRepository.save(
+						Contribution.createContribution(sprint, participant, 0.0)));
+	}
 
-        return projectParticipantRepository
-                .findByProjectAndTeamParticipant(project, teamParticipant)
-                .orElseThrow(
-                        () -> new CommonException(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED));
-    }
+	private Double getSprintProgress (Sprint sprint){
+		int totalTasks = taskRepository.countBySprint(sprint);
+		int completedTasks =
+			taskRepository.countBySprintAndTodoStatus(sprint, ToDoStatus.COMPLETED);
+		Double progress = (double) (completedTasks * 100 / totalTasks);
+		return progress;
+	}
 
-    private Sprint findBySprintId(Long sprintId) {
-        return sprintRepository
-                .findById(sprintId)
-                .orElseThrow(() -> new CommonException(SprintErrorCode.SPRINT_NOT_FOUND));
-    }
+	private void validateTaskNotAssignedForSos (Task task){
+		if (task.getAssignedStatus() == AssignedStatus.NOT_ASSIGNED) {
+			throw new CommonException(TaskErrorCode.TASK_NOT_ASSIGNED);
+		}
+	}
 
-    private Project findProject(Long projectId) {
-        return projectRepository
-                .findById(projectId)
-                .orElseThrow(() -> new CommonException(ProjectErrorCode.PROJECT_NOT_FOUND));
-    }
+	private void validateTeamParticipant (Team team, Member currentMember){
+		TeamParticipant teamParticipant =
+			teamParticipantRepository
+				.findByMemberAndTeam(currentMember, team)
+				.orElseThrow(
+					() -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED));
+	}
 
-    private Task findByTaskId(Long taskId) {
-        return taskRepository
-                .findById(taskId)
-                .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
-    }
+	private void validateTaskModify (Member member, Task task){
+		if (task.getAssignedStatus() != AssignedStatus.NOT_ASSIGNED || task.getAssignee() != null) {
+			if (!task.getAssignee().getProjectRole().equals(ProjectParticipantRole.ADMIN)
+				|| !member.equals(task.getAssignee().getTeamParticipant().getMember())) {
+				throw new CommonException(TaskErrorCode.TASK_MODIFY_FORBIDDEN);
+			}
+		}
+	}
 
-    private Member findProjectParticipantMember(Task task) {
-        Member member = null;
-        if (task.getAssignee() != null && task.getAssignedStatus() != AssignedStatus.NOT_ASSIGNED) {
-            member = task.getAssignee().getTeamParticipant().getMember();
-        }
-        return member;
-    }
+	private ProjectParticipant validateProjectParticipant (
+		Project project, Team team, Member currentMember){
+		TeamParticipant teamParticipant =
+			teamParticipantRepository
+				.findByMemberAndTeam(currentMember, team)
+				.orElseThrow(
+					() -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED));
+
+		return projectParticipantRepository
+			.findByProjectAndTeamParticipant(project, teamParticipant)
+			.orElseThrow(
+				() -> new CommonException(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED));
+	}
+
+	private Sprint findBySprintId (Long sprintId){
+		return sprintRepository
+			.findById(sprintId)
+			.orElseThrow(() -> new CommonException(SprintErrorCode.SPRINT_NOT_FOUND));
+	}
+
+	private Project findProject (Long projectId){
+		return projectRepository
+			.findById(projectId)
+			.orElseThrow(() -> new CommonException(ProjectErrorCode.PROJECT_NOT_FOUND));
+	}
+
+	private Task findByTaskId (Long taskId){
+		return taskRepository
+			.findById(taskId)
+			.orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
+	}
+
+	private Member findProjectParticipantMember (Task task){
+		Member member = null;
+		if (task.getAssignee() != null && task.getAssignedStatus() != AssignedStatus.NOT_ASSIGNED) {
+			member = task.getAssignee().getTeamParticipant().getMember();
+		}
+		return member;
+	}
 }
