@@ -5,10 +5,11 @@ import com.amcamp.domain.task.dto.request.TaskBasicInfoUpdateRequest;
 import com.amcamp.domain.task.dto.request.TaskCreateRequest;
 import com.amcamp.domain.task.dto.response.TaskInfoResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -58,17 +59,40 @@ public class TaskController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    //    @Operation(summary = "태스크 목록 조회", description = "태스크를 스프린트 아이디값에 따라 불러 옵니다.")
+    //    @GetMapping("/{sprintId}/sprint")
+    //    public List<TaskInfoResponse> taskList(@PathVariable Long sprintId) {
+    //        return taskService.getTasksBySprint(sprintId);
+    //    }
+    //
+    //    @Operation(
+    //            summary = "마이 페이지 내 스프린트별 태스크 조회",
+    //            description = "멤버에 할당된 태스크를 스프린트 아이디값에 따라 불러 옵니다.")
+    //    @GetMapping("/{sprintId}/me")
+    //    public List<TaskInfoResponse> taskListByMember(@PathVariable Long sprintId) {
+    //        return taskService.getTasksByMember(sprintId);
+    //    }
     @Operation(summary = "태스크 목록 조회", description = "태스크를 스프린트 아이디값에 따라 불러 옵니다.")
     @GetMapping("/{sprintId}/sprint")
-    public List<TaskInfoResponse> taskList(@PathVariable Long sprintId) {
-        return taskService.getTasksBySprint(sprintId);
+    public Slice<TaskInfoResponse> taskList(
+            @PathVariable Long sprintId,
+            @Parameter(description = "이전 페이지의 마지막 태스크 ID (첫 페이지는 비워두세요)")
+                    @RequestParam(required = false)
+                    Long lastTaskId,
+            @RequestParam(value = "size", defaultValue = "3") int size) {
+        return taskService.getTasksBySprint(sprintId, lastTaskId, size);
     }
 
     @Operation(
             summary = "마이 페이지 내 스프린트별 태스크 조회",
             description = "멤버에 할당된 태스크를 스프린트 아이디값에 따라 불러 옵니다.")
     @GetMapping("/{sprintId}/me")
-    public List<TaskInfoResponse> taskListByMember(@PathVariable Long sprintId) {
-        return taskService.getTasksByMember(sprintId);
+    public Slice<TaskInfoResponse> taskListByMember(
+            @PathVariable Long sprintId,
+            @Parameter(description = "이전 페이지의 마지막 태스크 ID (첫 페이지는 비워두세요)")
+                    @RequestParam(required = false)
+                    Long lastTaskId,
+            @RequestParam(value = "size", defaultValue = "3") int size) {
+        return taskService.getTasksByMember(sprintId, lastTaskId, size);
     }
 }

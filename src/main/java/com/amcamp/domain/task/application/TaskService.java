@@ -21,9 +21,8 @@ import com.amcamp.domain.team.domain.TeamParticipant;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.*;
 import com.amcamp.global.util.MemberUtil;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -131,52 +130,74 @@ public class TaskService {
     }
 
     @Transactional(readOnly = true)
-    public List<TaskInfoResponse> getTasksBySprint(Long sprintId) {
+    public Slice<TaskInfoResponse> getTasksBySprint(Long sprintId, Long lastTaskId, int size) {
         final Member currentMember = memberUtil.getCurrentMember();
         final Sprint sprint = findBySprintId(sprintId);
         final Project project = sprint.getProject();
         validateTeamParticipant(project.getTeam(), currentMember);
-
-        List<TaskInfoResponse> result = new ArrayList<>();
-        List<Task> taskList = taskRepository.findBySprintId(sprintId);
-        for (Task task : taskList) {
-            TaskInfoResponse t;
-            if (task.getAssignee() != null && task.getAssignedStatus() == AssignedStatus.ASSIGNED) {
-                t =
-                        TaskInfoResponse.from(
-                                task, task.getAssignee().getTeamParticipant().getMember());
-            } else {
-                t = TaskInfoResponse.from(task);
-            }
-            result.add(t);
-        }
-        return result;
+        return taskRepository.findBySprint(sprintId, lastTaskId, size);
     }
 
     @Transactional(readOnly = true)
-    public List<TaskInfoResponse> getTasksByMember(Long sprintId) {
+    public Slice<TaskInfoResponse> getTasksByMember(Long sprintId, Long lastTaskId, int size) {
         final Member currentMember = memberUtil.getCurrentMember();
         final Sprint sprint = findBySprintId(sprintId);
         final Project project = sprint.getProject();
         ProjectParticipant projectParticipant =
                 validateProjectParticipant(project, project.getTeam(), currentMember);
-
-        List<TaskInfoResponse> result = new ArrayList<>();
-        List<Task> taskList =
-                taskRepository.findBySprintIdAndAssignee(sprintId, projectParticipant);
-        for (Task task : taskList) {
-            TaskInfoResponse t;
-            if (task.getAssignee() != null && task.getAssignedStatus() == AssignedStatus.ASSIGNED) {
-                t =
-                        TaskInfoResponse.from(
-                                task, task.getAssignee().getTeamParticipant().getMember());
-            } else {
-                t = TaskInfoResponse.from(task);
-            }
-            result.add(t);
-        }
-        return result;
+        return taskRepository.findBySprintAndAssignee(
+                sprintId, projectParticipant, lastTaskId, size);
     }
+
+    //    @Transactional(readOnly = true)
+    //    public List<TaskInfoResponse> getTasksBySprint(Long sprintId) {
+    //        final Member currentMember = memberUtil.getCurrentMember();
+    //        final Sprint sprint = findBySprintId(sprintId);
+    //        final Project project = sprint.getProject();
+    //        validateTeamParticipant(project.getTeam(), currentMember);
+    //
+    //        List<TaskInfoResponse> result = new ArrayList<>();
+    //        List<Task> taskList = taskRepository.findBySprintId(sprintId);
+    //        for (Task task : taskList) {
+    //            TaskInfoResponse t;
+    //            if (task.getAssignee() != null && task.getAssignedStatus() ==
+    // AssignedStatus.ASSIGNED) {
+    //                t =
+    //                        TaskInfoResponse.from(
+    //                                task, task.getAssignee().getTeamParticipant().getMember());
+    //            } else {
+    //                t = TaskInfoResponse.from(task);
+    //            }
+    //            result.add(t);
+    //        }
+    //        return result;
+    //    }
+
+    //    @Transactional(readOnly = true)
+    //    public List<TaskInfoResponse> getTasksByMember(Long sprintId) {
+    //        final Member currentMember = memberUtil.getCurrentMember();
+    //        final Sprint sprint = findBySprintId(sprintId);
+    //        final Project project = sprint.getProject();
+    //        ProjectParticipant projectParticipant =
+    //                validateProjectParticipant(project, project.getTeam(), currentMember);
+    //
+    //        List<TaskInfoResponse> result = new ArrayList<>();
+    //        List<Task> taskList =
+    //                taskRepository.findBySprintIdAndAssignee(sprintId, projectParticipant);
+    //        for (Task task : taskList) {
+    //            TaskInfoResponse t;
+    //            if (task.getAssignee() != null && task.getAssignedStatus() ==
+    // AssignedStatus.ASSIGNED) {
+    //                t =
+    //                        TaskInfoResponse.from(
+    //                                task, task.getAssignee().getTeamParticipant().getMember());
+    //            } else {
+    //                t = TaskInfoResponse.from(task);
+    //            }
+    //            result.add(t);
+    //        }
+    //        return result;
+    //    }
 
     private void validateTaskNotAssignedForSos(Task task) {
         if (task.getAssignedStatus() == AssignedStatus.NOT_ASSIGNED) {

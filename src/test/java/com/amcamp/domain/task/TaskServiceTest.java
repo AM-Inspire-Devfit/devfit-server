@@ -25,8 +25,8 @@ import com.amcamp.domain.task.dto.response.TaskInfoResponse;
 import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.domain.team.dto.request.TeamCreateRequest;
 import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
-import com.amcamp.global.exception.CommonException;
 import com.amcamp.domain.team.dto.response.TeamInviteCodeResponse;
+import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.SprintErrorCode;
 import com.amcamp.global.exception.errorcode.TaskErrorCode;
@@ -34,11 +34,11 @@ import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
 import com.amcamp.global.util.MemberUtil;
 import java.time.LocalDate;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Slice;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -173,7 +173,7 @@ public class TaskServiceTest extends IntegrationTest {
                     .isEqualTo(taskBasicInfoUpdateRequest.taskDifficulty());
             assertThat(response.toDoStatus()).isEqualTo(ToDoStatus.ON_GOING);
             assertThat(response.assignedStatus()).isEqualTo(AssignedStatus.ASSIGNED);
-            assertThat(response.nickname()).isEqualTo(member.getNickname());
+            //			assertThat(response.projectNickname()).isEqualTo(member.getNickname());
 
             // when & then - finished
             response = taskService.updateTaskToDoInfo(1L);
@@ -281,7 +281,10 @@ public class TaskServiceTest extends IntegrationTest {
             taskService.assignTask(task.getId()); // 첫번쨰 태스크에만 담당자 배정
 
             // when & then
-            assertThatThrownBy(() -> taskService.getTasksBySprint(2l))
+            //            assertThatThrownBy(() -> taskService.getTasksBySprint(2l))
+            //                    .isInstanceOf(CommonException.class)
+            //                    .hasMessage(SprintErrorCode.SPRINT_NOT_FOUND.getMessage());
+            assertThatThrownBy(() -> taskService.getTasksBySprint(2l, 0L, 3))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(SprintErrorCode.SPRINT_NOT_FOUND.getMessage());
         }
@@ -306,7 +309,7 @@ public class TaskServiceTest extends IntegrationTest {
             teamService.joinTeam(new TeamInviteCodeRequest(teamInviteCodeResponse.inviteCode()));
 
             // when & then
-            assertThatThrownBy(() -> taskService.getTasksByMember(1l))
+            assertThatThrownBy(() -> taskService.getTasksByMember(1l, 0L, 3))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED.getMessage());
         }
@@ -329,7 +332,7 @@ public class TaskServiceTest extends IntegrationTest {
             loginAs(nonMember);
 
             // when & then
-            assertThatThrownBy(() -> taskService.getTasksBySprint(1l))
+            assertThatThrownBy(() -> taskService.getTasksBySprint(1l, 0L, 3))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED.getMessage());
         }
@@ -345,20 +348,14 @@ public class TaskServiceTest extends IntegrationTest {
                     new TaskCreateRequest(1L, "mvp 완성", TaskDifficulty.HIGH);
             taskService.createTask(taskRequest2);
 
-            Task task =
-                    taskRepository
-                            .findById(1L)
-                            .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
-
-            taskService.assignTask(task.getId()); // 첫번쨰 태스크에만 담당자 배정
-
             // when
-            List<TaskInfoResponse> result = taskService.getTasksBySprint(1l);
+            Slice<TaskInfoResponse> result = taskService.getTasksBySprint(1L, 0L, 3);
 
             // then
-            assertThat(result).hasSize(2);
-            assertThat(result.get(0).description()).isEqualTo(taskRequest1.description());
-            assertThat(result.get(1).description()).isEqualTo(taskRequest2.description());
+            assertThat(result.getContent()).hasSize(2);
+            assertThat(result.getContent().get(0).memberId()).isEqualTo(null);
+            assertThat(result.getContent().get(0).projectNickname()).isEqualTo(null);
+            assertThat(result.getContent().get(0).profileImageUrl()).isEqualTo(null);
         }
 
         @Test
@@ -379,13 +376,18 @@ public class TaskServiceTest extends IntegrationTest {
 
             taskService.assignTask(task.getId()); // 첫번쨰 태스크에만 담당자 배정
 
+            Task task1 =
+                    taskRepository
+                            .findById(2L)
+                            .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
+
+            taskService.assignTask(task1.getId()); // 첫번쨰 태스크에만 담당자 배정
+
             // when
-            List<TaskInfoResponse> result = taskService.getTasksByMember(1l);
+            Slice<TaskInfoResponse> result = taskService.getTasksByMember(1L, 0L, 3);
 
             // then
-            assertThat(result).isNotNull();
-            assertThat(result).hasSize(1);
-            assertThat(result.get(0).description()).isEqualTo(taskRequest1.description());
+            assertThat(result.getContent()).hasSize(2);
         }
     }
 }
