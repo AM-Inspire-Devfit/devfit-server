@@ -40,6 +40,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.transaction.annotation.Transactional;
 
 public class SprintServiceTest extends IntegrationTest {
 
@@ -120,6 +121,31 @@ public class SprintServiceTest extends IntegrationTest {
             assertThatThrownBy(() -> sprintService.createSprint(request))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(GlobalErrorCode.INVALID_DATE_ERROR.getMessage());
+        }
+
+        @Test
+        @Transactional
+        void 기존_스프린트가_종료되지_않은_상태에서_새로운_스프린트를_생성하면_예외가_발생한다() {
+            // given
+            sprintRepository.save(
+                    Sprint.createSprint(
+                            project,
+                            "testTitle",
+                            "testGoal",
+                            LocalDate.of(2026, 1, 11),
+                            LocalDate.of(2026, 2, 11)));
+
+            SprintCreateRequest request =
+                    new SprintCreateRequest(
+                            project.getId(),
+                            "testGoal",
+                            LocalDate.of(2026, 2, 4),
+                            LocalDate.of(2026, 2, 22));
+
+            // when & then
+            assertThatThrownBy(() -> sprintService.createSprint(request))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(SprintErrorCode.PREVIOUS_SPRINT_NOT_ENDED.getMessage());
         }
     }
 
