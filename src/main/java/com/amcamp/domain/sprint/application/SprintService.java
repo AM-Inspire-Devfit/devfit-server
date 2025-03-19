@@ -24,6 +24,7 @@ import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.util.MemberUtil;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -46,6 +47,14 @@ public class SprintService {
 
         validateProjectParticipant(project, project.getTeam(), currentMember);
         validateDate(request.startDt(), request.dueDt(), project.getToDoInfo());
+
+        Optional<Sprint> latestSprint =
+                sprintRepository.findTopByProjectOrderByCreatedDtDesc(project);
+
+        if (latestSprint.isPresent()
+                && !latestSprint.get().getToDoInfo().getDueDt().isBefore(request.startDt())) {
+            throw new CommonException(SprintErrorCode.PREVIOUS_SPRINT_NOT_ENDED);
+        }
 
         long count = sprintRepository.countByProject(project);
         String autoTitle = String.valueOf(count + 1);

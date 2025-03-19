@@ -10,7 +10,7 @@ public enum SprintErrorCode implements BaseErrorCode {
     SPRINT_NOT_FOUND(HttpStatus.NOT_FOUND, "스프린트를 찾을 수 없습니다."),
 
     SPRINT_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "스프린트 삭제 권한이 없습니다."),
-    ;
+    PREVIOUS_SPRINT_NOT_ENDED(HttpStatus.BAD_REQUEST, "이전 스프린트가 아직 종료되지 않았습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
