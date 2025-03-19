@@ -18,7 +18,7 @@ public class MeetingController {
     private final MeetingService meetingService;
 
     @Operation(summary = "미팅 생성", description = "새로운 미팅을 생성합니다.")
-    @PostMapping("/{meetingId}")
+    @PostMapping("/create")
     public ResponseEntity<Void> meetingCreate(@RequestBody MeetingCreateRequest request) {
         meetingService.createMeeting(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
