@@ -12,13 +12,13 @@ import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.domain.OauthInfo;
 import com.amcamp.domain.project.application.ProjectService;
 import com.amcamp.domain.project.dao.ProjectParticipantRepository;
+import com.amcamp.domain.project.dao.ProjectRepository;
+import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ProjectParticipant;
-import com.amcamp.domain.project.domain.ToDoStatus;
-import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
+import com.amcamp.domain.project.domain.ProjectParticipantRole;
 import com.amcamp.domain.sprint.application.SprintService;
 import com.amcamp.domain.sprint.dao.SprintRepository;
 import com.amcamp.domain.sprint.domain.Sprint;
-import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
 import com.amcamp.domain.task.application.TaskService;
 import com.amcamp.domain.task.dao.TaskRepository;
 import com.amcamp.domain.task.domain.*;
@@ -27,17 +27,20 @@ import com.amcamp.domain.task.dto.request.TaskCreateRequest;
 import com.amcamp.domain.task.dto.response.TaskInfoResponse;
 import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
+import com.amcamp.domain.team.dao.TeamRepository;
+import com.amcamp.domain.team.domain.Team;
 import com.amcamp.domain.team.domain.TeamParticipant;
 import com.amcamp.domain.team.dto.request.TeamCreateRequest;
 import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
 import com.amcamp.domain.team.dto.response.TeamInviteCodeResponse;
+
+import com.amcamp.domain.team.domain.TeamParticipantRole;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.*;
 import com.amcamp.global.security.PrincipalDetails;
 import com.amcamp.global.util.MemberUtil;
 import jakarta.transaction.Transactional;
 import java.time.LocalDate;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -49,17 +52,26 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 public class TaskServiceTest extends IntegrationTest {
     @Autowired private MemberService memberService;
-    @Autowired private TeamService teamService;
+    @Autowired private TeamRepository teamRepository;
     @Autowired private MemberRepository memberRepository;
     @Autowired private MemberUtil memberUtil;
     @Autowired private ProjectService projectService;
+    @Autowired private ProjectRepository projectRepository;
     @Autowired private SprintService sprintService;
+	@Autowired private TeamService teamService;
     @Autowired private TaskService taskService;
     @Autowired private TaskRepository taskRepository;
     @Autowired private SprintRepository sprintRepository;
     @Autowired private ContributionRepository contributionRepository;
     @Autowired private ProjectParticipantRepository projectParticipantRepository;
     @Autowired private TeamParticipantRepository teamParticipantRepository;
+
+    private ProjectParticipant participant;
+    private ProjectParticipant newParticipant;
+    private Sprint sprint;
+    private Project project;
+    private Project anotherProject;
+    private Member newMember;
 
     private void loginAs(Member member) {
         UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());
@@ -78,31 +90,65 @@ public class TaskServiceTest extends IntegrationTest {
                                 "testProfileImageUrl",
                                 OauthInfo.createOauthInfo("testOauthId", "testOauthProvider")));
 
+        newMember = memberRepository.save(Member.createMember("member", null, null));
+
         UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());
         UsernamePasswordAuthenticationToken token =
                 new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(token);
 
-        TeamCreateRequest teamCreateRequest = new TeamCreateRequest("팀 이름", "팀 설명");
-        String inviteCode = teamService.createTeam(teamCreateRequest).inviteCode();
-        TeamInviteCodeRequest teamInviteCodeRequest = new TeamInviteCodeRequest(inviteCode);
-        Long teamId = teamService.getTeamByCode(teamInviteCodeRequest).teamId();
+        Team team = teamRepository.save(Team.createTeam("testName", "testDescription"));
+        TeamParticipant teamParticipantAdmin =
+                teamParticipantRepository.save(
+                        TeamParticipant.createParticipant(member, team, TeamParticipantRole.ADMIN));
+        TeamParticipant teamParticipantUser =
+                teamParticipantRepository.save(
+                        TeamParticipant.createParticipant(
+                                newMember, team, TeamParticipantRole.USER));
 
-        ProjectCreateRequest projectRequest =
-                new ProjectCreateRequest(
-                        teamId,
-                        "testProjectTitle",
-                        LocalDate.of(2026, 1, 1),
-                        LocalDate.of(2026, 12, 1),
-                        "testProjectDescription");
+        project =
+                projectRepository.save(
+                        Project.createProject(
+                                team,
+                                "testTitle",
+                                "testDescription",
+                                LocalDate.of(2026, 1, 1),
+                                LocalDate.of(2026, 12, 1)));
+        anotherProject =
+                projectRepository.save(
+                        Project.createProject(
+                                team,
+                                "testTitle",
+                                "testDescription",
+                                LocalDate.of(2026, 1, 1),
+                                LocalDate.of(2026, 12, 1)));
 
-        projectService.createProject(projectRequest);
+        participant =
+                projectParticipantRepository.save(
+                        ProjectParticipant.createProjectParticipant(
+                                teamParticipantAdmin,
+                                project,
+                                member.getNickname(),
+                                member.getProfileImageUrl(),
+                                ProjectParticipantRole.ADMIN));
+        newParticipant =
+                projectParticipantRepository.save(
+                        ProjectParticipant.createProjectParticipant(
+                                teamParticipantUser,
+                                project,
+                                newMember.getNickname(),
+                                newMember.getProfileImageUrl(),
+                                ProjectParticipantRole.MEMBER));
 
-        SprintCreateRequest sprintRequest =
-                new SprintCreateRequest(
-                        1L, "1차 스프린트", LocalDate.of(2026, 2, 1), LocalDate.of(2026, 3, 1));
-        sprintService.createSprint(sprintRequest);
+        sprint =
+                sprintRepository.save(
+                        Sprint.createSprint(
+                                project,
+                                "1차 스프린트",
+                                "아이디어 기획서 제출",
+                                LocalDate.of(2026, 2, 1),
+                                LocalDate.of(2026, 3, 1)));
     }
 
     @Test
@@ -128,35 +174,29 @@ public class TaskServiceTest extends IntegrationTest {
 
     @Nested
     class 태스크_수정_시 {
-        //        @Test
-        //        void 수정_권한이_없으면_예외처리() {
-        //            // assignee가 존재할때, 프로젝트 팀장이 아니면 예외처리
-        //            Member member = memberUtil.getCurrentMember();
-        //            TaskCreateRequest taskRequest =
-        //                    new TaskCreateRequest(
-        //                            1L,
-        //                            "피그마 화면 설계 수정",
-        //                            TaskDifficulty.MID,
-        //                            LocalDate.of(2026, 2, 1),
-        //                            LocalDate.of(2026, 3, 1));
-        //            taskService.createTask(taskRequest);
-        //
-        //            Member newMember = memberRepository.save(Member.createMember("member", null,
-        // null));
-        //            loginAs(newMember);
-        //
-        //            TeamInviteCodeResponse teamInviteCodeResponse = teamService.getInviteCode(1L);
-        //            teamService.joinTeam(new
-        // TeamInviteCodeRequest(teamInviteCodeResponse.inviteCode()));
-        //
-        //            // 프로젝트 참여 관련 코드 필요
-        //
-        //        }
+        @Test
+        void 수정_권한이_없으면_예외처리() {
+            Member member = memberUtil.getCurrentMember();
+            TaskCreateRequest taskRequest =
+                    new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID);
+            taskService.createTask(taskRequest);
+            taskService.assignTask(1L);
+
+            loginAs(newMember);
+
+            assertThatThrownBy(
+                            () ->
+                                    taskService.updateTaskBasicInfo(
+                                            1L,
+                                            new TaskBasicInfoUpdateRequest(
+                                                    "피그마 화면 설계 재수정", TaskDifficulty.LOW)))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(TaskErrorCode.TASK_MODIFY_FORBIDDEN.getMessage());
+        }
 
         @Test
         void 태스크가_존재하지않으면_예외처리() {
-            Member member = memberUtil.getCurrentMember();
-            Assertions.assertThatThrownBy(() -> taskService.updateTaskStatus(1L))
+            assertThatThrownBy(() -> taskService.updateTaskStatus(1L))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(TaskErrorCode.TASK_NOT_FOUND.getMessage());
         }
@@ -320,26 +360,30 @@ public class TaskServiceTest extends IntegrationTest {
             response = taskService.updateTaskSOS(task.getId());
             assertThat(response.sosStatus()).isEqualTo(SOSStatus.SOS);
         }
-        //		@Test
-        //		void sos인_상태에서_태스크_할당상태를_수정한다 (){
-        //			// given
-        //			Member member = memberUtil.getCurrentMember();
-        //			TaskCreateRequest taskRequest =
-        //				new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID);
-        //			taskService.createTask(taskRequest);
-        //
-        //			Task task =
-        //				taskRepository
-        //					.findById(1L)
-        //					.orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
-        //
-        //			taskService.assignTask(task.getId());
-        //			taskService.updateTaskSOS(task.getId());
-        //
-        //			// 프로젝트 참가 메소드 필요
-        //
-        //		}
 
+        @Test
+        @Transactional
+        void sos인_상태에서_태스크_할당상태를_수정한다() {
+            // given
+            TaskCreateRequest taskRequest =
+                    new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID);
+            taskService.createTask(taskRequest);
+
+            Task task =
+                    taskRepository
+                            .findById(1L)
+                            .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
+
+            taskService.assignTask(task.getId());
+            taskService.updateTaskSOS(task.getId());
+
+            loginAs(newMember);
+            taskService.assignTask(task.getId());
+
+            assertThat(task.getAssignedStatus()).isEqualTo(AssignedStatus.ASSIGNED);
+            assertThat(task.getSosStatus()).isEqualTo(SOSStatus.NOT_SOS);
+            assertThat(task.getAssignee()).isEqualTo(newParticipant);
+        }
     }
 
     @Nested

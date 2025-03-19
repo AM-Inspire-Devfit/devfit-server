@@ -7,21 +7,28 @@ import com.amcamp.IntegrationTest;
 import com.amcamp.domain.contribution.application.ContributionService;
 import com.amcamp.domain.contribution.dto.response.BasicContributionInfoResponse;
 import com.amcamp.domain.contribution.dto.response.ContributionInfoResponse;
-import com.amcamp.domain.member.application.MemberService;
 import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.domain.OauthInfo;
 import com.amcamp.domain.project.application.ProjectService;
 import com.amcamp.domain.project.dao.ProjectParticipantRepository;
-import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
+import com.amcamp.domain.project.dao.ProjectRepository;
+import com.amcamp.domain.project.domain.Project;
+import com.amcamp.domain.project.domain.ProjectParticipant;
+import com.amcamp.domain.project.domain.ProjectParticipantRole;
 import com.amcamp.domain.sprint.application.SprintService;
+import com.amcamp.domain.sprint.dao.SprintRepository;
+import com.amcamp.domain.sprint.domain.Sprint;
 import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
 import com.amcamp.domain.task.application.TaskService;
 import com.amcamp.domain.task.domain.TaskDifficulty;
 import com.amcamp.domain.task.dto.request.TaskCreateRequest;
 import com.amcamp.domain.team.application.TeamService;
-import com.amcamp.domain.team.dto.request.TeamCreateRequest;
-import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
+import com.amcamp.domain.team.dao.TeamParticipantRepository;
+import com.amcamp.domain.team.dao.TeamRepository;
+import com.amcamp.domain.team.domain.Team;
+import com.amcamp.domain.team.domain.TeamParticipant;
+import com.amcamp.domain.team.domain.TeamParticipantRole;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.ContributionErrorCode;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
@@ -40,7 +47,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public class ContributionServiceTest extends IntegrationTest {
-    @Autowired private MemberService memberService;
     @Autowired private TeamService teamService;
     @Autowired private MemberRepository memberRepository;
     @Autowired private MemberUtil memberUtil;
@@ -48,7 +54,18 @@ public class ContributionServiceTest extends IntegrationTest {
     @Autowired private SprintService sprintService;
     @Autowired private TaskService taskService;
     @Autowired private ContributionService contributionService;
+    @Autowired private TeamRepository teamRepository;
     @Autowired private ProjectParticipantRepository projectParticipantRepository;
+    @Autowired private TeamParticipantRepository teamParticipantRepository;
+    @Autowired private ProjectRepository projectRepository;
+    @Autowired private SprintRepository sprintRepository;
+
+    private ProjectParticipant participant;
+    private ProjectParticipant newParticipant;
+    private Sprint sprint;
+    private Project project;
+    private Project anotherProject;
+    private Member newMember;
 
     private void loginAs(Member member) {
         UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());
@@ -67,31 +84,65 @@ public class ContributionServiceTest extends IntegrationTest {
                                 "testProfileImageUrl",
                                 OauthInfo.createOauthInfo("testOauthId", "testOauthProvider")));
 
+        newMember = memberRepository.save(Member.createMember("member", null, null));
+
         UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());
         UsernamePasswordAuthenticationToken token =
                 new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(token);
 
-        TeamCreateRequest teamCreateRequest = new TeamCreateRequest("팀 이름", "팀 설명");
-        String inviteCode = teamService.createTeam(teamCreateRequest).inviteCode();
-        TeamInviteCodeRequest teamInviteCodeRequest = new TeamInviteCodeRequest(inviteCode);
-        Long teamId = teamService.getTeamByCode(teamInviteCodeRequest).teamId();
+        Team team = teamRepository.save(Team.createTeam("testName", "testDescription"));
+        TeamParticipant teamParticipantAdmin =
+                teamParticipantRepository.save(
+                        TeamParticipant.createParticipant(member, team, TeamParticipantRole.ADMIN));
+        TeamParticipant teamParticipantUser =
+                teamParticipantRepository.save(
+                        TeamParticipant.createParticipant(
+                                newMember, team, TeamParticipantRole.USER));
 
-        ProjectCreateRequest projectRequest =
-                new ProjectCreateRequest(
-                        teamId,
-                        "testProjectTitle",
-                        LocalDate.of(2026, 1, 1),
-                        LocalDate.of(2026, 12, 1),
-                        "testProjectDescription");
+        project =
+                projectRepository.save(
+                        Project.createProject(
+                                team,
+                                "testTitle",
+                                "testDescription",
+                                LocalDate.of(2026, 1, 1),
+                                LocalDate.of(2026, 12, 1)));
+        anotherProject =
+                projectRepository.save(
+                        Project.createProject(
+                                team,
+                                "testTitle",
+                                "testDescription",
+                                LocalDate.of(2026, 1, 1),
+                                LocalDate.of(2026, 12, 1)));
 
-        projectService.createProject(projectRequest);
+        participant =
+                projectParticipantRepository.save(
+                        ProjectParticipant.createProjectParticipant(
+                                teamParticipantAdmin,
+                                project,
+                                member.getNickname(),
+                                member.getProfileImageUrl(),
+                                ProjectParticipantRole.ADMIN));
+        newParticipant =
+                projectParticipantRepository.save(
+                        ProjectParticipant.createProjectParticipant(
+                                teamParticipantUser,
+                                project,
+                                newMember.getNickname(),
+                                newMember.getProfileImageUrl(),
+                                ProjectParticipantRole.MEMBER));
 
-        SprintCreateRequest sprintRequest =
-                new SprintCreateRequest(
-                        1L, "1차 스프린트", LocalDate.of(2026, 2, 1), LocalDate.of(2026, 3, 1));
-        sprintService.createSprint(sprintRequest);
+        sprint =
+                sprintRepository.save(
+                        Sprint.createSprint(
+                                project,
+                                "1차 스프린트",
+                                "아이디어 기획서 제출",
+                                LocalDate.of(2026, 2, 1),
+                                LocalDate.of(2026, 3, 1)));
 
         // 상 2, 중 3, 하 4
         taskService.createTask(new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.HIGH));
@@ -116,16 +167,14 @@ public class ContributionServiceTest extends IntegrationTest {
         taskService.updateTaskToDoInfo(2L);
         taskService.updateTaskToDoInfo(3L);
         taskService.updateTaskToDoInfo(9L);
-
-        // 프로젝트 참여 메소드 부재
     }
 
     @Nested
     class 개별_기여도_조회_시 {
         @Test
         void 팀_참여자가_아니라면_에러반환() {
-            Member newMember = memberRepository.save(Member.createMember("member", null, null));
-            loginAs(newMember);
+            Member newTeamMember = memberRepository.save(Member.createMember("member", null, null));
+            loginAs(newTeamMember);
 
             assertThatThrownBy(() -> contributionService.getContributionByMember(1L))
                     .isInstanceOf(
@@ -133,13 +182,20 @@ public class ContributionServiceTest extends IntegrationTest {
                     .hasMessage(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED.getMessage());
         }
 
-        //		void 프로젝트_참여자가_아니라면_에러반환() {
-        //
-        //		}
+        @Test
+        void 프로젝트_참여자가_아니라면_에러반환() {
+            loginAs(newMember);
+            assertThatThrownBy(() -> contributionService.getContributionByMember(2L))
+                    .isInstanceOf(
+                            new CommonException(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED)
+                                    .getClass())
+                    .hasMessage(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED.getMessage());
+        }
+
         @Test
         void 유효한_프로젝트가_아니라면_에러반환() {
             Member member = memberUtil.getCurrentMember();
-            assertThatThrownBy(() -> contributionService.getContributionByMember(2L))
+            assertThatThrownBy(() -> contributionService.getContributionByMember(3L))
                     .isInstanceOf(
                             new CommonException(ProjectErrorCode.PROJECT_NOT_FOUND).getClass())
                     .hasMessage(ProjectErrorCode.PROJECT_NOT_FOUND.getMessage());
