@@ -6,6 +6,7 @@ import com.amcamp.domain.contribution.dto.response.BasicContributionInfoResponse
 import com.amcamp.domain.contribution.dto.response.ContributionInfoResponse;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.project.dao.ProjectParticipantRepository;
+import com.amcamp.domain.project.dao.ProjectRepository;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.sprint.dao.SprintRepository;
@@ -32,29 +33,21 @@ public class ContributionService {
     private final MemberUtil memberUtil;
     private final SprintRepository sprintRepository;
     private final ContributionRepository contributionRepository;
+    private final ProjectRepository projectRepository;
     private final TeamParticipantRepository teamParticipantRepository;
     private final ProjectParticipantRepository projectParticipantRepository;
 
-    public BasicContributionInfoResponse getContributionByMember(Long projectParticipantId) {
+    public BasicContributionInfoResponse getContributionByMember(Long projectId) {
         Member member = memberUtil.getCurrentMember();
+        Project project =
+                projectRepository
+                        .findById(projectId)
+                        .orElseThrow(() -> new CommonException(ProjectErrorCode.PROJECT_NOT_FOUND));
 
-        // 현재 접속자의 프로젝트 참여 정보 확인
         ProjectParticipant currentParticipant =
-                projectParticipantRepository
-                        .findById(projectParticipantId)
-                        .orElseThrow(
-                                () ->
-                                        new CommonException(
-                                                ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED));
+                validateProjectParticipant(project, project.getTeam(), member);
         Sprint sprint =
                 validateSprint(currentParticipant.getProject()); // 해당프로젝트의 가장 마지막으로 생성된 스프린트 불러오기
-        Project project = sprint.getProject();
-        ProjectParticipant projectParticipant =
-                validateProjectParticipant(project, project.getTeam(), member);
-        // 현재 접속 중인 회원이 레포지토리에서 불러온 프로젝트 참가자와 동일한지 확인 -> 동일하지 않으면 에러 반환
-        if (!projectParticipant.equals(currentParticipant)) {
-            throw new CommonException(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED);
-        }
         Contribution contribution = validateContribution(sprint, currentParticipant);
         return BasicContributionInfoResponse.from(contribution);
     }

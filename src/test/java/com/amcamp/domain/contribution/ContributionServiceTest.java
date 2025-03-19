@@ -133,14 +133,16 @@ public class ContributionServiceTest extends IntegrationTest {
                     .hasMessage(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED.getMessage());
         }
 
+        //		void 프로젝트_참여자가_아니라면_에러반환() {
+        //
+        //		}
         @Test
-        void 프로젝트_참여자가_아니라면_에러반환() {
+        void 유효한_프로젝트가_아니라면_에러반환() {
             Member member = memberUtil.getCurrentMember();
             assertThatThrownBy(() -> contributionService.getContributionByMember(2L))
                     .isInstanceOf(
-                            new CommonException(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED)
-                                    .getClass())
-                    .hasMessage(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED.getMessage());
+                            new CommonException(ProjectErrorCode.PROJECT_NOT_FOUND).getClass())
+                    .hasMessage(ProjectErrorCode.PROJECT_NOT_FOUND.getMessage());
         }
 
         @Test
