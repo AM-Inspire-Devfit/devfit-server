@@ -4,10 +4,10 @@ import static com.amcamp.domain.project.domain.QProject.project;
 import static com.amcamp.domain.project.domain.QProjectRegistration.projectRegistration;
 
 import com.amcamp.domain.project.dto.response.ProjectRegistrationInfoResponse;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
@@ -24,17 +24,20 @@ public class ProjectRegistrationRepositoryImpl implements ProjectRegistrationRep
 
         List<ProjectRegistrationInfoResponse> responses =
                 jpaQueryFactory
-                        .select(projectRegistration)
+                        .select(
+                                Projections.constructor(
+                                        ProjectRegistrationInfoResponse.class,
+                                        projectRegistration.project.id,
+                                        projectRegistration.id,
+                                        projectRegistration.requester.id,
+                                        projectRegistration.requestStatus))
                         .from(projectRegistration)
                         .leftJoin(project)
                         .on(projectRegistration.project.eq(project))
                         .where(project.team.id.eq(teamId), lastProjectCondition(lastProjectId))
                         .orderBy(project.id.desc())
                         .limit(pageSize + 1)
-                        .fetch()
-                        .stream()
-                        .map(ProjectRegistrationInfoResponse::from)
-                        .collect(Collectors.toList());
+                        .fetch();
 
         return checkLastPage(pageSize, responses);
     }
