@@ -83,11 +83,11 @@ public class MeetingService {
 
     private Meeting getMeetingById(Long meetingId) {
         return meetingRepository
-                .findMeetingById(meetingId)
+                .findById(meetingId)
                 .orElseThrow(() -> new CommonException(MeetingErrorCode.MEETING_NOT_FOUND));
     }
 
     private boolean isMeetingExist(Long meetingId) {
-        return meetingRepository.findMeetingById(meetingId).isPresent();
+        return meetingRepository.findById(meetingId).isPresent();
     }
 }

@@ -8,7 +8,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MeetingRepository extends JpaRepository<Meeting, Long> {
-    Optional<Meeting> findMeetingById(Long id);
-
     Optional<Meeting> findMeetingByTitleAndMeetingDt(String title, LocalDateTime meetingDt);
 }
