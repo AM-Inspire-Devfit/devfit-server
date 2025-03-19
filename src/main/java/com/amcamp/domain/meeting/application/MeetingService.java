@@ -92,12 +92,6 @@ public class MeetingService {
         return sprint;
     }
 
-    private void validateMeetingDtAndTitle(String title, LocalDateTime meetingDt) {
-        if (meetingRepository.findMeetingByTitleAndMeetingDt(title, meetingDt).isPresent()) {
-            throw new CommonException(MeetingErrorCode.MEETING_ALREADY_EXISTS);
-        }
-    }
-
     private Meeting getMeetingById(Long meetingId) {
         return meetingRepository
                 .findById(meetingId)

@@ -60,6 +60,7 @@ public class MeetingServiceTest extends IntegrationTest {
     private final LocalDate sprintDueDt = LocalDate.of(2026, 3, 31);
     private final LocalDateTime meetingStart = LocalDateTime.of(2026, 3, 15, 17, 0);
     private final LocalDateTime meetingEnd = LocalDateTime.of(2026, 3, 15, 18, 0);
+
     private void loginAs(Member member) {
         UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());
         UsernamePasswordAuthenticationToken token =
