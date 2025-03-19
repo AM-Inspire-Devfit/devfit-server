@@ -8,7 +8,7 @@ import com.amcamp.domain.meeting.application.MeetingService;
 import com.amcamp.domain.meeting.dao.MeetingRepository;
 import com.amcamp.domain.meeting.domain.Meeting;
 import com.amcamp.domain.meeting.domain.MeetingStatus;
-import com.amcamp.domain.meeting.dto.MeetingCreateRequest;
+import com.amcamp.domain.meeting.dto.request.MeetingCreateRequest;
 import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.domain.OauthInfo;
@@ -16,7 +16,6 @@ import com.amcamp.domain.project.application.ProjectService;
 import com.amcamp.domain.project.dao.ProjectParticipantRepository;
 import com.amcamp.domain.project.dao.ProjectRegistrationRepository;
 import com.amcamp.domain.project.dao.ProjectRepository;
-import com.amcamp.domain.project.domain.*;
 import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
 import com.amcamp.domain.sprint.application.SprintService;
 import com.amcamp.domain.sprint.dao.SprintRepository;
@@ -63,7 +62,8 @@ public class MeetingServiceTest extends IntegrationTest {
     private final LocalDate projectDueDt = LocalDate.of(2026, 12, 1);
     private final LocalDate sprintStartDt = LocalDate.of(2026, 3, 1);
     private final LocalDate sprintDueDt = LocalDate.of(2026, 3, 31);
-    private final LocalDateTime meetingDt = LocalDateTime.of(2026, 3, 15, 17, 0);
+    private final LocalDateTime meetingStart = LocalDateTime.of(2026, 3, 15, 17, 0);
+    private final LocalDateTime meetingEnd = LocalDateTime.of(2026, 3, 15, 18, 0);
 
     private void loginAs(Member member) {
         UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());
@@ -122,12 +122,14 @@ public class MeetingServiceTest extends IntegrationTest {
 
     // 미팅 생성
     void createTestMeeting(Long sprintId) {
-        MeetingCreateRequest request = new MeetingCreateRequest(1L, meetingTitle, meetingDt);
+        MeetingCreateRequest request =
+                new MeetingCreateRequest(sprintId, meetingTitle, meetingStart, meetingEnd);
         meetingService.createMeeting(request);
     }
 
-    void createTestMeeting(Long sprintId, LocalDateTime meetingDt) {
-        MeetingCreateRequest request = new MeetingCreateRequest(1L, meetingTitle, meetingDt);
+    void createTestMeeting(Long sprintId, LocalDateTime meetingStart, LocalDateTime meetingEnd) {
+        MeetingCreateRequest request =
+                new MeetingCreateRequest(sprintId, meetingTitle, meetingStart, meetingEnd);
         meetingService.createMeeting(request);
     }
 
@@ -180,18 +182,20 @@ public class MeetingServiceTest extends IntegrationTest {
         Meeting meeting = meetingRepository.findById(1L).get();
         assertThat(meeting.getId()).isEqualTo(1L);
         assertThat(meeting)
-                .extracting("id", "title", "meetingDt", "status")
-                .containsExactlyInAnyOrder(1L, meetingTitle, meetingDt, MeetingStatus.OPEN);
+                .extracting("id", "title", "meetingStart", "meetingEnd", "status")
+                .containsExactlyInAnyOrder(
+                        1L, meetingTitle, meetingStart, meetingEnd, MeetingStatus.OPEN);
     }
 
     @Test
     void 스프린트_시작일을_벗어나면_오류가_발생한다() {
         // given
         LocalDateTime wrongDtBeforeStartDt = LocalDateTime.of(2020, 3, 15, 17, 0);
+
         // then
-        assertThatThrownBy(() -> createTestMeeting(1L, wrongDtBeforeStartDt))
+        assertThatThrownBy(() -> createTestMeeting(1L, wrongDtBeforeStartDt, meetingEnd))
                 .isInstanceOf(CommonException.class)
-                .hasMessageContaining(MeetingErrorCode.INVALID_MEETING_DATE.getMessage());
+                .hasMessageContaining(MeetingErrorCode.MEETING_DATE_OUT_OF_SPRINT.getMessage());
     }
 
     @Test
@@ -199,8 +203,62 @@ public class MeetingServiceTest extends IntegrationTest {
         // given
         LocalDateTime wrongDtAfterDueDt = LocalDateTime.of(2030, 3, 15, 17, 0);
         // then
-        assertThatThrownBy(() -> createTestMeeting(1L, wrongDtAfterDueDt))
+        assertThatThrownBy(() -> createTestMeeting(1L, meetingStart, wrongDtAfterDueDt))
                 .isInstanceOf(CommonException.class)
-                .hasMessageContaining(MeetingErrorCode.INVALID_MEETING_DATE.getMessage());
+                .hasMessageContaining(MeetingErrorCode.MEETING_DATE_OUT_OF_SPRINT.getMessage());
+    }
+
+    @Test
+    void 시작시간이_종료시간보다_느리거나_같으면_오류가_발생한다() {
+
+        // then
+        assertThatThrownBy(() -> createTestMeeting(1L, meetingEnd, meetingStart))
+                .isInstanceOf(CommonException.class)
+                .hasMessageContaining(MeetingErrorCode.INVALID_MEETING_TIME_RANGE.getMessage());
+        assertThatThrownBy(() -> createTestMeeting(1L, meetingStart, meetingStart))
+                .isInstanceOf(CommonException.class)
+                .hasMessageContaining(MeetingErrorCode.INVALID_MEETING_TIME_RANGE.getMessage());
+    }
+
+    @Test
+    void 시간이_8시부터_00시_범위를_벗어나면_오류가_발생한다() {
+        // given
+        createTestMeeting(1L); // 기존 meetingStart, meetingEnd로 생성
+
+        // when
+        LocalDateTime before8 = LocalDateTime.of(2026, 3, 15, 1, 0);
+        LocalDateTime after0 = LocalDateTime.of(2026, 3, 16, 0, 1);
+        // then
+        assertThatThrownBy(() -> createTestMeeting(1L, before8, meetingEnd))
+                .isInstanceOf(CommonException.class)
+                .hasMessageContaining(MeetingErrorCode.INVALID_MEETING_TIME_RANGE.getMessage());
+        assertThatThrownBy(() -> createTestMeeting(1L, meetingStart, after0))
+                .isInstanceOf(CommonException.class)
+                .hasMessageContaining(MeetingErrorCode.INVALID_MEETING_TIME_RANGE.getMessage());
+    }
+
+    @Test
+    void 기존_미팅과_일시가_겹치면_오류가_발생한다() {
+        // given
+        createTestMeeting(1L); // 기존 meetingStart, meetingEnd로 생성
+
+        // when
+        LocalDateTime beforeStart = LocalDateTime.of(2026, 3, 15, 16, 0);
+        LocalDateTime afterEnd = LocalDateTime.of(2026, 3, 15, 19, 0);
+        LocalDateTime afterStart = LocalDateTime.of(2026, 3, 15, 17, 20);
+        LocalDateTime beforeEnd = LocalDateTime.of(2026, 3, 15, 17, 40);
+        // then
+        assertThatThrownBy(() -> createTestMeeting(1L, meetingStart, meetingEnd))
+                .isInstanceOf(CommonException.class)
+                .hasMessageContaining(MeetingErrorCode.MEETING_ALREADY_EXISTS.getMessage());
+        assertThatThrownBy(() -> createTestMeeting(1L, beforeStart, meetingEnd))
+                .isInstanceOf(CommonException.class)
+                .hasMessageContaining(MeetingErrorCode.MEETING_ALREADY_EXISTS.getMessage());
+        assertThatThrownBy(() -> createTestMeeting(1L, meetingStart, afterEnd))
+                .isInstanceOf(CommonException.class)
+                .hasMessageContaining(MeetingErrorCode.MEETING_ALREADY_EXISTS.getMessage());
+        assertThatThrownBy(() -> createTestMeeting(1L, afterStart, beforeEnd))
+                .isInstanceOf(CommonException.class)
+                .hasMessageContaining(MeetingErrorCode.MEETING_ALREADY_EXISTS.getMessage());
     }
 }

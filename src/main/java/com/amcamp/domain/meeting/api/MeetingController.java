@@ -1,7 +1,7 @@
 package com.amcamp.domain.meeting.api;
 
 import com.amcamp.domain.meeting.application.MeetingService;
-import com.amcamp.domain.meeting.dto.MeetingCreateRequest;
+import com.amcamp.domain.meeting.dto.request.MeetingCreateRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

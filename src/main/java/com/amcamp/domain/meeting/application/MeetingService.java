@@ -2,7 +2,7 @@ package com.amcamp.domain.meeting.application;
 
 import com.amcamp.domain.meeting.dao.MeetingRepository;
 import com.amcamp.domain.meeting.domain.Meeting;
-import com.amcamp.domain.meeting.dto.MeetingCreateRequest;
+import com.amcamp.domain.meeting.dto.request.MeetingCreateRequest;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.project.dao.ProjectParticipantRepository;
 import com.amcamp.domain.project.domain.Project;
@@ -38,17 +38,34 @@ public class MeetingService {
     public void createMeeting(MeetingCreateRequest request) {
         Member member = memberUtil.getCurrentMember();
         Sprint sprint = getValidateSprint(member, request.sprintId());
-        validateMeetingDtInSprintPeriod(sprint, request.meetingDate());
-        validateMeetingDtAndTitle(request.title(), request.meetingDate());
+        validateMeetingTime(sprint, request.meetingStart(), request.meetingEnd());
         meetingRepository.save(
-                Meeting.createMeeting(request.title(), request.meetingDate(), sprint));
+                Meeting.createMeeting(
+                        request.title(), request.meetingStart(), request.meetingEnd(), sprint));
     }
 
     // util
-    private void validateMeetingDtInSprintPeriod(Sprint sprint, LocalDateTime meetingDt) {
-        if (meetingDt.toLocalDate().isBefore(sprint.getToDoInfo().getStartDt())
-                || meetingDt.toLocalDate().isAfter(sprint.getToDoInfo().getDueDt())) {
-            throw new CommonException(MeetingErrorCode.INVALID_MEETING_DATE);
+    private void validateMeetingTime(
+            Sprint sprint, LocalDateTime meetingStart, LocalDateTime meetingEnd) {
+
+        // start,end 선후 관계 확인
+        if (meetingStart.isAfter(meetingEnd) || meetingStart.isEqual(meetingEnd)) {
+            throw new CommonException(MeetingErrorCode.INVALID_MEETING_TIME_RANGE);
+        }
+        // 8:00~00:00
+        if (meetingStart.getHour() < 8
+                || (meetingEnd.getHour() == 0 && meetingEnd.getMinute() > 0)) {
+            throw new CommonException(MeetingErrorCode.INVALID_MEETING_TIME_RANGE);
+        }
+        // 스프린트 범위 확인
+        if (meetingStart.toLocalDate().isBefore(sprint.getToDoInfo().getStartDt())
+                || meetingEnd.toLocalDate().isAfter(sprint.getToDoInfo().getDueDt())) {
+            throw new CommonException(MeetingErrorCode.MEETING_DATE_OUT_OF_SPRINT);
+        } // 기존 일정과의 중복 확인
+        if (meetingRepository
+                .findOverlappingMeeting(sprint, meetingStart, meetingEnd)
+                .isPresent()) {
+            throw new CommonException(MeetingErrorCode.MEETING_ALREADY_EXISTS);
         }
     }
 
@@ -73,12 +90,6 @@ public class MeetingService {
                         .orElseThrow(() -> new CommonException(SprintErrorCode.SPRINT_NOT_FOUND));
         validateProjectParticipant(member, sprint.getProject());
         return sprint;
-    }
-
-    private void validateMeetingDtAndTitle(String title, LocalDateTime meetingDt) {
-        if (meetingRepository.findMeetingByTitleAndMeetingDt(title, meetingDt).isPresent()) {
-            throw new CommonException(MeetingErrorCode.MEETING_ALREADY_EXISTS);
-        }
     }
 
     private Meeting getMeetingById(Long meetingId) {

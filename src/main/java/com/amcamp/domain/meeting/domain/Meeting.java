@@ -22,8 +22,11 @@ public class Meeting extends BaseTimeEntity {
     @Column(name = "meeting_title")
     private String title;
 
-    @Column(name = "meeting_date")
-    private LocalDateTime meetingDt;
+    @Column(name = "meeting_start")
+    private LocalDateTime meetingStart;
+
+    @Column(name = "meeting_end")
+    private LocalDateTime meetingEnd;
 
     @Column(name = "meeting_status")
     private MeetingStatus status;
@@ -33,17 +36,25 @@ public class Meeting extends BaseTimeEntity {
     private Sprint sprint;
 
     @Builder(access = AccessLevel.PRIVATE)
-    private Meeting(String title, LocalDateTime meetingDt, Sprint sprint, MeetingStatus status) {
+    private Meeting(
+            String title,
+            LocalDateTime meetingStart,
+            LocalDateTime meetingEnd,
+            Sprint sprint,
+            MeetingStatus status) {
         this.title = title;
-        this.meetingDt = meetingDt;
+        this.meetingStart = meetingStart;
+        this.meetingEnd = meetingEnd;
         this.sprint = sprint;
         this.status = status;
     }
 
-    public static Meeting createMeeting(String title, LocalDateTime meetingDt, Sprint sprint) {
+    public static Meeting createMeeting(
+            String title, LocalDateTime meetingStart, LocalDateTime meetingEnd, Sprint sprint) {
         return Meeting.builder()
                 .title(title)
-                .meetingDt(meetingDt)
+                .meetingStart(meetingStart)
+                .meetingEnd(meetingEnd)
                 .sprint(sprint)
                 .status(MeetingStatus.OPEN)
                 .build();
