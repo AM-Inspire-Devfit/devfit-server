@@ -2,10 +2,7 @@ package com.amcamp.domain.project.application;
 
 import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
-import com.amcamp.domain.project.dao.ProjectParticipantRepository;
-import com.amcamp.domain.project.dao.ProjectRegistrationRepository;
-import com.amcamp.domain.project.dao.ProjectRepository;
-import com.amcamp.domain.project.dao.ProjectRepositoryCustom;
+import com.amcamp.domain.project.dao.*;
 import com.amcamp.domain.project.domain.*;
 import com.amcamp.domain.project.domain.ProjectRegistration;
 import com.amcamp.domain.project.dto.request.*;
@@ -41,6 +38,7 @@ public class ProjectService {
     private final ProjectRepositoryCustom projectRepositoryCustom;
     private final MemberRepository memberRepository;
     private final ProjectRegistrationRepository projectRegistrationRepository;
+    private final ProjectRegistrationRepositoryCustom projectRegistrationRepositoryCustom;
 
     public void createProject(ProjectCreateRequest request) {
         Member member = memberUtil.getCurrentMember();
@@ -74,13 +72,13 @@ public class ProjectService {
 
     @Transactional(readOnly = true)
     public Slice<ProjectInfoResponse> getProjectListInfo(
-            Long teamId, Long lastProjectId, int pageSize, boolean isParticipating) {
+            Long teamId, Long lastProjectId, int pageSize, boolean isParticipant) {
 
         Member member = memberUtil.getCurrentMember();
         Team team = getTeam(teamId);
         TeamParticipant teamParticipant = getValidTeamParticipant(member, team);
         return projectRepositoryCustom.findAllByTeamIdWithPagination(
-                teamId, lastProjectId, pageSize, teamParticipant, isParticipating);
+                teamId, lastProjectId, pageSize, teamParticipant, isParticipant);
     }
 
     // update
@@ -155,6 +153,7 @@ public class ProjectService {
         projectRegistrationRepository.save(ProjectRegistration.createRequest(project, requester));
     }
 
+    @Transactional(readOnly = true)
     public ProjectRegistrationInfoResponse getProjectRegistration(
             Long projectId, Long registrationId) {
         Member member = memberUtil.getCurrentMember();
@@ -163,13 +162,14 @@ public class ProjectService {
         return ProjectRegistrationInfoResponse.from(getProjectRegistrationById(registrationId));
     }
 
-    public List<ProjectRegistrationInfoResponse> getProjectRegistrationList(Long projectId) {
+    @Transactional(readOnly = true)
+    public Slice<ProjectRegistrationInfoResponse> getProjectRegistrationList(
+            Long projectId, Long lastProjectId, int pageSize) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
         validateProjectAdmin(member, project);
-        return projectRegistrationRepository.findAllByProject(project).stream()
-                .map(ProjectRegistrationInfoResponse::from)
-                .collect(Collectors.toList());
+        return projectRegistrationRepositoryCustom.findAllByProjectIdWithPagination(
+                projectId, lastProjectId, pageSize);
     }
 
     public void approveProjectRegistration(Long projectId, Long registrationId) {

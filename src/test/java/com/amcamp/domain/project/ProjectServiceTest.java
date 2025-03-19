@@ -15,7 +15,6 @@ import com.amcamp.domain.project.dto.request.ProjectBasicInfoUpdateRequest;
 import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
 import com.amcamp.domain.project.dto.request.ProjectTodoInfoUpdateRequest;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
-import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectParticipantInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectRegistrationInfoResponse;
 import com.amcamp.domain.team.application.TeamService;
@@ -156,34 +155,27 @@ public class ProjectServiceTest extends IntegrationTest {
 
     @Nested
     class 프로젝트_조회 {
-//        @Test
-//        void 팀_ID로_조회하면_전체_프로젝트가_정상적으로_반환된다() {
-//            // given
-//            Long teamId = getTeamId();
-//            createTestProject(teamId, "project1", startDt, dueDt, description);
-//            // member logout 후 anotherMember 로그인
-//            logout();
-//            loginAs(member1);
-//            // 팀 참가
-//            teamService.joinTeam(teamInviteCodeRequest);
-//            // anotherMember 새 프로젝트 생성
-//            createTestProject(teamId, "project2", startDt, dueDt, description);
-//
-//            // when
-//
-//
-//            Slice<ProjectInfoResponse> foundResponse =
-//                    projectService.getProjectListInfo(teamId, null, 10);
-//            foundResponse.stream().forEach(System.out::println);
-//            System.out.println("0e");
-//
-//            foundResponse.stream()
-//                    .filter(ProjectListInfoResponse::isParticipate)
-//                    .forEach(r -> assertThat(r.projectInfo().projectTitle()).isEqualTo("project2"));
-//            foundResponse.stream()
-//                    .filter(f -> !f.isParticipate())
-//                    .forEach(r -> assertThat(r.projectInfo().projectTitle()).isEqualTo("project1"));
-//        }
+        @Test
+        void 팀_ID로_조회하면_전체_프로젝트가_정상적으로_반환된다() {
+            // given
+            Long teamId = getTeamId();
+            createTestProject(teamId, "project1", startDt, dueDt, description);
+            // member logout 후 anotherMember 로그인
+            logout();
+            loginAs(member1);
+            // 팀 참가
+            teamService.joinTeam(teamInviteCodeRequest);
+            // anotherMember 새 프로젝트 생성
+            createTestProject(teamId, "project2", startDt, dueDt, description);
+
+            // when
+            Slice<ProjectInfoResponse> responseTrue =
+                    projectService.getProjectListInfo(teamId, null, 10, true);
+            Slice<ProjectInfoResponse> responseFalse =
+                    projectService.getProjectListInfo(teamId, null, 10, false);
+            assertThat(responseTrue.getContent().get(0).projectTitle()).isEqualTo("project2");
+            assertThat(responseFalse.getContent().get(0).projectTitle()).isEqualTo("project1");
+        }
 
         @Test
         void 프로젝트를_ID로_조회하면_정상적으로_반환된다() {
@@ -451,10 +443,11 @@ public class ProjectServiceTest extends IntegrationTest {
             // then
             logout();
             loginAs(memberAdmin);
+            Slice<ProjectRegistrationInfoResponse> response =
+                    projectService.getProjectRegistrationList(1L, null, 10);
+
             List<Long> requesterIds =
-                    projectService.getProjectRegistrationList(1L).stream()
-                            .map(ProjectRegistrationInfoResponse::requesterId)
-                            .toList();
+                    response.stream().map(ProjectRegistrationInfoResponse::requesterId).toList();
 
             assertThat(new HashSet<>(requesterIds))
                     .isEqualTo(Set.of(teamParticipant1.getId(), teamParticipant2.getId()));
@@ -621,7 +614,8 @@ public class ProjectServiceTest extends IntegrationTest {
             logout();
 
             loginAs(memberAdmin);
-            projectService.getProjectRegistrationList(1L).stream()
+
+            projectService.getProjectRegistrationList(1L, null, 10).stream()
                     .map(ProjectRegistrationInfoResponse::registrationId)
                     .forEach(i -> projectService.approveProjectRegistration(1L, i));
 
