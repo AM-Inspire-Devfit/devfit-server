@@ -1,7 +1,8 @@
 package com.amcamp.domain.project.dao;
 
-import com.amcamp.domain.project.domain.QProject;
-import com.amcamp.domain.project.domain.QProjectParticipant;
+import static com.amcamp.domain.project.domain.QProject.project;
+import static com.amcamp.domain.project.domain.QProjectParticipant.projectParticipant;
+
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
 import com.amcamp.domain.team.domain.TeamParticipant;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -12,14 +13,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
-import org.springframework.stereotype.Repository;
 
-@Repository
 @RequiredArgsConstructor
 public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
-    private final JPAQueryFactory queryFactory;
-    private final QProject qProject = QProject.project;
-    private final QProjectParticipant qProjectParticipant = QProjectParticipant.projectParticipant;
+
+    private final JPAQueryFactory jpaQueryFactory;
 
     @Override
     public Slice<ProjectInfoResponse> findAllByTeamIdWithPagination(
@@ -30,22 +28,22 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
             boolean isParticipant) {
 
         List<ProjectInfoResponse> responses =
-                queryFactory
-                        .select(qProject)
-                        .from(qProject)
-                        .leftJoin(qProjectParticipant)
+                jpaQueryFactory
+                        .select(project)
+                        .from(project)
+                        .leftJoin(projectParticipant)
                         .on(
-                                qProjectParticipant
+                                projectParticipant
                                         .project
-                                        .eq(qProject)
+                                        .eq(project)
                                         .and(
-                                                qProjectParticipant.teamParticipant.eq(
+                                                projectParticipant.teamParticipant.eq(
                                                         teamParticipant)))
                         .where(
-                                qProject.team.id.eq(teamId),
+                                project.team.id.eq(teamId),
                                 lastProjectCondition(lastProjectId),
                                 participantCondition(isParticipant, teamParticipant))
-                        .orderBy(qProject.id.desc())
+                        .orderBy(project.id.desc())
                         .limit(pageSize + 1)
                         .fetch()
                         .stream()
@@ -58,14 +56,14 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
     private BooleanExpression participantCondition(
             boolean isParticipant, TeamParticipant teamParticipant) {
         if (isParticipant) {
-            return qProjectParticipant.teamParticipant.eq(teamParticipant);
+            return projectParticipant.teamParticipant.eq(teamParticipant);
         } else {
-            return qProjectParticipant.teamParticipant.isNull();
+            return projectParticipant.teamParticipant.isNull();
         }
     }
 
     private BooleanExpression lastProjectCondition(Long projectId) {
-        return (projectId == null) ? null : qProject.id.lt(projectId);
+        return (projectId == null) ? null : project.id.lt(projectId);
     }
 
     private Slice<ProjectInfoResponse> checkLastPage(

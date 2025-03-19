@@ -1,7 +1,8 @@
 package com.amcamp.domain.project.dao;
 
-import com.amcamp.domain.project.domain.QProject;
-import com.amcamp.domain.project.domain.QProjectRegistration;
+import static com.amcamp.domain.project.domain.QProject.project;
+import static com.amcamp.domain.project.domain.QProjectRegistration.projectRegistration;
+
 import com.amcamp.domain.project.dto.response.ProjectRegistrationInfoResponse;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -14,23 +15,21 @@ import org.springframework.data.domain.SliceImpl;
 
 @RequiredArgsConstructor
 public class ProjectRegistrationRepositoryImpl implements ProjectRegistrationRepositoryCustom {
-    private final JPAQueryFactory queryFactory;
-    private final QProject qProject = QProject.project;
-    private final QProjectRegistration qProjectRegistration =
-            QProjectRegistration.projectRegistration;
+
+    private final JPAQueryFactory jpaQueryFactory;
 
     @Override
     public Slice<ProjectRegistrationInfoResponse> findAllByProjectIdWithPagination(
             Long teamId, Long lastProjectId, int pageSize) {
 
         List<ProjectRegistrationInfoResponse> responses =
-                queryFactory
-                        .select(qProjectRegistration)
-                        .from(qProjectRegistration)
-                        .leftJoin(qProject)
-                        .on(qProjectRegistration.project.eq(qProject))
-                        .where(qProject.team.id.eq(teamId), lastProjectCondition(lastProjectId))
-                        .orderBy(qProject.id.desc())
+                jpaQueryFactory
+                        .select(projectRegistration)
+                        .from(projectRegistration)
+                        .leftJoin(project)
+                        .on(projectRegistration.project.eq(project))
+                        .where(project.team.id.eq(teamId), lastProjectCondition(lastProjectId))
+                        .orderBy(project.id.desc())
                         .limit(pageSize + 1)
                         .fetch()
                         .stream()
@@ -41,7 +40,7 @@ public class ProjectRegistrationRepositoryImpl implements ProjectRegistrationRep
     }
 
     private BooleanExpression lastProjectCondition(Long projectId) {
-        return (projectId == null) ? null : qProject.id.lt(projectId);
+        return (projectId == null) ? null : project.id.lt(projectId);
     }
 
     private Slice<ProjectRegistrationInfoResponse> checkLastPage(
