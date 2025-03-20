@@ -38,22 +38,15 @@ public class ToDoInfo {
         return ToDoInfo.builder().startDt(now).dueDt(dueDt).toDoStatus(ToDoStatus.ON_GOING).build();
     }
 
-    public void updateToDoInfo(LocalDate startDt, LocalDate dueDt, ToDoStatus status) {
-        if (startDt != null) {
-            validateDates(startDt, this.dueDt);
-            this.startDt = startDt;
-        }
+    public void updateToDoInfo(LocalDate dueDt, ToDoStatus status) {
         if (dueDt != null) {
-            validateDates(this.startDt, dueDt);
+            if (dueDt.isBefore(this.startDt)) {
+                throw new CommonException(GlobalErrorCode.INVALID_DATE_ERROR);
+            }
             this.dueDt = dueDt;
         }
-        if (status != null) this.toDoStatus = status;
-    }
-
-    private static void validateDates(LocalDate startDt, LocalDate dueDt) {
-        if (startDt == null || dueDt == null) return;
-        if (startDt.isAfter(dueDt) || startDt.isBefore(LocalDate.now())) {
-            throw new CommonException(GlobalErrorCode.INVALID_DATE_ERROR);
+        if (status != null) {
+            this.toDoStatus = status;
         }
     }
 }

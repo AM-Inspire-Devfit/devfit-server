@@ -61,4 +61,8 @@ public class Project extends BaseTimeEntity {
         this.title = (title != null) ? title : this.title;
         this.description = (description != null) ? description : this.description;
     }
+
+    public void updateToDo(LocalDate dueDt, ToDoStatus status) {
+        toDoInfo.updateToDoInfo(dueDt, status);
+    }
 }

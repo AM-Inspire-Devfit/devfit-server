@@ -90,8 +90,8 @@ public class ProjectService {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
         getValidProjectParticipant(member, project);
-        project.getToDoInfo()
-                .updateToDoInfo(request.startDt(), request.DueDt(), request.toDoStatus());
+
+        project.updateToDo(request.DueDt(), request.toDoStatus());
     }
 
     // delete

@@ -62,7 +62,7 @@ public class ProjectController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "프로젝트 시작/마감기한/진행상태 업데이트", description = "프로젝트 시작/마감기한/진행상태를 수정합니다")
+    @Operation(summary = "프로젝트 마감기한/진행상태 업데이트", description = "프로젝트 마감기한/진행상태를 수정합니다")
     @PatchMapping("/{projectId}/todo-info")
     public ResponseEntity<Void> projectTodoInfoUpdate(
             @PathVariable Long projectId,
