@@ -179,7 +179,7 @@ public class SprintServiceTest extends IntegrationTest {
             sprintRepository.save(
                     Sprint.createSprint(project, "testTitle", "testDescription", dueDt));
             SprintToDoUpdateRequest request =
-                    new SprintToDoUpdateRequest(LocalDate.of(2024, 2, 28), null);
+                    new SprintToDoUpdateRequest(LocalDate.of(2030, 1, 1), null);
 
             // when
             assertThatThrownBy(() -> sprintService.updateSprintToDoInfo(1L, request))
