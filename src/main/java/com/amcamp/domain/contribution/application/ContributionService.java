@@ -37,7 +37,7 @@ public class ContributionService {
     private final TeamParticipantRepository teamParticipantRepository;
     private final ProjectParticipantRepository projectParticipantRepository;
 
-    public BasicContributionInfoResponse getContributionByMember(Long projectId) {
+    public BasicContributionInfoResponse getContributionByMember(Long projectId, Long sprintId) {
         Member member = memberUtil.getCurrentMember();
         Project project =
                 projectRepository
@@ -46,8 +46,7 @@ public class ContributionService {
 
         ProjectParticipant currentParticipant =
                 validateProjectParticipant(project, project.getTeam(), member);
-        Sprint sprint =
-                validateSprint(currentParticipant.getProject()); // 해당프로젝트의 가장 마지막으로 생성된 스프린트 불러오기
+        Sprint sprint = validateSprint(sprintId);
         Contribution contribution = validateContribution(sprint, currentParticipant);
         return BasicContributionInfoResponse.from(contribution);
     }
@@ -94,12 +93,6 @@ public class ContributionService {
     private Sprint validateSprint(Long sprintId) {
         return sprintRepository
                 .findById(sprintId)
-                .orElseThrow(() -> new CommonException(SprintErrorCode.SPRINT_NOT_FOUND));
-    }
-
-    private Sprint validateSprint(Project project) {
-        return sprintRepository
-                .findTopByProjectOrderByCreatedDtDesc(project)
                 .orElseThrow(() -> new CommonException(SprintErrorCode.SPRINT_NOT_FOUND));
     }
 
