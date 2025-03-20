@@ -11,6 +11,7 @@ import com.amcamp.domain.meeting.domain.MeetingStatus;
 import com.amcamp.domain.meeting.dto.request.MeetingCreateRequest;
 import com.amcamp.domain.meeting.dto.request.MeetingDtUpdateRequest;
 import com.amcamp.domain.meeting.dto.request.MeetingTitleUpdateRequest;
+import com.amcamp.domain.meeting.dto.response.MeetingInfoResponse;
 import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.domain.OauthInfo;
@@ -32,11 +33,15 @@ import com.amcamp.global.exception.errorcode.MeetingErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Slice;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -123,6 +128,16 @@ public class MeetingServiceTest extends IntegrationTest {
     }
 
     void createTestMeeting(Long sprintId, LocalDateTime meetingStart, LocalDateTime meetingEnd) {
+        MeetingCreateRequest request =
+                new MeetingCreateRequest(sprintId, meetingTitle, meetingStart, meetingEnd);
+        meetingService.createMeeting(request);
+    }
+
+    void createTestMeeting(
+            Long sprintId,
+            String meetingTitle,
+            LocalDateTime meetingStart,
+            LocalDateTime meetingEnd) {
         MeetingCreateRequest request =
                 new MeetingCreateRequest(sprintId, meetingTitle, meetingStart, meetingEnd);
         meetingService.createMeeting(request);
@@ -380,6 +395,63 @@ public class MeetingServiceTest extends IntegrationTest {
             assertThatThrownBy(() -> meetingService.getMeeting(1L))
                     .isInstanceOf(CommonException.class)
                     .hasMessageContaining(MeetingErrorCode.MEETING_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        void 미팅이_존재하지않으면_삭제중_오류가_발생한다() {
+
+            assertThatThrownBy(() -> meetingService.deleteMeeting(1L))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(MeetingErrorCode.MEETING_NOT_FOUND.getMessage());
+        }
+    }
+
+    @Nested
+    class 미팅_조회 {
+        @Test
+        void 미팅아이디로_미팅을_조회하면_정상적으로_조회된다() {
+            createTestMeeting(1L);
+            // when
+            MeetingInfoResponse response = meetingService.getMeeting(1L);
+            // then
+            assertThat(response)
+                    .extracting("meetingTitle", "meetingStart", "meetingEnd")
+                    .containsExactlyInAnyOrder(meetingTitle, meetingStart, meetingEnd);
+        }
+
+        @Test
+        void 미팅ID가_유효하지_않으면_예외가_발생한다() {
+            // given
+            createTestMeeting(1L);
+            Long invalidMeetingId = Long.MAX_VALUE;
+            // then
+            assertThatThrownBy(() -> meetingService.getMeeting(invalidMeetingId))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(MeetingErrorCode.MEETING_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        void 스프린트ID로_조회하면_전체미팅목록이_정상적으로_조회된다() {
+            // given
+            String title1 = "title1";
+            LocalDateTime start1 = LocalDateTime.of(2026, 3, 15, 17, 0);
+            LocalDateTime end1 = LocalDateTime.of(2026, 3, 15, 18, 0);
+            String title2 = "title2";
+            LocalDateTime start2 = LocalDateTime.of(2026, 3, 16, 17, 0);
+            LocalDateTime end2 = LocalDateTime.of(2026, 3, 16, 18, 0);
+            String title3 = "title3";
+            LocalDateTime start3 = LocalDateTime.of(2026, 3, 17, 17, 0);
+            LocalDateTime end3 = LocalDateTime.of(2026, 3, 17, 18, 0);
+
+            createTestMeeting(1L, title1, start1, end1);
+            createTestMeeting(1L, title2, start2, end2);
+            createTestMeeting(1L, title3, start3, end3);
+            // when, then
+            Slice<MeetingInfoResponse> response = meetingService.getMeetingList(1L, null, 10);
+
+            List<String> titles = response.stream().map(MeetingInfoResponse::meetingTitle).toList();
+
+            assertThat(new HashSet<>(titles)).isEqualTo(Set.of(title1, title2, title3));
         }
     }
 }

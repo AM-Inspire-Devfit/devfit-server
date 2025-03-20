@@ -1,7 +1,6 @@
 package com.amcamp.domain.meeting.dao;
 
 import static com.amcamp.domain.meeting.domain.QMeeting.meeting;
-import static com.amcamp.domain.project.domain.QProjectRegistration.projectRegistration;
 import static com.amcamp.domain.sprint.domain.QSprint.sprint;
 
 import com.amcamp.domain.meeting.dto.response.MeetingInfoResponse;
@@ -34,7 +33,7 @@ public class MeetingRepositoryImpl implements MeetingRepositoryCustom {
                         .leftJoin(sprint)
                         .on(meeting.sprint.eq(sprint))
                         .where(meeting.sprint.id.eq(sprintId), lastMeetingCondition(lastMeetingId))
-                        .orderBy(projectRegistration.id.desc())
+                        .orderBy(meeting.id.desc())
                         .limit(pageSize + 1)
                         .fetch();
 
