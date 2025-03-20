@@ -7,6 +7,7 @@ import com.amcamp.IntegrationTest;
 import com.amcamp.domain.feedback.dao.FeedbackRepository;
 import com.amcamp.domain.feedback.domain.Feedback;
 import com.amcamp.domain.feedback.dto.request.FeedbackSendRequest;
+import com.amcamp.domain.feedback.dto.response.FeedbackInfoResponse;
 import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.domain.OauthInfo;
@@ -24,6 +25,7 @@ import com.amcamp.domain.team.domain.TeamParticipant;
 import com.amcamp.domain.team.domain.TeamParticipantRole;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.FeedbackErrorCode;
+import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.SprintErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
 import java.time.LocalDate;
@@ -31,6 +33,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Slice;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -56,7 +59,9 @@ public class FeedbackServiceTest extends IntegrationTest {
     private ProjectParticipant receiver;
     private ProjectParticipant anotherReceiver;
     private Sprint sprint;
+    private Sprint anotherSprint;
     private Project project;
+    private Project anotherProject;
 
     @BeforeEach
     void setUp() {
@@ -73,12 +78,8 @@ public class FeedbackServiceTest extends IntegrationTest {
                                 "testReceiverProfileImageUrl",
                                 OauthInfo.createOauthInfo("testOauthId", "testOauthProvider")));
 
-        UserDetails userDetails =
-                new PrincipalDetails(senderMember.getId(), senderMember.getRole());
-        UsernamePasswordAuthenticationToken token =
-                new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(token);
+        // 초기에 로그인한 사용자를 sender로 설정
+        setAuthenticatedUser(senderMember);
 
         Team team = teamRepository.save(Team.createTeam("testName", "testDescription"));
 
@@ -95,7 +96,7 @@ public class FeedbackServiceTest extends IntegrationTest {
                 projectRepository.save(
                         Project.createProject(
                                 team, "testTitle", "testDescription", startDt, dueDt));
-        Project anotherProject =
+        anotherProject =
                 projectRepository.save(
                         Project.createProject(
                                 team, "testTitle", "testDescription", startDt, dueDt));
@@ -114,8 +115,8 @@ public class FeedbackServiceTest extends IntegrationTest {
                         ProjectParticipant.createProjectParticipant(
                                 teamParticipantUser,
                                 project,
-                                senderMember.getNickname(),
-                                senderMember.getProfileImageUrl(),
+                                receiverMember.getNickname(),
+                                receiverMember.getProfileImageUrl(),
                                 ProjectParticipantRole.MEMBER));
 
         anotherReceiver =
@@ -130,6 +131,15 @@ public class FeedbackServiceTest extends IntegrationTest {
         sprint =
                 sprintRepository.save(
                         Sprint.createSprint(project, "testSprint", "testGoal", startDt, dueDt));
+
+        anotherSprint =
+                sprintRepository.save(
+                        Sprint.createSprint(
+                                anotherProject,
+                                "testAnotherSprint",
+                                "testAnotherGoal",
+                                startDt,
+                                dueDt));
     }
 
     @Nested
@@ -238,5 +248,100 @@ public class FeedbackServiceTest extends IntegrationTest {
                     .isInstanceOf(CommonException.class)
                     .hasMessage(FeedbackErrorCode.FEEDBACK_DUE_DATE_ONLY.getMessage());
         }
+    }
+
+    @Nested
+    class 피드백_메시지를_조회할_때 {
+
+        @BeforeEach
+        void 피드백_메시지_조회를_위해_로그인한_사용자를_receiver로_변경한다() {
+            setAuthenticatedUser(receiver.getTeamParticipant().getMember());
+        }
+
+        @Test
+        void 받은_피드백_메시지가_있다면_성공한다() {
+            // given
+            feedbackRepository.save(
+                    Feedback.createFeedback(sender, receiver, sprint, feedbackMessage));
+
+            // when
+            Slice<FeedbackInfoResponse> result =
+                    feedbackService.findSprintFeedbacksByParticipant(
+                            project.getId(), sprint.getId(), null, 1);
+
+            // then
+            assertThat(result).isNotNull();
+            assertThat(result.getContent().size()).isEqualTo(1);
+            assertThat(result.getContent().get(0).message()).isEqualTo("이번 스프린트에서 아주 잘해주셨습니다.");
+        }
+
+        @Test
+        void 요청한_프로젝트가_로그인된_사용자가_참여한_프로젝트가_아니라면_예외가_발생한다() {
+            // given
+
+            // sender는 project(1)에만 참여 중이고,
+            // receiver는 project(1)와 anotherProject(2) 둘 다 참여 중이므로
+            // 검증을 명확히 하기 위해 로그인한 사용자를 sender로 변경
+            setAuthenticatedUser(sender.getTeamParticipant().getMember());
+
+            // when & then
+            assertThatThrownBy(
+                            () ->
+                                    feedbackService.findSprintFeedbacksByParticipant(
+                                            anotherProject.getId(), sprint.getId(), null, 1))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED.getMessage());
+        }
+
+        @Test
+        void 참여_중인_프로젝트_스프린트가_아닌_스프린트_ID로_요청하는_경우_예외가_발생한다() {
+            // when & then
+            assertThatThrownBy(
+                            () ->
+                                    feedbackService.findSprintFeedbacksByParticipant(
+                                            project.getId(), anotherSprint.getId(), null, 1))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(ProjectErrorCode.PROJECT_SPRINT_MISMATCH.getMessage());
+        }
+
+        @Test
+        void 해당_스프린트에서_받은_피드백_메시지가_없는_경우_예외가_발생한다() {
+            // when & then
+            assertThatThrownBy(
+                            () ->
+                                    feedbackService.findSprintFeedbacksByParticipant(
+                                            project.getId(), sprint.getId(), null, 1))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(FeedbackErrorCode.FEEDBACK_NOT_EXISTS.getMessage());
+        }
+
+        @Test
+        void 프로젝트가_존재하지_않는_경우_예외가_발생한다() {
+            // when & then
+            assertThatThrownBy(
+                            () ->
+                                    feedbackService.findSprintFeedbacksByParticipant(
+                                            999L, sprint.getId(), null, 1))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(ProjectErrorCode.PROJECT_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        void 스프린트가_존재하지_않는_경우_예외가_발생한다() {
+            assertThatThrownBy(
+                            () ->
+                                    feedbackService.findSprintFeedbacksByParticipant(
+                                            project.getId(), 999L, null, 1))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(SprintErrorCode.SPRINT_NOT_FOUND.getMessage());
+        }
+    }
+
+    private void setAuthenticatedUser(Member member) {
+        UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());
+        UsernamePasswordAuthenticationToken token =
+                new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(token);
     }
 }
