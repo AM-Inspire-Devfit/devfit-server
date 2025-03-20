@@ -50,7 +50,7 @@ public class ContributionService {
         validateProjectSprintMismatch(project, sprint);
 
         Contribution contribution = validateContribution(sprint, currentParticipant);
-        return BasicContributionInfoResponse.from(contribution);
+        return BasicContributionInfoResponse.of(contribution, contribution.getScore());
     }
 
     public List<ContributionInfoResponse> getContributionBySprint(Long sprintId) {
@@ -64,7 +64,7 @@ public class ContributionService {
 
         List<ContributionInfoResponse> result = new ArrayList<>();
         for (Contribution contribution : contributionList) {
-            result.add(ContributionInfoResponse.from(contribution));
+            result.add(ContributionInfoResponse.of(contribution, contribution.getScore()));
         }
 
         return result;

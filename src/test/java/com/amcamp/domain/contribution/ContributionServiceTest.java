@@ -163,10 +163,10 @@ public class ContributionServiceTest extends IntegrationTest {
         taskService.assignTask(3L);
         taskService.assignTask(9L);
 
-        taskService.updateTaskToDoInfo(1L);
-        taskService.updateTaskToDoInfo(2L);
-        taskService.updateTaskToDoInfo(3L);
-        taskService.updateTaskToDoInfo(9L);
+        taskService.updateTaskStatus(1L);
+        taskService.updateTaskStatus(2L);
+        taskService.updateTaskStatus(3L);
+        taskService.updateTaskStatus(9L);
     }
 
     @Nested
@@ -230,7 +230,7 @@ public class ContributionServiceTest extends IntegrationTest {
             BasicContributionInfoResponse basicContributionInfoResponse =
                     contributionService.getContributionByMember(1L, 1L);
             assertThat(basicContributionInfoResponse.memberId()).isEqualTo(member.getId());
-            assertThat(basicContributionInfoResponse.score()).isEqualTo(61.0);
+            assertThat(basicContributionInfoResponse.score()).isEqualTo(61);
         }
     }
 
@@ -276,7 +276,7 @@ public class ContributionServiceTest extends IntegrationTest {
             List<ContributionInfoResponse> contributionInfoResponse =
                     contributionService.getContributionBySprint(1L);
             assertThat(contributionInfoResponse.get(0).memberId()).isEqualTo(member.getId());
-            assertThat(contributionInfoResponse.get(0).score()).isEqualTo(61.0);
+            assertThat(contributionInfoResponse.get(0).score()).isEqualTo(61);
         }
     }
 }
