@@ -75,10 +75,9 @@ public class SprintService {
         validateProjectParticipant(
                 sprint.getProject(), sprint.getProject().getTeam(), currentMember);
 
-        //        validateDate(request.startDt(), request.dueDt(),
-        // sprint.getProject().getToDoInfo());
+        validateSprintDueDate(request.dueDt(), sprint.getProject().getToDoInfo().getDueDt());
 
-        sprint.updateSprintToDo(request.startDt(), request.dueDt(), request.status());
+        sprint.updateSprintToDo(request.dueDt(), request.status());
 
         return SprintInfoResponse.from(sprint);
     }

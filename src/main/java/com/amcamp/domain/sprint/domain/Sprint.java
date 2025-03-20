@@ -73,8 +73,8 @@ public class Sprint extends BaseTimeEntity {
         if (goal != null) this.goal = goal;
     }
 
-    public void updateSprintToDo(LocalDate startDt, LocalDate dueDt, ToDoStatus status) {
-        toDoInfo.updateToDoInfo(startDt, dueDt, status);
+    public void updateSprintToDo(LocalDate dueDt, ToDoStatus status) {
+        toDoInfo.updateToDoInfo(dueDt, status);
     }
 
     public void updateSprintTitle(String title) {
