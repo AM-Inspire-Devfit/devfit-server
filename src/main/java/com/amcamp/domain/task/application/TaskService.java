@@ -74,7 +74,7 @@ public class TaskService {
 
         validateProjectParticipant(project, project.getTeam(), currentMember);
         validateTaskModify(currentMember, task);
-        task.updateTaskTodoInfo();
+        task.updateTaskStatus();
 
         return findProjectParticipantMember(task) != null
                 ? TaskInfoResponse.from(task, findProjectParticipantMember(task))
@@ -148,56 +148,6 @@ public class TaskService {
         return taskRepository.findBySprintAndAssignee(
                 sprintId, projectParticipant, lastTaskId, size);
     }
-
-    //    @Transactional(readOnly = true)
-    //    public List<TaskInfoResponse> getTasksBySprint(Long sprintId) {
-    //        final Member currentMember = memberUtil.getCurrentMember();
-    //        final Sprint sprint = findBySprintId(sprintId);
-    //        final Project project = sprint.getProject();
-    //        validateTeamParticipant(project.getTeam(), currentMember);
-    //
-    //        List<TaskInfoResponse> result = new ArrayList<>();
-    //        List<Task> taskList = taskRepository.findBySprintId(sprintId);
-    //        for (Task task : taskList) {
-    //            TaskInfoResponse t;
-    //            if (task.getAssignee() != null && task.getAssignedStatus() ==
-    // AssignedStatus.ASSIGNED) {
-    //                t =
-    //                        TaskInfoResponse.from(
-    //                                task, task.getAssignee().getTeamParticipant().getMember());
-    //            } else {
-    //                t = TaskInfoResponse.from(task);
-    //            }
-    //            result.add(t);
-    //        }
-    //        return result;
-    //    }
-
-    //    @Transactional(readOnly = true)
-    //    public List<TaskInfoResponse> getTasksByMember(Long sprintId) {
-    //        final Member currentMember = memberUtil.getCurrentMember();
-    //        final Sprint sprint = findBySprintId(sprintId);
-    //        final Project project = sprint.getProject();
-    //        ProjectParticipant projectParticipant =
-    //                validateProjectParticipant(project, project.getTeam(), currentMember);
-    //
-    //        List<TaskInfoResponse> result = new ArrayList<>();
-    //        List<Task> taskList =
-    //                taskRepository.findBySprintIdAndAssignee(sprintId, projectParticipant);
-    //        for (Task task : taskList) {
-    //            TaskInfoResponse t;
-    //            if (task.getAssignee() != null && task.getAssignedStatus() ==
-    // AssignedStatus.ASSIGNED) {
-    //                t =
-    //                        TaskInfoResponse.from(
-    //                                task, task.getAssignee().getTeamParticipant().getMember());
-    //            } else {
-    //                t = TaskInfoResponse.from(task);
-    //            }
-    //            result.add(t);
-    //        }
-    //        return result;
-    //    }
 
     private void validateTaskNotAssignedForSos(Task task) {
         if (task.getAssignedStatus() == AssignedStatus.NOT_ASSIGNED) {

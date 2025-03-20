@@ -9,16 +9,12 @@ import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.domain.OauthInfo;
 import com.amcamp.domain.project.application.ProjectService;
-import com.amcamp.domain.project.domain.ToDoStatus;
 import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
 import com.amcamp.domain.sprint.application.SprintService;
 import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
 import com.amcamp.domain.task.application.TaskService;
 import com.amcamp.domain.task.dao.TaskRepository;
-import com.amcamp.domain.task.domain.AssignedStatus;
-import com.amcamp.domain.task.domain.SOSStatus;
-import com.amcamp.domain.task.domain.Task;
-import com.amcamp.domain.task.domain.TaskDifficulty;
+import com.amcamp.domain.task.domain.*;
 import com.amcamp.domain.task.dto.request.TaskBasicInfoUpdateRequest;
 import com.amcamp.domain.task.dto.request.TaskCreateRequest;
 import com.amcamp.domain.task.dto.response.TaskInfoResponse;
@@ -171,13 +167,13 @@ public class TaskServiceTest extends IntegrationTest {
             assertThat(response.description()).isEqualTo(taskBasicInfoUpdateRequest.description());
             assertThat(response.taskDifficulty())
                     .isEqualTo(taskBasicInfoUpdateRequest.taskDifficulty());
-            assertThat(response.toDoStatus()).isEqualTo(ToDoStatus.ON_GOING);
+            assertThat(response.taskStatus()).isEqualTo(TaskStatus.ON_GOING);
             assertThat(response.assignedStatus()).isEqualTo(AssignedStatus.ASSIGNED);
             //			assertThat(response.projectNickname()).isEqualTo(member.getNickname());
 
             // when & then - finished
             response = taskService.updateTaskToDoInfo(1L);
-            assertThat(response.toDoStatus()).isEqualTo(ToDoStatus.COMPLETED);
+            assertThat(response.taskStatus()).isEqualTo(TaskStatus.COMPLETED);
 
             // when - delete
             taskService.deleteTask(1L);

@@ -59,19 +59,6 @@ public class TaskController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    //    @Operation(summary = "태스크 목록 조회", description = "태스크를 스프린트 아이디값에 따라 불러 옵니다.")
-    //    @GetMapping("/{sprintId}/sprint")
-    //    public List<TaskInfoResponse> taskList(@PathVariable Long sprintId) {
-    //        return taskService.getTasksBySprint(sprintId);
-    //    }
-    //
-    //    @Operation(
-    //            summary = "마이 페이지 내 스프린트별 태스크 조회",
-    //            description = "멤버에 할당된 태스크를 스프린트 아이디값에 따라 불러 옵니다.")
-    //    @GetMapping("/{sprintId}/me")
-    //    public List<TaskInfoResponse> taskListByMember(@PathVariable Long sprintId) {
-    //        return taskService.getTasksByMember(sprintId);
-    //    }
     @Operation(summary = "태스크 목록 조회", description = "태스크를 스프린트 아이디값에 따라 불러 옵니다.")
     @GetMapping("/{sprintId}/sprint")
     public Slice<TaskInfoResponse> taskList(
