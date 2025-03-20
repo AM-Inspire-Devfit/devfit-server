@@ -1,6 +1,7 @@
 package com.amcamp.domain.sprint.domain;
 
 import com.amcamp.domain.common.model.BaseTimeEntity;
+import com.amcamp.domain.meeting.domain.Meeting;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ToDoInfo;
 import com.amcamp.domain.project.domain.ToDoStatus;
@@ -36,6 +37,10 @@ public class Sprint extends BaseTimeEntity {
     // Task
     @OneToMany(mappedBy = "sprint", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Task> tasks = new ArrayList<>();
+
+    // Meeting
+    @OneToMany(mappedBy = "sprint", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Meeting> meetings = new ArrayList<>();
 
     // 기여도
     @OneToMany(mappedBy = "sprint", cascade = CascadeType.ALL, orphanRemoval = true)
