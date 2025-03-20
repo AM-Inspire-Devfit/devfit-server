@@ -30,11 +30,9 @@ import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.dao.TeamRepository;
 import com.amcamp.domain.team.domain.Team;
 import com.amcamp.domain.team.domain.TeamParticipant;
-import com.amcamp.domain.team.dto.request.TeamCreateRequest;
+import com.amcamp.domain.team.domain.TeamParticipantRole;
 import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
 import com.amcamp.domain.team.dto.response.TeamInviteCodeResponse;
-
-import com.amcamp.domain.team.domain.TeamParticipantRole;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.*;
 import com.amcamp.global.security.PrincipalDetails;
@@ -58,7 +56,7 @@ public class TaskServiceTest extends IntegrationTest {
     @Autowired private ProjectService projectService;
     @Autowired private ProjectRepository projectRepository;
     @Autowired private SprintService sprintService;
-	@Autowired private TeamService teamService;
+    @Autowired private TeamService teamService;
     @Autowired private TaskService taskService;
     @Autowired private TaskRepository taskRepository;
     @Autowired private SprintRepository sprintRepository;
@@ -175,12 +173,17 @@ public class TaskServiceTest extends IntegrationTest {
     @Nested
     class 태스크_수정_시 {
         @Test
+        @Transactional
         void 수정_권한이_없으면_예외처리() {
-            Member member = memberUtil.getCurrentMember();
             TaskCreateRequest taskRequest =
                     new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID);
             taskService.createTask(taskRequest);
             taskService.assignTask(1L);
+
+            Task task =
+                    taskRepository
+                            .findById(1L)
+                            .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
 
             loginAs(newMember);
 
@@ -297,7 +300,7 @@ public class TaskServiceTest extends IntegrationTest {
                                             new CommonException(
                                                     ContributionErrorCode.CONTRIBUTION_NOT_FOUND));
 
-            assertThat(contribution.getScore()).isEqualTo(33);
+            assertThat(contribution.getScore()).isEqualTo(33.333333333333336);
 
             Task task =
                     taskRepository
@@ -305,7 +308,7 @@ public class TaskServiceTest extends IntegrationTest {
                             .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
 
             assertThat(task.getTaskStatus()).isEqualTo(TaskStatus.COMPLETED);
-            assertThat(sprint.getProgress()).isEqualTo(33);
+            assertThat(sprint.getProgress()).isEqualTo(33.333333333333336);
 
             // when & then # of completed Task is 3
             taskService.assignTask(2L);
@@ -313,8 +316,8 @@ public class TaskServiceTest extends IntegrationTest {
             taskService.assignTask(3L);
             taskService.updateTaskStatus(3L);
 
-            assertThat(sprint.getProgress()).isEqualTo(100);
-            assertThat(contribution.getScore()).isEqualTo(100);
+            assertThat(sprint.getProgress()).isEqualTo(100.0);
+            assertThat(contribution.getScore()).isEqualTo(100.0);
         }
     }
 
