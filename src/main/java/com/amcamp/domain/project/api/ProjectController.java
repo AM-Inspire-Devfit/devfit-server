@@ -3,7 +3,6 @@ package com.amcamp.domain.project.api;
 import com.amcamp.domain.project.application.ProjectService;
 import com.amcamp.domain.project.dto.request.*;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
-import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectParticipantInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectRegistrationInfoResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,19 +34,22 @@ public class ProjectController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    // read
-    @Operation(summary = "프로젝트 조회", description = "프로젝트 ID를 통해 프로젝트 정보를 조회합니다.")
-    @GetMapping("/{projectId}")
-    public ProjectInfoResponse projectInfo(@PathVariable Long projectId) {
-        return projectService.getProjectInfo(projectId);
-    }
-
     @Operation(
             summary = "전체 프로젝트 목록 조회",
             description = "팀 ID를 통해 사용자가 참여 중인 프로젝트와 참여 중이지 않은 프로젝트를 나누어 조회합니다.")
     @GetMapping("/{teamId}/list")
-    public List<ProjectListInfoResponse> projectListInfo(@PathVariable Long teamId) {
-        return projectService.getProjectListInfo(teamId);
+    public Slice<ProjectInfoResponse> projectListInfo(
+            @PathVariable Long teamId,
+            @RequestParam boolean isParticipant,
+            @RequestParam(required = false) Long lastProjectId,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        return projectService.getProjectListInfo(teamId, lastProjectId, pageSize, isParticipant);
+    }
+
+    @Operation(summary = "프로젝트 조회", description = "프로젝트 ID를 통해 프로젝트 정보를 조회합니다.")
+    @GetMapping("/{projectId}")
+    public ProjectInfoResponse projectInfo(@PathVariable Long projectId) {
+        return projectService.getProjectInfo(projectId);
     }
 
     // update
@@ -84,18 +87,20 @@ public class ProjectController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "프로젝트 가입 신청 조회", description = "프로젝트 가입 신청 정보를 조회합니다.")
-    @GetMapping("/{projectId}/registration")
-    public List<ProjectRegistrationInfoResponse> projectRegistrationGet(
-            @PathVariable Long projectId) {
-        return projectService.getProjectRegistrationList(projectId);
-    }
+    //    @Operation(summary = "프로젝트 가입 신청 조회", description = "프로젝트 가입 신청 정보를 조회합니다.")
+    //    @GetMapping("/{projectId}/registration")
+    //    public List<ProjectRegistrationInfoResponse> projectRegistrationGet(
+    //            @PathVariable Long projectId) {
+    //        return projectService.getProjectRegistration(projectId);
+    //    }
 
     @Operation(summary = "프로젝트 가입 신청 목록 조회", description = "현재 프로젝트에 신청된 가입 요청 목록을 조회합니다.")
     @GetMapping("/{projectId}/registration/list")
-    public ProjectRegistrationInfoResponse projectRegistrationListGet(
-            @PathVariable Long projectId, @RequestParam Long projectRegisterId) {
-        return projectService.getProjectRegistration(projectId, projectRegisterId);
+    public Slice<ProjectRegistrationInfoResponse> projectRegistrationListGet(
+            @PathVariable Long projectId,
+            @RequestParam(required = false) Long lastRegistrationId,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        return projectService.getProjectRegistrationList(projectId, lastRegistrationId, pageSize);
     }
 
     @Operation(summary = "프로젝트 가입 신청 승인", description = "프로젝트 가입 신청을 승인합니다.")

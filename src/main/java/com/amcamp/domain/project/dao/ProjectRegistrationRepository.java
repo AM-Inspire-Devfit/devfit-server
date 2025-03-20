@@ -7,7 +7,8 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ProjectRegistrationRepository extends JpaRepository<ProjectRegistration, Long> {
+public interface ProjectRegistrationRepository
+        extends JpaRepository<ProjectRegistration, Long>, ProjectRegistrationRepositoryCustom {
     List<ProjectRegistration> findAllByProject(Project project);
 
     Optional<ProjectRegistration> findByRequester(TeamParticipant teamParticipant);

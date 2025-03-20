@@ -15,7 +15,6 @@ import com.amcamp.domain.project.dto.request.ProjectBasicInfoUpdateRequest;
 import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
 import com.amcamp.domain.project.dto.request.ProjectTodoInfoUpdateRequest;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
-import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectParticipantInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectRegistrationInfoResponse;
 import com.amcamp.domain.team.application.TeamService;
@@ -36,6 +35,7 @@ import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Slice;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -169,14 +169,12 @@ public class ProjectServiceTest extends IntegrationTest {
             createTestProject(teamId, "project2", startDt, dueDt, description);
 
             // when
-            List<ProjectListInfoResponse> foundResponse = projectService.getProjectListInfo(teamId);
-
-            foundResponse.stream()
-                    .filter(ProjectListInfoResponse::isParticipate)
-                    .forEach(r -> assertThat(r.projectInfo().projectTitle()).isEqualTo("project2"));
-            foundResponse.stream()
-                    .filter(f -> !f.isParticipate())
-                    .forEach(r -> assertThat(r.projectInfo().projectTitle()).isEqualTo("project1"));
+            Slice<ProjectInfoResponse> responseTrue =
+                    projectService.getProjectListInfo(teamId, null, 10, true);
+            Slice<ProjectInfoResponse> responseFalse =
+                    projectService.getProjectListInfo(teamId, null, 10, false);
+            assertThat(responseTrue.getContent().get(0).projectTitle()).isEqualTo("project2");
+            assertThat(responseFalse.getContent().get(0).projectTitle()).isEqualTo("project1");
         }
 
         @Test
@@ -445,10 +443,11 @@ public class ProjectServiceTest extends IntegrationTest {
             // then
             logout();
             loginAs(memberAdmin);
+            Slice<ProjectRegistrationInfoResponse> response =
+                    projectService.getProjectRegistrationList(1L, null, 10);
+
             List<Long> requesterIds =
-                    projectService.getProjectRegistrationList(1L).stream()
-                            .map(ProjectRegistrationInfoResponse::requesterId)
-                            .toList();
+                    response.stream().map(ProjectRegistrationInfoResponse::requesterId).toList();
 
             assertThat(new HashSet<>(requesterIds))
                     .isEqualTo(Set.of(teamParticipant1.getId(), teamParticipant2.getId()));
@@ -615,7 +614,8 @@ public class ProjectServiceTest extends IntegrationTest {
             logout();
 
             loginAs(memberAdmin);
-            projectService.getProjectRegistrationList(1L).stream()
+
+            projectService.getProjectRegistrationList(1L, null, 10).stream()
                     .map(ProjectRegistrationInfoResponse::registrationId)
                     .forEach(i -> projectService.approveProjectRegistration(1L, i));
 
