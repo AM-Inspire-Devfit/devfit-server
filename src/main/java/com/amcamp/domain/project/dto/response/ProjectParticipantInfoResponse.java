@@ -5,8 +5,6 @@ import com.amcamp.domain.project.domain.ProjectParticipantRole;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 public record ProjectParticipantInfoResponse(
-        @Schema(description = "프로젝트 아이디", example = "1") Long projectId,
-        @Schema(description = "프로젝트 참여자 멤버 아이디", example = "1") Long memberId,
         @Schema(description = "프로젝트 참여자 아이디", example = "1") Long projectParticipantId,
         @Schema(description = "프로젝트 참여자 이름", example = "정선우") String projectNickname,
         @Schema(description = "프로젝트 참여자 이미지 url", example = "PreSigned URL") String profileImageUrl,
@@ -14,9 +12,7 @@ public record ProjectParticipantInfoResponse(
                 ProjectParticipantRole role) {
     public static ProjectParticipantInfoResponse from(ProjectParticipant participant) {
         return new ProjectParticipantInfoResponse(
-                participant.getProject().getId(),
                 participant.getId(),
-                participant.getTeamParticipant().getMember().getId(),
                 participant.getProjectNickname(),
                 participant.getProjectProfile(),
                 participant.getProjectRole());
