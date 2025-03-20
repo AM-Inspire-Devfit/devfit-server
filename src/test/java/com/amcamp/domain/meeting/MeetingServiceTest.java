@@ -154,92 +154,91 @@ public class MeetingServiceTest extends IntegrationTest {
         sprintRepository.deleteAll();
     }
 
-    @Test
-    void 미팅을_생성하면_정상적으로_저장된다() {
-        // given
-        createTestMeeting(1L);
-        // then
-        Meeting meeting = meetingRepository.findById(1L).get();
-        assertThat(meeting.getId()).isEqualTo(1L);
-        assertThat(meeting)
-                .extracting("id", "title", "meetingStart", "meetingEnd", "status")
-                .containsExactlyInAnyOrder(
-                        1L, meetingTitle, meetingStart, meetingEnd, MeetingStatus.OPEN);
-    }
+    @Nested
+    class 미팅_생성 {
+        @Test
+        void 미팅을_생성하면_정상적으로_저장된다() {
+            // given
+            createTestMeeting(1L);
+            // then
+            Meeting meeting = meetingRepository.findById(1L).get();
+            assertThat(meeting.getId()).isEqualTo(1L);
+            assertThat(meeting)
+                    .extracting("id", "title", "meetingStart", "meetingEnd", "status")
+                    .containsExactlyInAnyOrder(
+                            1L, meetingTitle, meetingStart, meetingEnd, MeetingStatus.OPEN);
+        }
 
-    @Test
-    void 스프린트_시작일을_벗어나면_오류가_발생한다() {
-        // given
-        LocalDateTime wrongDtBeforeStartDt = LocalDateTime.of(2020, 3, 15, 17, 0);
+        @Test
+        void 스프린트_시작일을_벗어나면_오류가_발생한다() {
+            // given
+            LocalDateTime wrongDtBeforeStartDt = LocalDateTime.of(2020, 3, 15, 17, 0);
 
-        // then
-        assertThatThrownBy(() -> createTestMeeting(1L, wrongDtBeforeStartDt, meetingEnd))
-                .isInstanceOf(CommonException.class)
-                .hasMessageContaining(MeetingErrorCode.MEETING_DATE_OUT_OF_SPRINT.getMessage());
-    }
+            // then
+            assertThatThrownBy(() -> createTestMeeting(1L, wrongDtBeforeStartDt, meetingEnd))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(MeetingErrorCode.MEETING_DATE_OUT_OF_SPRINT.getMessage());
+        }
 
-    @Test
-    void 스프린트_마감일을_벗어나면_오류가_발생한다() {
-        // given
-        LocalDateTime wrongDtAfterDueDt = LocalDateTime.of(2030, 3, 15, 17, 0);
-        // then
-        assertThatThrownBy(() -> createTestMeeting(1L, meetingStart, wrongDtAfterDueDt))
-                .isInstanceOf(CommonException.class)
-                .hasMessageContaining(MeetingErrorCode.MEETING_DATE_OUT_OF_SPRINT.getMessage());
-    }
+        @Test
+        void 스프린트_마감일을_벗어나면_오류가_발생한다() {
+            // given
+            LocalDateTime wrongDtAfterDueDt = LocalDateTime.of(2030, 3, 15, 17, 0);
+            // then
+            assertThatThrownBy(() -> createTestMeeting(1L, meetingStart, wrongDtAfterDueDt))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(MeetingErrorCode.MEETING_DATE_OUT_OF_SPRINT.getMessage());
+        }
 
-    @Test
-    void 시작시간이_종료시간보다_느리거나_같으면_오류가_발생한다() {
+        @Test
+        void 시작시간이_종료시간보다_느리거나_같으면_오류가_발생한다() {
 
-        // then
-        assertThatThrownBy(() -> createTestMeeting(1L, meetingEnd, meetingStart))
-                .isInstanceOf(CommonException.class)
-                .hasMessageContaining(MeetingErrorCode.INVALID_MEETING_TIME_RANGE.getMessage());
-        assertThatThrownBy(() -> createTestMeeting(1L, meetingStart, meetingStart))
-                .isInstanceOf(CommonException.class)
-                .hasMessageContaining(MeetingErrorCode.INVALID_MEETING_TIME_RANGE.getMessage());
-    }
+            // then
+            assertThatThrownBy(() -> createTestMeeting(1L, meetingEnd, meetingStart))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(MeetingErrorCode.INVALID_MEETING_TIME_RANGE.getMessage());
+            assertThatThrownBy(() -> createTestMeeting(1L, meetingStart, meetingStart))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(MeetingErrorCode.INVALID_MEETING_TIME_RANGE.getMessage());
+        }
 
-    @Test
-    void 시간이_8시부터_00시_범위를_벗어나면_오류가_발생한다() {
-        // given
-        createTestMeeting(1L); // 기존 meetingStart, meetingEnd로 생성
+        @Test
+        void 시간이_8시부터_00시_범위를_벗어나면_오류가_발생한다() {
+            // given
+            LocalDateTime before8 = LocalDateTime.of(2026, 3, 15, 1, 0);
+            LocalDateTime after0 = LocalDateTime.of(2026, 3, 16, 0, 1);
+            // then
+            assertThatThrownBy(() -> createTestMeeting(1L, before8, meetingEnd))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(MeetingErrorCode.INVALID_MEETING_TIME_RANGE.getMessage());
+            assertThatThrownBy(() -> createTestMeeting(1L, meetingStart, after0))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(MeetingErrorCode.INVALID_MEETING_TIME_RANGE.getMessage());
+        }
 
-        // when
-        LocalDateTime before8 = LocalDateTime.of(2026, 3, 15, 1, 0);
-        LocalDateTime after0 = LocalDateTime.of(2026, 3, 16, 0, 1);
-        // then
-        assertThatThrownBy(() -> createTestMeeting(1L, before8, meetingEnd))
-                .isInstanceOf(CommonException.class)
-                .hasMessageContaining(MeetingErrorCode.INVALID_MEETING_TIME_RANGE.getMessage());
-        assertThatThrownBy(() -> createTestMeeting(1L, meetingStart, after0))
-                .isInstanceOf(CommonException.class)
-                .hasMessageContaining(MeetingErrorCode.INVALID_MEETING_TIME_RANGE.getMessage());
-    }
-
-    @Test
-    void 기존_미팅과_일시가_겹치면_오류가_발생한다() {
-        // given
-        createTestMeeting(1L); // 기존 meetingStart, meetingEnd로 생성
-
-        // when
-        LocalDateTime beforeStart = LocalDateTime.of(2026, 3, 15, 16, 0);
-        LocalDateTime afterEnd = LocalDateTime.of(2026, 3, 15, 19, 0);
-        LocalDateTime afterStart = LocalDateTime.of(2026, 3, 15, 17, 20);
-        LocalDateTime beforeEnd = LocalDateTime.of(2026, 3, 15, 17, 40);
-        // then
-        assertThatThrownBy(() -> createTestMeeting(1L, meetingStart, meetingEnd))
-                .isInstanceOf(CommonException.class)
-                .hasMessageContaining(MeetingErrorCode.MEETING_ALREADY_EXISTS.getMessage());
-        assertThatThrownBy(() -> createTestMeeting(1L, beforeStart, meetingEnd))
-                .isInstanceOf(CommonException.class)
-                .hasMessageContaining(MeetingErrorCode.MEETING_ALREADY_EXISTS.getMessage());
-        assertThatThrownBy(() -> createTestMeeting(1L, meetingStart, afterEnd))
-                .isInstanceOf(CommonException.class)
-                .hasMessageContaining(MeetingErrorCode.MEETING_ALREADY_EXISTS.getMessage());
-        assertThatThrownBy(() -> createTestMeeting(1L, afterStart, beforeEnd))
-                .isInstanceOf(CommonException.class)
-                .hasMessageContaining(MeetingErrorCode.MEETING_ALREADY_EXISTS.getMessage());
+        @Test
+        void 기존_미팅과_일시가_겹치면_오류가_발생한다() {
+            // given
+            createTestMeeting(1L); // 기존 meetingStart, meetingEnd로 생성
+            // when
+            LocalDateTime beforeStart = LocalDateTime.of(2026, 3, 15, 16, 0);
+            LocalDateTime afterEnd = LocalDateTime.of(2026, 3, 15, 19, 0);
+            LocalDateTime afterStart = LocalDateTime.of(2026, 3, 15, 17, 20);
+            LocalDateTime beforeEnd = LocalDateTime.of(2026, 3, 15, 17, 40);
+            // then
+            assertThatThrownBy(() -> createTestMeeting(1L, meetingStart, meetingEnd))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(MeetingErrorCode.MEETING_ALREADY_EXISTS.getMessage());
+            assertThatThrownBy(() -> createTestMeeting(1L, beforeStart, meetingEnd))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(MeetingErrorCode.MEETING_ALREADY_EXISTS.getMessage());
+            assertThatThrownBy(() -> createTestMeeting(1L, meetingStart, afterEnd))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(MeetingErrorCode.MEETING_ALREADY_EXISTS.getMessage());
+            assertThatThrownBy(() -> createTestMeeting(1L, afterStart, beforeEnd))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(MeetingErrorCode.MEETING_ALREADY_EXISTS.getMessage());
+        }
     }
 
     @Nested
@@ -270,19 +269,117 @@ public class MeetingServiceTest extends IntegrationTest {
             assertThat(meeting.getMeetingEnd()).isEqualTo(modifiedEnd);
         }
 
-        @Nested
-        class 미팅_삭제 {
+        @Test
+        void 스프린트_시작일을_벗어나면_업데이트중_오류가_발생한다() {
+            // given
+            createTestMeeting(1L);
+            LocalDateTime modifiedStart = LocalDateTime.of(2026, 3, 25, 17, 0);
+            LocalDateTime modifiedEnd = LocalDateTime.of(2026, 3, 25, 18, 0);
+            LocalDateTime wrongDtBeforeStartDt = LocalDateTime.of(2020, 3, 15, 17, 0);
+            MeetingDtUpdateRequest request =
+                    new MeetingDtUpdateRequest(wrongDtBeforeStartDt, modifiedEnd);
+            // then
+            assertThatThrownBy(() -> meetingService.updateMeetingDt(1L, request))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(MeetingErrorCode.MEETING_DATE_OUT_OF_SPRINT.getMessage());
+        }
 
-            @Test
-            void 미팅을_삭제하면_정상적으로_삭제된다() {
-                createTestMeeting(1L);
-                // when
-                meetingService.deleteMeeting(1L);
-                // then
-                assertThatThrownBy(() -> meetingService.getMeeting(1L))
-                        .isInstanceOf(CommonException.class)
-                        .hasMessageContaining(MeetingErrorCode.MEETING_NOT_FOUND.getMessage());
-            }
+        @Test
+        void 스프린트_마감일을_벗어나면_업데이트중_오류가_발생한다() {
+            // given
+            createTestMeeting(1L);
+            LocalDateTime modifiedStart = LocalDateTime.of(2026, 3, 25, 17, 0);
+            LocalDateTime wrongDtAfterDueDt = LocalDateTime.of(2030, 3, 15, 17, 0);
+            MeetingDtUpdateRequest request =
+                    new MeetingDtUpdateRequest(modifiedStart, wrongDtAfterDueDt);
+            // then
+            assertThatThrownBy(() -> meetingService.updateMeetingDt(1L, request))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(MeetingErrorCode.MEETING_DATE_OUT_OF_SPRINT.getMessage());
+        }
+
+        @Test
+        void 시작시간이_종료시간보다_느리거나_같으면_업데이트중_오류가_발생한다() {
+            createTestMeeting(1L);
+            MeetingDtUpdateRequest request1 = new MeetingDtUpdateRequest(meetingEnd, meetingStart);
+            MeetingDtUpdateRequest request2 =
+                    new MeetingDtUpdateRequest(meetingStart, meetingStart);
+            // then
+            assertThatThrownBy(() -> meetingService.updateMeetingDt(1L, request1))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(MeetingErrorCode.INVALID_MEETING_TIME_RANGE.getMessage());
+            assertThatThrownBy(() -> meetingService.updateMeetingDt(1L, request2))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(MeetingErrorCode.INVALID_MEETING_TIME_RANGE.getMessage());
+        }
+
+        @Test
+        void 시간이_8시부터_00시_범위를_벗어나면_업데이트중_오류가_발생한다() {
+            // given
+            createTestMeeting(1L); // 기존 meetingStart, meetingEnd로 생성
+            // when
+            LocalDateTime before8 = LocalDateTime.of(2026, 3, 15, 1, 0);
+            LocalDateTime after0 = LocalDateTime.of(2026, 3, 16, 0, 1);
+
+            MeetingDtUpdateRequest request1 = new MeetingDtUpdateRequest(before8, meetingEnd);
+            MeetingDtUpdateRequest request2 = new MeetingDtUpdateRequest(meetingStart, after0);
+
+            // then
+            assertThatThrownBy(() -> meetingService.updateMeetingDt(1L, request1))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(MeetingErrorCode.INVALID_MEETING_TIME_RANGE.getMessage());
+            assertThatThrownBy(() -> meetingService.updateMeetingDt(1L, request2))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(MeetingErrorCode.INVALID_MEETING_TIME_RANGE.getMessage());
+        }
+
+        @Test
+        void 기존_미팅과_일시가_겹치면_오류가_발생한다() {
+            // given
+            LocalDateTime anotherMeetingStart = LocalDateTime.of(2026, 3, 16, 17, 0);
+            LocalDateTime anotherMeetingEnd = LocalDateTime.of(2026, 3, 16, 18, 0);
+
+            createTestMeeting(1L); // 기존 meetingStart, meetingEnd로 생성
+            createTestMeeting(1L, anotherMeetingStart, anotherMeetingEnd); //  새로운 미팅
+
+            // when
+            LocalDateTime beforeStart = LocalDateTime.of(2026, 3, 15, 16, 0);
+            LocalDateTime afterEnd = LocalDateTime.of(2026, 3, 15, 19, 0);
+            LocalDateTime afterStart = LocalDateTime.of(2026, 3, 15, 17, 20);
+            LocalDateTime beforeEnd = LocalDateTime.of(2026, 3, 15, 17, 40);
+
+            MeetingDtUpdateRequest request1 = new MeetingDtUpdateRequest(meetingStart, meetingEnd);
+            MeetingDtUpdateRequest request2 = new MeetingDtUpdateRequest(beforeStart, meetingEnd);
+            MeetingDtUpdateRequest request3 = new MeetingDtUpdateRequest(meetingStart, afterEnd);
+            MeetingDtUpdateRequest request4 = new MeetingDtUpdateRequest(afterStart, beforeEnd);
+            // then
+            assertThatThrownBy(() -> meetingService.updateMeetingDt(2L, request1))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(MeetingErrorCode.MEETING_ALREADY_EXISTS.getMessage());
+            assertThatThrownBy(() -> meetingService.updateMeetingDt(2L, request2))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(MeetingErrorCode.MEETING_ALREADY_EXISTS.getMessage());
+            assertThatThrownBy(() -> meetingService.updateMeetingDt(2L, request3))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(MeetingErrorCode.MEETING_ALREADY_EXISTS.getMessage());
+            assertThatThrownBy(() -> meetingService.updateMeetingDt(2L, request4))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(MeetingErrorCode.MEETING_ALREADY_EXISTS.getMessage());
+        }
+    }
+
+    @Nested
+    class 미팅_삭제 {
+
+        @Test
+        void 미팅을_삭제하면_정상적으로_삭제된다() {
+            createTestMeeting(1L);
+            // when
+            meetingService.deleteMeeting(1L);
+            // then
+            assertThatThrownBy(() -> meetingService.getMeeting(1L))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessageContaining(MeetingErrorCode.MEETING_NOT_FOUND.getMessage());
         }
     }
 }
