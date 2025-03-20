@@ -91,7 +91,7 @@ public class ProjectService {
         Project project = getProjectById(projectId);
         getValidProjectParticipant(member, project);
 
-        project.updateToDo(request.DueDt(), request.toDoStatus());
+        project.updateToDo(request.dueDt(), request.toDoStatus());
     }
 
     // delete
