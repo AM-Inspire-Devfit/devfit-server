@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "8. 팀 미팅 API", description = "팀 미팅 관련 API입니다.")
+@Tag(name = "9. 팀 미팅 API", description = "팀 미팅 관련 API입니다.")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/meetings")
