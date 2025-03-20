@@ -20,7 +20,7 @@ public class ProjectRegistrationRepositoryImpl implements ProjectRegistrationRep
 
     @Override
     public Slice<ProjectRegistrationInfoResponse> findAllByProjectIdWithPagination(
-            Long teamId, Long lastProjectId, int pageSize) {
+            Long projectId, Long lastRegistrationId, int pageSize) {
 
         List<ProjectRegistrationInfoResponse> responses =
                 jpaQueryFactory
@@ -34,16 +34,20 @@ public class ProjectRegistrationRepositoryImpl implements ProjectRegistrationRep
                         .from(projectRegistration)
                         .leftJoin(project)
                         .on(projectRegistration.project.eq(project))
-                        .where(project.team.id.eq(teamId), lastProjectCondition(lastProjectId))
-                        .orderBy(project.id.desc())
+                        .where(
+                                projectRegistration.project.id.eq(projectId),
+                                lastProjectRegistrationCondition(lastRegistrationId))
+                        .orderBy(projectRegistration.id.desc())
                         .limit(pageSize + 1)
                         .fetch();
 
         return checkLastPage(pageSize, responses);
     }
 
-    private BooleanExpression lastProjectCondition(Long projectId) {
-        return (projectId == null) ? null : project.id.lt(projectId);
+    private BooleanExpression lastProjectRegistrationCondition(Long projectRegistrationId) {
+        return (projectRegistrationId == null)
+                ? null
+                : projectRegistration.id.lt(projectRegistrationId);
     }
 
     private Slice<ProjectRegistrationInfoResponse> checkLastPage(

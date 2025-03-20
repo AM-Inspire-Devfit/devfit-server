@@ -5,5 +5,5 @@ import org.springframework.data.domain.Slice;
 
 public interface ProjectRegistrationRepositoryCustom {
     Slice<ProjectRegistrationInfoResponse> findAllByProjectIdWithPagination(
-            Long teamId, Long lastProjectId, int pageSize);
+            Long projectId, Long lastRegistrationId, int pageSize);
 }

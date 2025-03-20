@@ -98,9 +98,9 @@ public class ProjectController {
     @GetMapping("/{projectId}/registration/list")
     public Slice<ProjectRegistrationInfoResponse> projectRegistrationListGet(
             @PathVariable Long projectId,
-            @RequestParam(required = false) Long lastProjectId,
+            @RequestParam(required = false) Long lastRegistrationId,
             @RequestParam(defaultValue = "10") int pageSize) {
-        return projectService.getProjectRegistrationList(projectId, lastProjectId, pageSize);
+        return projectService.getProjectRegistrationList(projectId, lastRegistrationId, pageSize);
     }
 
     @Operation(summary = "프로젝트 가입 신청 승인", description = "프로젝트 가입 신청을 승인합니다.")

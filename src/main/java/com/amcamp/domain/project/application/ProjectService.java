@@ -162,12 +162,12 @@ public class ProjectService {
 
     @Transactional(readOnly = true)
     public Slice<ProjectRegistrationInfoResponse> getProjectRegistrationList(
-            Long projectId, Long lastProjectId, int pageSize) {
+            Long projectId, Long lastRegistrationId, int pageSize) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
         validateProjectAdmin(member, project);
         return projectRegistrationRepository.findAllByProjectIdWithPagination(
-                projectId, lastProjectId, pageSize);
+                projectId, lastRegistrationId, pageSize);
     }
 
     public void approveProjectRegistration(Long projectId, Long registrationId) {
