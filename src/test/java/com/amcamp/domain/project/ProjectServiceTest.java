@@ -620,13 +620,17 @@ public class ProjectServiceTest extends IntegrationTest {
                     .forEach(i -> projectService.approveProjectRegistration(1L, i));
 
             // then
-            List<Long> requesterIds =
+            List<String> requesterIds =
                     projectService.getProjectParticipantList(1L).stream()
-                            .map(ProjectParticipantInfoResponse::memberId)
+                            .map(ProjectParticipantInfoResponse::projectNickname)
                             .toList();
 
             assertThat(new HashSet<>(requesterIds))
-                    .isEqualTo(Set.of(memberAdmin.getId(), member1.getId(), member2.getId()));
+                    .isEqualTo(
+                            Set.of(
+                                    memberAdmin.getNickname(),
+                                    member1.getNickname(),
+                                    member2.getNickname()));
         }
     }
 
@@ -701,7 +705,7 @@ public class ProjectServiceTest extends IntegrationTest {
             composeProjectMembers();
             Long newAdminId =
                     projectService.getProjectParticipantList(1L).stream()
-                            .filter(r -> !r.memberId().equals(memberAdmin.getId()))
+                            .filter(r -> !r.projectNickname().equals(memberAdmin.getNickname()))
                             .map(ProjectParticipantInfoResponse::projectParticipantId)
                             .findAny()
                             .get();
