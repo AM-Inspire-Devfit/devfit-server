@@ -589,7 +589,7 @@ public class ProjectServiceTest extends IntegrationTest {
             // then
             logout();
             loginAs(member1);
-            projectService.getProjectParticipantList(1L).forEach(System.out::println);
+            projectService.getProjectParticipantList(1L, null, 1).forEach(System.out::println);
             ProjectParticipantInfoResponse myInfo = projectService.getProjectParticipant(1L);
             assertThat(myInfo.projectNickname()).isEqualTo(member1.getNickname());
             assertThat(myInfo.role()).isEqualTo(ProjectParticipantRole.MEMBER);
@@ -621,7 +621,7 @@ public class ProjectServiceTest extends IntegrationTest {
 
             // then
             List<String> requesterIds =
-                    projectService.getProjectParticipantList(1L).stream()
+                    projectService.getProjectParticipantList(1L, null, 3).stream()
                             .map(ProjectParticipantInfoResponse::projectNickname)
                             .toList();
 
@@ -704,7 +704,7 @@ public class ProjectServiceTest extends IntegrationTest {
             // given
             composeProjectMembers();
             Long newAdminId =
-                    projectService.getProjectParticipantList(1L).stream()
+                    projectService.getProjectParticipantList(1L, null, 3).stream()
                             .filter(r -> !r.projectNickname().equals(memberAdmin.getNickname()))
                             .map(ProjectParticipantInfoResponse::projectParticipantId)
                             .findAny()
