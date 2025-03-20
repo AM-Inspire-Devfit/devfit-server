@@ -127,7 +127,7 @@ public class ProjectController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "프로젝트 참가자 정보 조회", description = "프로젝트 참여자 정보를 조회합니다.")
+    @Operation(summary = "프로젝트 내 개인 참가자 정보 조회", description = "로그인한 사용자의 해당 프로젝트 참가자 정보를 조회합니다.")
     @GetMapping("/{projectId}/me")
     public ProjectParticipantInfoResponse projectParticipantGet(@PathVariable Long projectId) {
         return projectService.getProjectParticipant(projectId);

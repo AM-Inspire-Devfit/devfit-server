@@ -204,10 +204,14 @@ public class ProjectService {
     }
 
     // project participant info
+
+    @Transactional(readOnly = true)
     public ProjectParticipantInfoResponse getProjectParticipant(Long projectId) {
-        Member member = memberUtil.getCurrentMember();
-        Project project = getProjectById(projectId);
+        final Member member = memberUtil.getCurrentMember();
+        final Project project = getProjectById(projectId);
+
         ProjectParticipant participant = getValidProjectParticipant(member, project);
+
         return ProjectParticipantInfoResponse.from(participant);
     }
 
