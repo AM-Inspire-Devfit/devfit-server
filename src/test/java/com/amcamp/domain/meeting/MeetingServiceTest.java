@@ -53,14 +53,10 @@ public class MeetingServiceTest extends IntegrationTest {
     @Autowired private MeetingService meetingService;
 
     private Member memberAdmin;
-    private Member member1;
-    private Member member2;
     private final String projectTitle = "projectTitle";
     private final String description = "projectDescription";
     private final String meetingTitle = "meetingTitle";
-    private final LocalDate projectStartDt = LocalDate.of(2026, 1, 1);
     private final LocalDate projectDueDt = LocalDate.of(2026, 12, 1);
-    private final LocalDate sprintStartDt = LocalDate.of(2026, 3, 1);
     private final LocalDate sprintDueDt = LocalDate.of(2026, 3, 31);
     private final LocalDateTime meetingStart = LocalDateTime.of(2026, 3, 15, 17, 0);
     private final LocalDateTime meetingEnd = LocalDateTime.of(2026, 3, 15, 18, 0);
@@ -91,24 +87,20 @@ public class MeetingServiceTest extends IntegrationTest {
     void createTestProject() {
         Long teamId = getTeamId();
         ProjectCreateRequest request =
-                new ProjectCreateRequest(
-                        teamId, projectTitle, projectStartDt, projectDueDt, description);
+                new ProjectCreateRequest(teamId, projectTitle, projectDueDt, description);
 
         projectService.createProject(request);
     }
 
     void createTestProject(Long teamId) {
         ProjectCreateRequest request =
-                new ProjectCreateRequest(
-                        teamId, projectTitle, projectStartDt, projectDueDt, description);
+                new ProjectCreateRequest(teamId, projectTitle, projectDueDt, description);
 
         projectService.createProject(request);
     }
 
-    void createTestProject(
-            Long teamId, String title, LocalDate startDt, LocalDate dueDt, String description) {
-        ProjectCreateRequest request =
-                new ProjectCreateRequest(teamId, title, startDt, dueDt, description);
+    void createTestProject(Long teamId, String title, LocalDate dueDt, String description) {
+        ProjectCreateRequest request = new ProjectCreateRequest(teamId, title, dueDt, description);
 
         projectService.createProject(request);
     }
@@ -116,7 +108,7 @@ public class MeetingServiceTest extends IntegrationTest {
     // 스프린트 생성
     void createTestSprint(Long projectId) {
         SprintCreateRequest request =
-                new SprintCreateRequest(projectId, "testSprintGoal", sprintStartDt, sprintDueDt);
+                new SprintCreateRequest(projectId, "testSprintGoal", sprintDueDt);
         sprintService.createSprint(request);
     }
 
@@ -144,21 +136,6 @@ public class MeetingServiceTest extends IntegrationTest {
         loginAs(memberAdmin);
         createTestProject();
         createTestSprint(1L);
-
-        //        member1 =
-        //                Member.createMember(
-        //                        "member1",
-        //                        "testProfileImageUrl",
-        //                        OauthInfo.createOauthInfo("testOauthId", "testOauthProvider"));
-        //        memberRepository.save(member1);
-        //
-        //        member2 =
-        //                Member.createMember(
-        //                        "member2",
-        //                        "testProfileImageUrl",
-        //                        OauthInfo.createOauthInfo("testOauthId", "testOauthProvider"));
-        //        memberRepository.save(member2);
-
     }
 
     @AfterEach

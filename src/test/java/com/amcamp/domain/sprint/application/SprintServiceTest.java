@@ -28,7 +28,6 @@ import com.amcamp.domain.team.domain.Team;
 import com.amcamp.domain.team.domain.TeamParticipant;
 import com.amcamp.domain.team.domain.TeamParticipantRole;
 import com.amcamp.global.exception.CommonException;
-import com.amcamp.global.exception.errorcode.GlobalErrorCode;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.SprintErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
@@ -45,7 +44,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 public class SprintServiceTest extends IntegrationTest {
 
-    private final LocalDate startDt = LocalDate.of(2026, 1, 2);
     private final LocalDate dueDt = LocalDate.of(2026, 3, 1);
 
     @Autowired private SprintService sprintService;
@@ -89,7 +87,7 @@ public class SprintServiceTest extends IntegrationTest {
                 TeamParticipant.createParticipant(member, team, TeamParticipantRole.ADMIN);
         teamParticipantRepository.save(teamParticipant);
 
-        project = Project.createProject(team, "testTitle", "testDescription", startDt, dueDt);
+        project = Project.createProject(team, "testTitle", "testDescription", dueDt);
         projectRepository.save(project);
         ProjectParticipant projectParticipant =
                 ProjectParticipant.createProjectParticipant(
@@ -107,14 +105,13 @@ public class SprintServiceTest extends IntegrationTest {
         void 프로젝트_기간_내라면_스프린트를_생성한다() {
             // given
             SprintCreateRequest request =
-                    new SprintCreateRequest(project.getId(), "testGoal", startDt, dueDt);
+                    new SprintCreateRequest(project.getId(), "testGoal", dueDt);
 
             // when
             SprintInfoResponse response = sprintService.createSprint(request);
 
             // then
             assertThat(response.goal()).isEqualTo("testGoal");
-            assertThat(response.startDt()).isEqualTo(LocalDate.of(2026, 1, 2));
             assertThat(response.dueDt()).isEqualTo(LocalDate.of(2026, 3, 1));
         }
 
@@ -122,16 +119,12 @@ public class SprintServiceTest extends IntegrationTest {
         void 프로젝트_기간_외라면_예외가_발생한다() {
             // given
             SprintCreateRequest request =
-                    new SprintCreateRequest(
-                            project.getId(),
-                            "testGoal",
-                            LocalDate.of(2026, 1, 1),
-                            LocalDate.of(2026, 3, 2));
+                    new SprintCreateRequest(project.getId(), "testGoal", LocalDate.of(2026, 3, 2));
 
             // when & then
             assertThatThrownBy(() -> sprintService.createSprint(request))
                     .isInstanceOf(CommonException.class)
-                    .hasMessage(GlobalErrorCode.INVALID_DATE_ERROR.getMessage());
+                    .hasMessage(SprintErrorCode.SPRINT_DUE_DATE_INVALID.getMessage());
         }
     }
 
@@ -152,18 +145,16 @@ public class SprintServiceTest extends IntegrationTest {
         void 스프린트_시작_날짜가_프로젝트_기간_내라면_성공한다() {
             // given
             sprintRepository.save(
-                    Sprint.createSprint(project, "testTitle", "testDescription", startDt, dueDt));
+                    Sprint.createSprint(project, "testTitle", "testDescription", dueDt));
             SprintToDoUpdateRequest request =
-                    new SprintToDoUpdateRequest(
-                            LocalDate.of(2026, 2, 14), LocalDate.of(2026, 2, 28), null);
+                    new SprintToDoUpdateRequest(LocalDate.of(2026, 2, 28), null);
 
             // when
             SprintInfoResponse response = sprintService.updateSprintToDoInfo(1L, request);
 
             // then
-            assertThat(response.startDt()).isEqualTo(LocalDate.of(2026, 2, 14));
             assertThat(response.dueDt()).isEqualTo(LocalDate.of(2026, 2, 28));
-            assertThat(response.status()).isEqualTo(ToDoStatus.NOT_STARTED);
+            assertThat(response.status()).isEqualTo(ToDoStatus.ON_GOING);
             assertThat(response.title()).isEqualTo("testTitle");
         }
     }
@@ -182,7 +173,7 @@ public class SprintServiceTest extends IntegrationTest {
         void 프로젝트_리더가_삭제할_경우_성공한다() {
             // given
             sprintRepository.save(
-                    Sprint.createSprint(project, "testTitle", "testDescription", startDt, dueDt));
+                    Sprint.createSprint(project, "testTitle", "testDescription", dueDt));
 
             // when
             sprintService.deleteSprint(1L);
@@ -208,9 +199,9 @@ public class SprintServiceTest extends IntegrationTest {
             // given
             List<Sprint> sprintList =
                     List.of(
-                            Sprint.createSprint(project, "1", "testDescription1", startDt, dueDt),
-                            Sprint.createSprint(project, "2", "testDescription2", startDt, dueDt),
-                            Sprint.createSprint(project, "3", "testDescription3", startDt, dueDt));
+                            Sprint.createSprint(project, "1", "testDescription1", dueDt),
+                            Sprint.createSprint(project, "2", "testDescription2", dueDt),
+                            Sprint.createSprint(project, "3", "testDescription3", dueDt));
             sprintRepository.saveAll(sprintList);
 
             // when

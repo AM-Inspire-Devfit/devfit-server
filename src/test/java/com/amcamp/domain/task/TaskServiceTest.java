@@ -16,9 +16,11 @@ import com.amcamp.domain.project.dao.ProjectRepository;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.project.domain.ProjectParticipantRole;
+import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
 import com.amcamp.domain.sprint.application.SprintService;
 import com.amcamp.domain.sprint.dao.SprintRepository;
 import com.amcamp.domain.sprint.domain.Sprint;
+import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
 import com.amcamp.domain.task.application.TaskService;
 import com.amcamp.domain.task.dao.TaskRepository;
 import com.amcamp.domain.task.domain.*;
@@ -144,6 +146,10 @@ public class TaskServiceTest extends IntegrationTest {
                                 "1차 스프린트",
                                 "아이디어 기획서 제출",
                                 LocalDate.of(2026, 3, 1)));
+
+        SprintCreateRequest sprintRequest =
+                new SprintCreateRequest(1L, "1차 스프린트", LocalDate.of(2026, 3, 1));
+        sprintService.createSprint(sprintRequest);
     }
 
     @Test
