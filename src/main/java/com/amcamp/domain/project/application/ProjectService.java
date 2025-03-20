@@ -48,7 +48,6 @@ public class ProjectService {
                                 team,
                                 normalizeProjectTitle(request.projectTitle()),
                                 request.projectDescription(),
-                                request.startDt(),
                                 request.dueDt()));
 
         projectParticipantRepository.save(

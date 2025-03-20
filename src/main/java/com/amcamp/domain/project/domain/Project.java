@@ -33,9 +33,6 @@ public class Project extends BaseTimeEntity {
     // 설명
     @Lob private String description;
 
-    //    // 프로젝트 목표
-    //    @Lob private String goal;
-
     @Embedded private ToDoInfo toDoInfo;
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -51,12 +48,12 @@ public class Project extends BaseTimeEntity {
     }
 
     public static Project createProject(
-            Team team, String title, String description, LocalDate startDt, LocalDate dueDt) {
+            Team team, String title, String description, LocalDate dueDt) {
         return Project.builder()
                 .team(team)
                 .title(title)
                 .description(description)
-                .toDoInfo(ToDoInfo.createToDoInfo(startDt, dueDt))
+                .toDoInfo(ToDoInfo.createToDoInfo(dueDt))
                 .build();
     }
 
