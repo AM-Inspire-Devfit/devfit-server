@@ -111,7 +111,6 @@ public class TaskServiceTest extends IntegrationTest {
                                 team,
                                 "testTitle",
                                 "testDescription",
-                                LocalDate.of(2026, 1, 1),
                                 LocalDate.of(2026, 12, 1)));
         anotherProject =
                 projectRepository.save(
@@ -119,7 +118,6 @@ public class TaskServiceTest extends IntegrationTest {
                                 team,
                                 "testTitle",
                                 "testDescription",
-                                LocalDate.of(2026, 1, 1),
                                 LocalDate.of(2026, 12, 1)));
 
         participant =
@@ -145,7 +143,6 @@ public class TaskServiceTest extends IntegrationTest {
                                 project,
                                 "1차 스프린트",
                                 "아이디어 기획서 제출",
-                                LocalDate.of(2026, 2, 1),
                                 LocalDate.of(2026, 3, 1)));
     }
 

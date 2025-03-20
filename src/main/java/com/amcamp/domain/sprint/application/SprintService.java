@@ -3,7 +3,9 @@ package com.amcamp.domain.sprint.application;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.project.dao.ProjectParticipantRepository;
 import com.amcamp.domain.project.dao.ProjectRepository;
-import com.amcamp.domain.project.domain.*;
+import com.amcamp.domain.project.domain.Project;
+import com.amcamp.domain.project.domain.ProjectParticipant;
+import com.amcamp.domain.project.domain.ProjectParticipantRole;
 import com.amcamp.domain.sprint.dao.SprintRepository;
 import com.amcamp.domain.sprint.domain.Sprint;
 import com.amcamp.domain.sprint.dto.request.SprintBasicUpdateRequest;
@@ -14,7 +16,6 @@ import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.domain.Team;
 import com.amcamp.domain.team.domain.TeamParticipant;
 import com.amcamp.global.exception.CommonException;
-import com.amcamp.global.exception.errorcode.GlobalErrorCode;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.SprintErrorCode;
 import com.amcamp.global.exception.errorcode.TeamErrorCode;
@@ -42,19 +43,14 @@ public class SprintService {
         final Project project = findByProjectId(request.projectId());
 
         validateProjectParticipant(project, project.getTeam(), currentMember);
-        validateDate(request.startDt(), request.dueDt(), project.getToDoInfo());
+        validateSprintDueDate(request.dueDt(), project.getToDoInfo().getDueDt());
 
         long count = sprintRepository.countByProject(project);
         String autoTitle = String.valueOf(count + 1);
 
         Sprint sprint =
                 sprintRepository.save(
-                        Sprint.createSprint(
-                                project,
-                                autoTitle,
-                                request.goal(),
-                                request.startDt(),
-                                request.dueDt()));
+                        Sprint.createSprint(project, autoTitle, request.goal(), request.dueDt()));
 
         return SprintInfoResponse.from(sprint);
     }
@@ -79,7 +75,8 @@ public class SprintService {
         validateProjectParticipant(
                 sprint.getProject(), sprint.getProject().getTeam(), currentMember);
 
-        validateDate(request.startDt(), request.dueDt(), sprint.getProject().getToDoInfo());
+        //        validateDate(request.startDt(), request.dueDt(),
+        // sprint.getProject().getToDoInfo());
 
         sprint.updateSprintToDo(request.startDt(), request.dueDt(), request.status());
 
@@ -149,9 +146,9 @@ public class SprintService {
         }
     }
 
-    private void validateDate(LocalDate startDt, LocalDate dueDt, ToDoInfo toDoInfo) {
-        if (startDt.isBefore(toDoInfo.getStartDt()) || dueDt.isAfter(toDoInfo.getDueDt())) {
-            throw new CommonException(GlobalErrorCode.INVALID_DATE_ERROR);
+    private void validateSprintDueDate(LocalDate sprintDueDt, LocalDate projectDueDt) {
+        if (sprintDueDt.isAfter(projectDueDt)) {
+            throw new CommonException(SprintErrorCode.SPRINT_DUE_DATE_INVALID);
         }
     }
 }

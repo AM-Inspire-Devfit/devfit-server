@@ -59,14 +59,13 @@ public class Sprint extends BaseTimeEntity {
         this.progress = progress;
     }
 
-    public static Sprint createSprint(
-            Project project, String title, String goal, LocalDate startDt, LocalDate dueDt) {
+    public static Sprint createSprint(Project project, String title, String goal, LocalDate dueDt) {
         return Sprint.builder()
                 .project(project)
                 .title(title)
                 .goal(goal)
-                .toDoInfo(ToDoInfo.createToDoInfo(startDt, dueDt))
                 .progress(0.0)
+                .toDoInfo(ToDoInfo.createToDoInfo(dueDt))
                 .build();
     }
 
