@@ -47,6 +47,8 @@ public class ContributionService {
         ProjectParticipant currentParticipant =
                 validateProjectParticipant(project, project.getTeam(), member);
         Sprint sprint = validateSprint(sprintId);
+        validateProjectSprintMismatch(project, sprint);
+
         Contribution contribution = validateContribution(sprint, currentParticipant);
         return BasicContributionInfoResponse.from(contribution);
     }
@@ -66,6 +68,12 @@ public class ContributionService {
         }
 
         return result;
+    }
+
+    private void validateProjectSprintMismatch(Project project, Sprint sprint) {
+        if (!project.equals(sprint.getProject())) {
+            throw new CommonException(ProjectErrorCode.PROJECT_SPRINT_MISMATCH);
+        }
     }
 
     private void validateTeamParticipant(Team team, Member member) {
