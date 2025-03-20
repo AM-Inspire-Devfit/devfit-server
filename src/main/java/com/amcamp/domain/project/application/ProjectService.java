@@ -35,10 +35,8 @@ public class ProjectService {
     private final MemberUtil memberUtil;
     private final TeamParticipantRepository teamParticipantRepository;
     private final ProjectParticipantRepository projectParticipantRepository;
-    private final ProjectRepositoryCustom projectRepositoryCustom;
     private final MemberRepository memberRepository;
     private final ProjectRegistrationRepository projectRegistrationRepository;
-    private final ProjectRegistrationRepositoryCustom projectRegistrationRepositoryCustom;
 
     public void createProject(ProjectCreateRequest request) {
         Member member = memberUtil.getCurrentMember();
@@ -77,7 +75,7 @@ public class ProjectService {
         Member member = memberUtil.getCurrentMember();
         Team team = getTeam(teamId);
         TeamParticipant teamParticipant = getValidTeamParticipant(member, team);
-        return projectRepositoryCustom.findAllByTeamIdWithPagination(
+        return projectRepository.findAllByTeamIdWithPagination(
                 teamId, lastProjectId, pageSize, teamParticipant, isParticipant);
     }
 
@@ -168,7 +166,7 @@ public class ProjectService {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
         validateProjectAdmin(member, project);
-        return projectRegistrationRepositoryCustom.findAllByProjectIdWithPagination(
+        return projectRegistrationRepository.findAllByProjectIdWithPagination(
                 projectId, lastProjectId, pageSize);
     }
 
