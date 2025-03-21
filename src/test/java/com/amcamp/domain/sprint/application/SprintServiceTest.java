@@ -20,6 +20,8 @@ import com.amcamp.domain.sprint.dto.request.SprintBasicUpdateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintToDoUpdateRequest;
 import com.amcamp.domain.sprint.dto.response.SprintInfoResponse;
+import com.amcamp.domain.task.application.TaskService;
+import com.amcamp.domain.task.dao.TaskRepository;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.dao.TeamRepository;
 import com.amcamp.domain.team.domain.Team;
@@ -47,14 +49,24 @@ public class SprintServiceTest extends IntegrationTest {
     private final LocalDate dueDt = LocalDate.of(2026, 3, 1);
 
     @Autowired private SprintService sprintService;
+    @Autowired private TaskService taskService;
     @Autowired private SprintRepository sprintRepository;
     @Autowired private MemberRepository memberRepository;
     @Autowired private TeamRepository teamRepository;
     @Autowired private TeamParticipantRepository teamParticipantRepository;
     @Autowired private ProjectRepository projectRepository;
     @Autowired private ProjectParticipantRepository projectParticipantRepository;
+    @Autowired private TaskRepository taskRepository;
 
     private Project project;
+
+    private void loginAs(Member member) {
+        UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());
+        UsernamePasswordAuthenticationToken token =
+                new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(token);
+    }
 
     @BeforeEach
     void setUp() {

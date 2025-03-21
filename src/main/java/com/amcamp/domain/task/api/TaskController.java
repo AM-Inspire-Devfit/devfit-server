@@ -37,7 +37,7 @@ public class TaskController {
     @Operation(summary = "태스크 완료", description = "태스크 완료에 따른 일정 및 진행 상태를 수정합니다.")
     @PatchMapping("/{taskId}")
     public TaskInfoResponse taskUpdateToDo(@PathVariable Long taskId) {
-        return taskService.updateTaskToDoInfo(taskId);
+        return taskService.updateTaskStatus(taskId);
     }
 
     @Operation(summary = "태스크 SOS", description = "태스크 sos 상태를 수정합니다.")
