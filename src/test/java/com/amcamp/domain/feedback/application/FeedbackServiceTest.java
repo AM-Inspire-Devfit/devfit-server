@@ -43,9 +43,6 @@ public class FeedbackServiceTest extends IntegrationTest {
 
     private final String feedbackMessage = "이번 스프린트에서 아주 잘해주셨습니다.";
 
-    private final LocalDate startDt = LocalDate.now();
-    private final LocalDate dueDt = LocalDate.now();
-
     @Autowired private FeedbackService feedbackService;
     @Autowired private FeedbackRepository feedbackRepository;
     @Autowired private SprintRepository sprintRepository;
@@ -95,11 +92,11 @@ public class FeedbackServiceTest extends IntegrationTest {
         project =
                 projectRepository.save(
                         Project.createProject(
-                                team, "testTitle", "testDescription", startDt, dueDt));
+                                team, "testTitle", "testDescription", LocalDate.of(2030, 1, 1)));
         anotherProject =
                 projectRepository.save(
                         Project.createProject(
-                                team, "testTitle", "testDescription", startDt, dueDt));
+                                team, "testTitle", "testDescription", LocalDate.of(2030, 1, 1)));
 
         sender =
                 projectParticipantRepository.save(
@@ -130,7 +127,7 @@ public class FeedbackServiceTest extends IntegrationTest {
 
         sprint =
                 sprintRepository.save(
-                        Sprint.createSprint(project, "testSprint", "testGoal", startDt, dueDt));
+                        Sprint.createSprint(project, "testSprint", "testGoal", LocalDate.now()));
 
         anotherSprint =
                 sprintRepository.save(
@@ -138,8 +135,7 @@ public class FeedbackServiceTest extends IntegrationTest {
                                 anotherProject,
                                 "testAnotherSprint",
                                 "testAnotherGoal",
-                                startDt,
-                                dueDt));
+                                LocalDate.now()));
     }
 
     @Nested
@@ -234,11 +230,7 @@ public class FeedbackServiceTest extends IntegrationTest {
             sprint =
                     sprintRepository.save(
                             Sprint.createSprint(
-                                    project,
-                                    "testSprint",
-                                    "testGoal",
-                                    startDt,
-                                    LocalDate.of(2030, 1, 1)));
+                                    project, "testSprint", "testGoal", LocalDate.of(2030, 1, 1)));
 
             FeedbackSendRequest request =
                     new FeedbackSendRequest(sprint.getId(), receiver.getId(), feedbackMessage);

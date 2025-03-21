@@ -45,7 +45,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 public class SprintServiceTest extends IntegrationTest {
 
-    private final LocalDate startDt = LocalDate.of(2026, 1, 2);
     private final LocalDate dueDt = LocalDate.of(2026, 3, 1);
 
     @Autowired private SprintService sprintService;
@@ -89,7 +88,7 @@ public class SprintServiceTest extends IntegrationTest {
                 TeamParticipant.createParticipant(member, team, TeamParticipantRole.ADMIN);
         teamParticipantRepository.save(teamParticipant);
 
-        project = Project.createProject(team, "testTitle", "testDescription", startDt, dueDt);
+        project = Project.createProject(team, "testTitle", "testDescription", dueDt);
         projectRepository.save(project);
         ProjectParticipant projectParticipant =
                 ProjectParticipant.createProjectParticipant(
@@ -107,28 +106,37 @@ public class SprintServiceTest extends IntegrationTest {
         void 프로젝트_기간_내라면_스프린트를_생성한다() {
             // given
             SprintCreateRequest request =
-                    new SprintCreateRequest(project.getId(), "testGoal", startDt, dueDt);
+                    new SprintCreateRequest(project.getId(), "testGoal", dueDt);
 
             // when
             SprintInfoResponse response = sprintService.createSprint(request);
 
             // then
             assertThat(response.goal()).isEqualTo("testGoal");
-            assertThat(response.startDt()).isEqualTo(LocalDate.of(2026, 1, 2));
             assertThat(response.dueDt()).isEqualTo(LocalDate.of(2026, 3, 1));
         }
 
         @Test
-        void 프로젝트_기간_외라면_예외가_발생한다() {
+        void 스프린트_마감_날짜가_프로젝트_마감_날짜_이후라면_예외가_발생한다() {
             // given
             SprintCreateRequest request =
-                    new SprintCreateRequest(
-                            project.getId(),
-                            "testGoal",
-                            LocalDate.of(2026, 1, 1),
-                            LocalDate.of(2026, 3, 2));
+                    new SprintCreateRequest(project.getId(), "testGoal", LocalDate.of(2026, 3, 2));
 
             // when & then
+            assertThatThrownBy(() -> sprintService.createSprint(request))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(SprintErrorCode.SPRINT_DUE_DATE_INVALID.getMessage());
+        }
+
+        @Test
+        void 스프린트_마감_날짜가_스프린트_시작_날짜_이전이라면_예외가_발생한다() {
+            // given
+            sprintRepository.save(
+                    Sprint.createSprint(project, "testTitle", "testDescription", dueDt));
+            SprintCreateRequest request =
+                    new SprintCreateRequest(project.getId(), "testGoal", LocalDate.of(2024, 1, 1));
+
+            // when
             assertThatThrownBy(() -> sprintService.createSprint(request))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(GlobalErrorCode.INVALID_DATE_ERROR.getMessage());
@@ -149,22 +157,48 @@ public class SprintServiceTest extends IntegrationTest {
         }
 
         @Test
-        void 스프린트_시작_날짜가_프로젝트_기간_내라면_성공한다() {
+        void 스프린트_마감_날짜가_프로젝트_마감_날짜_이내라면_성공한다() {
             // given
             sprintRepository.save(
-                    Sprint.createSprint(project, "testTitle", "testDescription", startDt, dueDt));
+                    Sprint.createSprint(project, "testTitle", "testDescription", dueDt));
             SprintToDoUpdateRequest request =
-                    new SprintToDoUpdateRequest(
-                            LocalDate.of(2026, 2, 14), LocalDate.of(2026, 2, 28), null);
+                    new SprintToDoUpdateRequest(LocalDate.of(2026, 2, 28), null);
 
             // when
             SprintInfoResponse response = sprintService.updateSprintToDoInfo(1L, request);
 
             // then
-            assertThat(response.startDt()).isEqualTo(LocalDate.of(2026, 2, 14));
             assertThat(response.dueDt()).isEqualTo(LocalDate.of(2026, 2, 28));
-            assertThat(response.status()).isEqualTo(ToDoStatus.NOT_STARTED);
+            assertThat(response.status()).isEqualTo(ToDoStatus.ON_GOING);
             assertThat(response.title()).isEqualTo("testTitle");
+        }
+
+        @Test
+        void 스프린트_마감_날짜가_프로젝트_마감_날짜_이후라면_예외가_발생한다() {
+            // given
+            sprintRepository.save(
+                    Sprint.createSprint(project, "testTitle", "testDescription", dueDt));
+            SprintToDoUpdateRequest request =
+                    new SprintToDoUpdateRequest(LocalDate.of(2030, 1, 1), null);
+
+            // when
+            assertThatThrownBy(() -> sprintService.updateSprintToDoInfo(1L, request))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(SprintErrorCode.SPRINT_DUE_DATE_INVALID.getMessage());
+        }
+
+        @Test
+        void 스프린트_마감_날짜가_스프린트_시작_날짜_이전이라면_예외가_발생한다() {
+            // given
+            sprintRepository.save(
+                    Sprint.createSprint(project, "testTitle", "testDescription", dueDt));
+            SprintToDoUpdateRequest request =
+                    new SprintToDoUpdateRequest(LocalDate.of(2024, 1, 1), null);
+
+            // when
+            assertThatThrownBy(() -> sprintService.updateSprintToDoInfo(1L, request))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(GlobalErrorCode.INVALID_DATE_ERROR.getMessage());
         }
     }
 
@@ -182,7 +216,7 @@ public class SprintServiceTest extends IntegrationTest {
         void 프로젝트_리더가_삭제할_경우_성공한다() {
             // given
             sprintRepository.save(
-                    Sprint.createSprint(project, "testTitle", "testDescription", startDt, dueDt));
+                    Sprint.createSprint(project, "testTitle", "testDescription", dueDt));
 
             // when
             sprintService.deleteSprint(1L);
@@ -208,9 +242,9 @@ public class SprintServiceTest extends IntegrationTest {
             // given
             List<Sprint> sprintList =
                     List.of(
-                            Sprint.createSprint(project, "1", "testDescription1", startDt, dueDt),
-                            Sprint.createSprint(project, "2", "testDescription2", startDt, dueDt),
-                            Sprint.createSprint(project, "3", "testDescription3", startDt, dueDt));
+                            Sprint.createSprint(project, "1", "testDescription1", dueDt),
+                            Sprint.createSprint(project, "2", "testDescription2", dueDt),
+                            Sprint.createSprint(project, "3", "testDescription3", dueDt));
             sprintRepository.saveAll(sprintList);
 
             // when

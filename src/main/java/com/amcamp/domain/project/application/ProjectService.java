@@ -48,7 +48,6 @@ public class ProjectService {
                                 team,
                                 normalizeProjectTitle(request.projectTitle()),
                                 request.projectDescription(),
-                                request.startDt(),
                                 request.dueDt()));
 
         projectParticipantRepository.save(
@@ -91,8 +90,8 @@ public class ProjectService {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
         getValidProjectParticipant(member, project);
-        project.getToDoInfo()
-                .updateToDoInfo(request.startDt(), request.DueDt(), request.toDoStatus());
+
+        project.updateToDo(request.dueDt(), request.toDoStatus());
     }
 
     // delete

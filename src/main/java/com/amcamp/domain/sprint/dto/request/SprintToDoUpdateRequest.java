@@ -10,12 +10,6 @@ public record SprintToDoUpdateRequest(
                         shape = JsonFormat.Shape.STRING,
                         pattern = "yyyy-MM-dd",
                         timezone = "Asia/Seoul")
-                @Schema(description = "스프린트 시작 날짜", defaultValue = "2026-02-01")
-                LocalDate startDt,
-        @JsonFormat(
-                        shape = JsonFormat.Shape.STRING,
-                        pattern = "yyyy-MM-dd",
-                        timezone = "Asia/Seoul")
                 @Schema(description = "스프린트 마감 날짜", defaultValue = "2026-03-01")
                 LocalDate dueDt,
         @Schema(description = "스프린트 진행 상태", defaultValue = "NOT_STARTED") ToDoStatus status) {}
