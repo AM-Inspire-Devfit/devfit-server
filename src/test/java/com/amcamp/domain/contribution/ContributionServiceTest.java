@@ -104,19 +104,11 @@ public class ContributionServiceTest extends IntegrationTest {
         project =
                 projectRepository.save(
                         Project.createProject(
-                                team,
-                                "testTitle",
-                                "testDescription",
-                                LocalDate.of(2026, 1, 1),
-                                LocalDate.of(2026, 12, 1)));
+                                team, "testTitle", "testDescription", LocalDate.of(2026, 12, 1)));
         anotherProject =
                 projectRepository.save(
                         Project.createProject(
-                                team,
-                                "testTitle",
-                                "testDescription",
-                                LocalDate.of(2026, 1, 1),
-                                LocalDate.of(2026, 12, 1)));
+                                team, "testTitle", "testDescription", LocalDate.of(2026, 12, 1)));
 
         participant =
                 projectParticipantRepository.save(
@@ -138,11 +130,7 @@ public class ContributionServiceTest extends IntegrationTest {
         sprint =
                 sprintRepository.save(
                         Sprint.createSprint(
-                                project,
-                                "1차 스프린트",
-                                "아이디어 기획서 제출",
-                                LocalDate.of(2026, 2, 1),
-                                LocalDate.of(2026, 3, 1)));
+                                project, "1차 스프린트", "아이디어 기획서 제출", LocalDate.of(2026, 3, 1)));
 
         // 상 2, 중 3, 하 4
         taskService.createTask(new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.HIGH));
@@ -204,8 +192,7 @@ public class ContributionServiceTest extends IntegrationTest {
         @Test
         void 태스크가_존재하지_않으면_빈_값_반환() {
             SprintCreateRequest sprintRequest =
-                    new SprintCreateRequest(
-                            1L, "2차 스프린트", LocalDate.of(2026, 2, 1), LocalDate.of(2026, 3, 1));
+                    new SprintCreateRequest(1L, "2차 스프린트", LocalDate.of(2026, 3, 1));
             sprintService.createSprint(sprintRequest);
 
             // when & then
@@ -258,8 +245,7 @@ public class ContributionServiceTest extends IntegrationTest {
         @Test
         void 태스크가_존재하지_않으면_빈_값_반환() {
             SprintCreateRequest sprintRequest =
-                    new SprintCreateRequest(
-                            1L, "2차 스프린트", LocalDate.of(2026, 2, 1), LocalDate.of(2026, 3, 1));
+                    new SprintCreateRequest(1L, "2차 스프린트", LocalDate.of(2026, 3, 1));
             sprintService.createSprint(sprintRequest);
 
             // when
