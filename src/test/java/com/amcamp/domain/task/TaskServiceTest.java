@@ -16,7 +16,6 @@ import com.amcamp.domain.project.dao.ProjectRepository;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.project.domain.ProjectParticipantRole;
-import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
 import com.amcamp.domain.sprint.application.SprintService;
 import com.amcamp.domain.sprint.dao.SprintRepository;
 import com.amcamp.domain.sprint.domain.Sprint;
@@ -110,17 +109,11 @@ public class TaskServiceTest extends IntegrationTest {
         project =
                 projectRepository.save(
                         Project.createProject(
-                                team,
-                                "testTitle",
-                                "testDescription",
-                                LocalDate.of(2026, 12, 1)));
+                                team, "testTitle", "testDescription", LocalDate.of(2026, 12, 1)));
         anotherProject =
                 projectRepository.save(
                         Project.createProject(
-                                team,
-                                "testTitle",
-                                "testDescription",
-                                LocalDate.of(2026, 12, 1)));
+                                team, "testTitle", "testDescription", LocalDate.of(2026, 12, 1)));
 
         participant =
                 projectParticipantRepository.save(
@@ -142,10 +135,7 @@ public class TaskServiceTest extends IntegrationTest {
         sprint =
                 sprintRepository.save(
                         Sprint.createSprint(
-                                project,
-                                "1차 스프린트",
-                                "아이디어 기획서 제출",
-                                LocalDate.of(2026, 3, 1)));
+                                project, "1차 스프린트", "아이디어 기획서 제출", LocalDate.of(2026, 3, 1)));
 
         SprintCreateRequest sprintRequest =
                 new SprintCreateRequest(1L, "1차 스프린트", LocalDate.of(2026, 3, 1));
@@ -397,7 +387,6 @@ public class TaskServiceTest extends IntegrationTest {
         @Test
         void 스프린트가_유효하지않으면_에러를_반환한다() {
             // given
-            Member member = memberUtil.getCurrentMember();
             TaskCreateRequest taskRequest1 =
                     new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID);
             taskService.createTask(taskRequest1);
@@ -405,14 +394,11 @@ public class TaskServiceTest extends IntegrationTest {
                     new TaskCreateRequest(1L, "mvp 완성", TaskDifficulty.HIGH);
             taskService.createTask(taskRequest2);
 
-            Task task =
-                    taskRepository
-                            .findById(1L)
-                            .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
+            Task task = taskRepository.findById(1L).get();
 
             taskService.assignTask(task.getId()); // 첫번쨰 태스크에만 담당자 배정
 
-            assertThatThrownBy(() -> taskService.getTasksBySprint(2l, 0L, 3))
+            assertThatThrownBy(() -> taskService.getTasksBySprint(999L, 0L, 3))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(SprintErrorCode.SPRINT_NOT_FOUND.getMessage());
         }
