@@ -165,8 +165,7 @@ public class ContributionServiceTest extends IntegrationTest {
             loginAs(newTeamMember);
 
             assertThatThrownBy(() -> contributionService.getContributionByMember(1L, 1L))
-                    .isInstanceOf(
-                            new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED).getClass())
+                    .isInstanceOf(CommonException.class)
                     .hasMessage(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED.getMessage());
         }
 
@@ -174,9 +173,7 @@ public class ContributionServiceTest extends IntegrationTest {
         void 프로젝트_참여자가_아니라면_에러반환() {
             loginAs(newMember);
             assertThatThrownBy(() -> contributionService.getContributionByMember(2L, 1L))
-                    .isInstanceOf(
-                            new CommonException(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED)
-                                    .getClass())
+                    .isInstanceOf(CommonException.class)
                     .hasMessage(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED.getMessage());
         }
 
@@ -184,8 +181,7 @@ public class ContributionServiceTest extends IntegrationTest {
         void 유효한_프로젝트가_아니라면_에러반환() {
             Member member = memberUtil.getCurrentMember();
             assertThatThrownBy(() -> contributionService.getContributionByMember(3L, 1L))
-                    .isInstanceOf(
-                            new CommonException(ProjectErrorCode.PROJECT_NOT_FOUND).getClass())
+                    .isInstanceOf(CommonException.class)
                     .hasMessage(ProjectErrorCode.PROJECT_NOT_FOUND.getMessage());
         }
 
@@ -197,9 +193,7 @@ public class ContributionServiceTest extends IntegrationTest {
 
             // when & then
             assertThatThrownBy(() -> contributionService.getContributionByMember(1L, 2L))
-                    .isInstanceOf(
-                            new CommonException(ContributionErrorCode.CONTRIBUTION_NOT_FOUND)
-                                    .getClass())
+                    .isInstanceOf(CommonException.class)
                     .hasMessage(ContributionErrorCode.CONTRIBUTION_NOT_FOUND.getMessage());
         }
 
@@ -207,7 +201,7 @@ public class ContributionServiceTest extends IntegrationTest {
         void 스프린트가_존재하지_않으면_빈_값_반환() {
             // when & then
             assertThatThrownBy(() -> contributionService.getContributionByMember(1L, 2L))
-                    .isInstanceOf(new CommonException(SprintErrorCode.SPRINT_NOT_FOUND).getClass())
+                    .isInstanceOf(CommonException.class)
                     .hasMessage(SprintErrorCode.SPRINT_NOT_FOUND.getMessage());
         }
 
@@ -229,8 +223,7 @@ public class ContributionServiceTest extends IntegrationTest {
             loginAs(newMember);
 
             assertThatThrownBy(() -> contributionService.getContributionBySprint(1L))
-                    .isInstanceOf(
-                            new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED).getClass())
+                    .isInstanceOf(CommonException.class)
                     .hasMessage(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED.getMessage());
         }
 
@@ -238,7 +231,7 @@ public class ContributionServiceTest extends IntegrationTest {
         void 스프린트가_존재하지_않으면_에러_반환() {
             Member member = memberUtil.getCurrentMember();
             assertThatThrownBy(() -> contributionService.getContributionBySprint(2L))
-                    .isInstanceOf(new CommonException(SprintErrorCode.SPRINT_NOT_FOUND).getClass())
+                    .isInstanceOf(CommonException.class)
                     .hasMessage(SprintErrorCode.SPRINT_NOT_FOUND.getMessage());
         }
 
