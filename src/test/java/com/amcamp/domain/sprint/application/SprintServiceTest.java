@@ -296,6 +296,7 @@ public class SprintServiceTest extends IntegrationTest {
             assertThat(results)
                     .extracting("id", "title", "goal")
                     .containsExactlyInAnyOrder(tuple(1L, "1", "testDescription1"));
+            assertThat(results.getContent().get(0).progress()).isInstanceOf(Integer.class);
         }
     }
 }
