@@ -2,6 +2,7 @@ package com.amcamp.domain.sprint.domain;
 
 import com.amcamp.domain.common.model.BaseTimeEntity;
 import com.amcamp.domain.contribution.domain.Contribution;
+import com.amcamp.domain.feedback.domain.Feedback;
 import com.amcamp.domain.meeting.domain.Meeting;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ToDoInfo;
@@ -34,6 +35,9 @@ public class Sprint extends BaseTimeEntity {
     @Lob private String goal;
 
     @Embedded private ToDoInfo toDoInfo;
+
+    @OneToMany(mappedBy = "sprint", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Feedback> feedbacks = new ArrayList<>();
 
     // Task
     @OneToMany(mappedBy = "sprint", cascade = CascadeType.ALL, orphanRemoval = true)
