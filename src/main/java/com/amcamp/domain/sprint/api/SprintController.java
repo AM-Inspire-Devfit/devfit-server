@@ -61,4 +61,14 @@ public class SprintController {
                     Long lastSprintId) {
         return sprintService.findAllSprint(projectId, lastSprintId);
     }
+
+    @Operation(summary = "회원별 프로젝트 내 스프린트 목록 조회", description = "마이페이지에서 특정 프로젝트의 스프린트 목록을 조회합니다.")
+    @GetMapping("/{projectId}/me")
+    public Slice<SprintInfoResponse> sprintFindAllByMember(
+            @PathVariable Long projectId,
+            @Parameter(description = "이전 페이지의 스프린트 ID (첫 페이지는 비워두세요)")
+                    @RequestParam(required = false)
+                    Long lastSprintId) {
+        return sprintService.findAllSprintByMember(projectId, lastSprintId);
+    }
 }

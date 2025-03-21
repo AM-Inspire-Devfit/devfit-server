@@ -58,6 +58,7 @@ public class SprintServiceTest extends IntegrationTest {
     @Autowired private TaskRepository taskRepository;
 
     private Project project;
+    private Member newMember;
 
     private void loginAs(Member member) {
         UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());
@@ -76,6 +77,8 @@ public class SprintServiceTest extends IntegrationTest {
                                 "testProfileImageUrl",
                                 OauthInfo.createOauthInfo("testOauthId", "testOauthProvider")));
 
+        newMember = memberRepository.save(Member.createMember("member", null, null));
+
         UserDetails userDetails = new PrincipalDetails(member.getId(), member.getRole());
         UsernamePasswordAuthenticationToken token =
                 new UsernamePasswordAuthenticationToken(
@@ -87,6 +90,10 @@ public class SprintServiceTest extends IntegrationTest {
         TeamParticipant teamParticipant =
                 TeamParticipant.createParticipant(member, team, TeamParticipantRole.ADMIN);
         teamParticipantRepository.save(teamParticipant);
+        TeamParticipant teamParticipantUser =
+                teamParticipantRepository.save(
+                        TeamParticipant.createParticipant(
+                                newMember, team, TeamParticipantRole.USER));
 
         project = Project.createProject(team, "testTitle", "testDescription", dueDt);
         projectRepository.save(project);
@@ -238,7 +245,41 @@ public class SprintServiceTest extends IntegrationTest {
         }
 
         @Test
-        void 프로젝트가_존재한다면_첫_번쨰_스프린트를_반환한다() {
+        void 프로젝트가_존재한다면_첫_번째_스프린트를_반환한다() {
+            // given
+            List<Sprint> sprintList =
+                    List.of(
+                            Sprint.createSprint(project, "1", "testDescription1", dueDt),
+                            Sprint.createSprint(project, "2", "testDescription2", dueDt),
+                            Sprint.createSprint(project, "3", "testDescription3", dueDt));
+            sprintRepository.saveAll(sprintList);
+
+            // when
+            Slice<SprintInfoResponse> results = sprintService.findAllSprint(project.getId(), null);
+
+            // then
+            assertThat(results.getSize()).isEqualTo(1);
+            assertThat(results)
+                    .extracting("id", "title", "goal")
+                    .containsExactlyInAnyOrder(tuple(1L, "1", "testDescription1"));
+        }
+    }
+
+    @Nested
+    class 회원별_스프린트_목록을_조회할_떄 {
+        @Test
+        void 프로젝트_참가자가_아니면_예외가_발생한다() {
+            // given
+            loginAs(newMember);
+
+            // when & then
+            assertThatThrownBy(() -> sprintService.findAllSprintByMember(1L, null))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED.getMessage());
+        }
+
+        @Test
+        void 프로젝트가_존재한다면_첫_번째_스프린트를_반환한다() {
             // given
             List<Sprint> sprintList =
                     List.of(

@@ -113,6 +113,20 @@ public class SprintService {
         return sprintRepository.findAllSprintByProjectId(projectId, lastSprintId);
     }
 
+    @Transactional(readOnly = true)
+    public Slice<SprintInfoResponse> findAllSprintByMember(Long projectId, Long lastSprintId) {
+        final Member currentMember = memberUtil.getCurrentMember();
+        final Project project = findByProjectId(projectId);
+
+        teamParticipantRepository
+                .findByMemberAndTeam(currentMember, project.getTeam())
+                .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED));
+
+        validateProjectParticipant(project, project.getTeam(), currentMember);
+
+        return sprintRepository.findAllSprintByProjectId(projectId, lastSprintId);
+    }
+
     private Sprint findBySprintId(Long sprintId) {
         return sprintRepository
                 .findById(sprintId)
