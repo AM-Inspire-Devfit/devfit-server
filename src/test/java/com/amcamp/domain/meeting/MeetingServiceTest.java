@@ -9,6 +9,8 @@ import com.amcamp.domain.meeting.dao.MeetingRepository;
 import com.amcamp.domain.meeting.domain.Meeting;
 import com.amcamp.domain.meeting.domain.MeetingStatus;
 import com.amcamp.domain.meeting.dto.request.MeetingCreateRequest;
+import com.amcamp.domain.meeting.dto.request.MeetingDtUpdateRequest;
+import com.amcamp.domain.meeting.dto.request.MeetingTitleUpdateRequest;
 import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.domain.OauthInfo;
@@ -32,6 +34,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -237,5 +240,49 @@ public class MeetingServiceTest extends IntegrationTest {
         assertThatThrownBy(() -> createTestMeeting(1L, afterStart, beforeEnd))
                 .isInstanceOf(CommonException.class)
                 .hasMessageContaining(MeetingErrorCode.MEETING_ALREADY_EXISTS.getMessage());
+    }
+
+    @Nested
+    class 미팅_업데이트 {
+        @Test
+        void 미팅_타이틀을_변경하면_정상적으로_변경된다() {
+            // given
+            createTestMeeting(1L);
+            MeetingTitleUpdateRequest request = new MeetingTitleUpdateRequest("new title");
+            // when
+            meetingService.updateMeetingTitle(1L, request);
+            // then
+            Meeting meeting = meetingRepository.findById(1L).get();
+            assertThat(meeting.getTitle()).isEqualTo("new title");
+        }
+
+        @Test
+        void 미팅_일시를_변경하면_정상적으로_변경된다() {
+            createTestMeeting(1L);
+            LocalDateTime modifiedStart = LocalDateTime.of(2026, 3, 25, 17, 0);
+            LocalDateTime modifiedEnd = LocalDateTime.of(2026, 3, 25, 18, 0);
+            MeetingDtUpdateRequest request = new MeetingDtUpdateRequest(modifiedStart, modifiedEnd);
+            // when
+            meetingService.updateMeetingDt(1L, request);
+            // then
+            Meeting meeting = meetingRepository.findById(1L).get();
+            assertThat(meeting.getMeetingStart()).isEqualTo(modifiedStart);
+            assertThat(meeting.getMeetingEnd()).isEqualTo(modifiedEnd);
+        }
+
+        @Nested
+        class 미팅_삭제 {
+
+            @Test
+            void 미팅을_삭제하면_정상적으로_삭제된다() {
+                createTestMeeting(1L);
+                // when
+                meetingService.deleteMeeting(1L);
+                // then
+                assertThatThrownBy(() -> meetingService.getMeeting(1L))
+                        .isInstanceOf(CommonException.class)
+                        .hasMessageContaining(MeetingErrorCode.MEETING_NOT_FOUND.getMessage());
+            }
+        }
     }
 }
