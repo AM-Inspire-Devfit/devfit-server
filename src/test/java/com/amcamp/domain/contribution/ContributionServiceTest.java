@@ -19,7 +19,6 @@ import com.amcamp.domain.project.domain.ProjectParticipantRole;
 import com.amcamp.domain.sprint.application.SprintService;
 import com.amcamp.domain.sprint.dao.SprintRepository;
 import com.amcamp.domain.sprint.domain.Sprint;
-import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
 import com.amcamp.domain.task.application.TaskService;
 import com.amcamp.domain.task.domain.TaskDifficulty;
 import com.amcamp.domain.task.dto.request.TaskCreateRequest;
@@ -63,6 +62,7 @@ public class ContributionServiceTest extends IntegrationTest {
     private ProjectParticipant participant;
     private ProjectParticipant newParticipant;
     private Sprint sprint;
+    private Sprint anotherSprint;
     private Project project;
     private Project anotherProject;
     private Member newMember;
@@ -129,8 +129,12 @@ public class ContributionServiceTest extends IntegrationTest {
 
         sprint =
                 sprintRepository.save(
+                        Sprint.createSprint(project, "1차 스프린트", "아이디어 기획서 제출", LocalDate.now()));
+
+        anotherSprint =
+                sprintRepository.save(
                         Sprint.createSprint(
-                                project, "1차 스프린트", "아이디어 기획서 제출", LocalDate.of(2026, 3, 1)));
+                                project, "2차 스프린트", "기능 개발", LocalDate.of(2030, 12, 1)));
 
         // 상 2, 중 3, 하 4
         taskService.createTask(new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.HIGH));
@@ -165,8 +169,7 @@ public class ContributionServiceTest extends IntegrationTest {
             loginAs(newTeamMember);
 
             assertThatThrownBy(() -> contributionService.getContributionByMember(1L, 1L))
-                    .isInstanceOf(
-                            new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED).getClass())
+                    .isInstanceOf(CommonException.class)
                     .hasMessage(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED.getMessage());
         }
 
@@ -174,40 +177,33 @@ public class ContributionServiceTest extends IntegrationTest {
         void 프로젝트_참여자가_아니라면_에러반환() {
             loginAs(newMember);
             assertThatThrownBy(() -> contributionService.getContributionByMember(2L, 1L))
-                    .isInstanceOf(
-                            new CommonException(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED)
-                                    .getClass())
+                    .isInstanceOf(CommonException.class)
                     .hasMessage(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED.getMessage());
         }
 
         @Test
         void 유효한_프로젝트가_아니라면_에러반환() {
-            Member member = memberUtil.getCurrentMember();
             assertThatThrownBy(() -> contributionService.getContributionByMember(3L, 1L))
-                    .isInstanceOf(
-                            new CommonException(ProjectErrorCode.PROJECT_NOT_FOUND).getClass())
+                    .isInstanceOf(CommonException.class)
                     .hasMessage(ProjectErrorCode.PROJECT_NOT_FOUND.getMessage());
         }
 
         @Test
         void 태스크가_존재하지_않으면_빈_값_반환() {
-            SprintCreateRequest sprintRequest =
-                    new SprintCreateRequest(1L, "2차 스프린트", LocalDate.of(2026, 3, 1));
-            sprintService.createSprint(sprintRequest);
-
             // when & then
-            assertThatThrownBy(() -> contributionService.getContributionByMember(1L, 2L))
-                    .isInstanceOf(
-                            new CommonException(ContributionErrorCode.CONTRIBUTION_NOT_FOUND)
-                                    .getClass())
+            assertThatThrownBy(
+                            () ->
+                                    contributionService.getContributionByMember(
+                                            1L, anotherSprint.getId()))
+                    .isInstanceOf(CommonException.class)
                     .hasMessage(ContributionErrorCode.CONTRIBUTION_NOT_FOUND.getMessage());
         }
 
         @Test
         void 스프린트가_존재하지_않으면_빈_값_반환() {
             // when & then
-            assertThatThrownBy(() -> contributionService.getContributionByMember(1L, 2L))
-                    .isInstanceOf(new CommonException(SprintErrorCode.SPRINT_NOT_FOUND).getClass())
+            assertThatThrownBy(() -> contributionService.getContributionByMember(1L, 999L))
+                    .isInstanceOf(CommonException.class)
                     .hasMessage(SprintErrorCode.SPRINT_NOT_FOUND.getMessage());
         }
 
@@ -229,28 +225,22 @@ public class ContributionServiceTest extends IntegrationTest {
             loginAs(newMember);
 
             assertThatThrownBy(() -> contributionService.getContributionBySprint(1L))
-                    .isInstanceOf(
-                            new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED).getClass())
+                    .isInstanceOf(CommonException.class)
                     .hasMessage(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED.getMessage());
         }
 
         @Test
         void 스프린트가_존재하지_않으면_에러_반환() {
-            Member member = memberUtil.getCurrentMember();
-            assertThatThrownBy(() -> contributionService.getContributionBySprint(2L))
-                    .isInstanceOf(new CommonException(SprintErrorCode.SPRINT_NOT_FOUND).getClass())
+            assertThatThrownBy(() -> contributionService.getContributionBySprint(999L))
+                    .isInstanceOf(CommonException.class)
                     .hasMessage(SprintErrorCode.SPRINT_NOT_FOUND.getMessage());
         }
 
         @Test
         void 태스크가_존재하지_않으면_빈_값_반환() {
-            SprintCreateRequest sprintRequest =
-                    new SprintCreateRequest(1L, "2차 스프린트", LocalDate.of(2026, 3, 1));
-            sprintService.createSprint(sprintRequest);
-
             // when
             List<ContributionInfoResponse> contributions =
-                    contributionService.getContributionBySprint(2L);
+                    contributionService.getContributionBySprint(anotherSprint.getId());
 
             // then
             assertThat(contributions.isEmpty()).isEqualTo(true);
