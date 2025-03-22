@@ -16,3 +16,11 @@ services:
     network_mode: host
     environment:
       - TZ=Asia/Seoul
+  nginx:
+    image: "nginx:alpine"
+    container_name: nginx
+    network_mode: host
+    environment:
+      - TZ=Asia/Seoul
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
