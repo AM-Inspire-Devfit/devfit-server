@@ -4,7 +4,10 @@ import static com.amcamp.domain.project.domain.QProject.project;
 import static com.amcamp.domain.project.domain.QProjectParticipant.projectParticipant;
 
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
+import com.amcamp.domain.project.dto.response.ProjectParticipantInfoResponse;
 import com.amcamp.domain.team.domain.TeamParticipant;
+import com.amcamp.global.exception.CommonException;
+import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -57,6 +60,32 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
         return checkLastPage(pageSize, responses);
     }
 
+    @Override
+    public Slice<ProjectParticipantInfoResponse> findAllProjectParticipantByProject(
+            Long projectId, Long lastProjectParticipantId, int pageSize) {
+        List<ProjectParticipantInfoResponse> results =
+                jpaQueryFactory
+                        .select(
+                                Projections.constructor(
+                                        ProjectParticipantInfoResponse.class,
+                                        projectParticipant.id,
+                                        projectParticipant.projectNickname,
+                                        projectParticipant.projectProfile,
+                                        projectParticipant.projectRole))
+                        .from(projectParticipant)
+                        .where(
+                                projectParticipant.project.id.eq(projectId),
+                                lastProjectParticipantId(lastProjectParticipantId))
+                        .limit(pageSize + 1)
+                        .fetch();
+
+        if (results.isEmpty()) {
+            throw new CommonException(ProjectErrorCode.PROJECT_PARTICIPANT_NOT_EXISTS);
+        }
+
+        return checkLastPage(pageSize, results);
+    }
+
     private BooleanExpression participantCondition(
             boolean isParticipant, TeamParticipant teamParticipant) {
         if (isParticipant) {
@@ -70,8 +99,13 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
         return (projectId == null) ? null : project.id.lt(projectId);
     }
 
-    private Slice<ProjectInfoResponse> checkLastPage(
-            int pageSize, List<ProjectInfoResponse> results) {
+    private BooleanExpression lastProjectParticipantId(Long projectParticipantId) {
+        return (projectParticipantId == null)
+                ? null
+                : projectParticipant.id.gt(projectParticipantId);
+    }
+
+    private <T> Slice<T> checkLastPage(int pageSize, List<T> results) {
         boolean hasNext = false;
 
         if (results.size() > pageSize) {

@@ -6,9 +6,9 @@ import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectParticipantInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectRegistrationInfoResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
@@ -127,7 +127,7 @@ public class ProjectController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "프로젝트 참가자 정보 조회", description = "프로젝트 참여자 정보를 조회합니다.")
+    @Operation(summary = "프로젝트 내 개인 참가자 정보 조회", description = "로그인한 사용자의 해당 프로젝트 참가자 정보를 조회합니다.")
     @GetMapping("/{projectId}/me")
     public ProjectParticipantInfoResponse projectParticipantGet(@PathVariable Long projectId) {
         return projectService.getProjectParticipant(projectId);
@@ -135,9 +135,15 @@ public class ProjectController {
 
     @Operation(summary = "프로젝트 참가자 목록 조회", description = "현재 프로젝트에 참여하고 있는 참가자 전체 목록을 조회합니다. ")
     @GetMapping("/{projectId}/participants")
-    public List<ProjectParticipantInfoResponse> projectParticipantListGet(
-            @PathVariable Long projectId) {
-        return projectService.getProjectParticipantList(projectId);
+    public Slice<ProjectParticipantInfoResponse> projectParticipantListGet(
+            @PathVariable Long projectId,
+            @Parameter(description = "이전 페이지의 마지막 프로젝트 참가자 ID (첫 페이지는 비워두세요)")
+                    @RequestParam(required = false)
+                    Long lastProjectParticipantId,
+            @Parameter(description = "페이지당 프로젝트 참여자 수", example = "1") @RequestParam(value = "size")
+                    int pageSize) {
+        return projectService.getProjectParticipantList(
+                projectId, lastProjectParticipantId, pageSize);
     }
 
     @Operation(summary = "프로젝트 나가기", description = "프로젝트에 참여중인 프로젝트 참여자 정보를 삭제합니다.")
