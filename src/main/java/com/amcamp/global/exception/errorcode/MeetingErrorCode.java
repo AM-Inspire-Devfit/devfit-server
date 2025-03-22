@@ -12,7 +12,6 @@ public enum MeetingErrorCode implements BaseErrorCode {
     INVALID_MEETING_TIME_RANGE(HttpStatus.BAD_REQUEST, "유효한 범위 내의 시간을 입력해야합니다."),
     MEETING_DATE_OUT_OF_SPRINT(HttpStatus.BAD_REQUEST, "팀 미팅은 스프린트 기간 내에 생성되어야 합니다."),
     MEETING_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 해당 시간대에 일정이 존재합니다.");
-
     private final HttpStatus httpStatus;
     private final String message;
 

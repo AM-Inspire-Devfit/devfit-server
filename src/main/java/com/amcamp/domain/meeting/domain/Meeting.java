@@ -2,6 +2,8 @@ package com.amcamp.domain.meeting.domain;
 
 import com.amcamp.domain.common.model.BaseTimeEntity;
 import com.amcamp.domain.sprint.domain.Sprint;
+import com.amcamp.global.exception.CommonException;
+import com.amcamp.global.exception.errorcode.MeetingErrorCode;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
@@ -11,7 +13,7 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Meeting extends BaseTimeEntity {
 
     @Id
@@ -51,6 +53,10 @@ public class Meeting extends BaseTimeEntity {
 
     public static Meeting createMeeting(
             String title, LocalDateTime meetingStart, LocalDateTime meetingEnd, Sprint sprint) {
+
+        if (meetingStart.isAfter(meetingEnd) || meetingStart.isEqual(meetingEnd)) {
+            throw new CommonException(MeetingErrorCode.INVALID_MEETING_TIME_RANGE);
+        }
         return Meeting.builder()
                 .title(title)
                 .meetingStart(meetingStart)
@@ -58,5 +64,22 @@ public class Meeting extends BaseTimeEntity {
                 .sprint(sprint)
                 .status(MeetingStatus.OPEN)
                 .build();
+    }
+
+    public void updateStatus(MeetingStatus status) {
+        this.status = status;
+    }
+
+    public void updateTitle(String title) {
+        this.title = title;
+    }
+
+    public void updateMeetingDt(LocalDateTime meetingStart, LocalDateTime meetingEnd) {
+        if (meetingStart != null) {
+            this.meetingStart = meetingStart;
+        }
+        if (meetingEnd != null) {
+            this.meetingEnd = meetingEnd;
+        }
     }
 }
