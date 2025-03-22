@@ -15,7 +15,6 @@ import com.amcamp.domain.project.dto.request.ProjectBasicInfoUpdateRequest;
 import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
 import com.amcamp.domain.project.dto.request.ProjectTodoInfoUpdateRequest;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
-import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectParticipantInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectRegistrationInfoResponse;
 import com.amcamp.domain.team.application.TeamService;
@@ -30,7 +29,6 @@ import com.amcamp.global.exception.errorcode.GlobalErrorCode;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
-import com.amcamp.global.util.MemberUtil;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
@@ -43,7 +41,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public class ProjectServiceTest extends IntegrationTest {
-    @Autowired private MemberUtil memberUtil;
     @Autowired private ProjectService projectService;
     @Autowired private TeamService teamService;
     @Autowired private MemberRepository memberRepository;
@@ -81,61 +78,23 @@ public class ProjectServiceTest extends IntegrationTest {
         return teamService.getTeamByCode(teamInviteCodeRequest).teamId();
     }
 
-    Project createTestProject() {
-        Member member = memberUtil.getCurrentMember();
+    void createTestProject() {
         Long teamId = getTeamId();
-        Team team = teamRepository.findById(teamId).orElseThrow();
-        TeamParticipant participant = teamParticipantRepository.findById(1L).get();
-        Project project =
-                projectRepository.save(
-                        Project.createProject(team, title, description, dueDt));
-        projectParticipantRepository.save(
-                ProjectParticipant.createProjectParticipant(
-                        participant,
-                        project,
-                        member.getNickname(),
-                        "Profile",
-                        ProjectParticipantRole.ADMIN));
-        return project;
+        ProjectCreateRequest request = new ProjectCreateRequest(teamId, title, dueDt, description);
+
+        projectService.createProject(request);
     }
 
-    Project createTestProject(Long teamId, Long teamParticipantId) {
-        Member member = memberUtil.getCurrentMember();
-        Team team = teamRepository.findById(teamId).orElseThrow();
-        TeamParticipant participant = teamParticipantRepository.findById(teamParticipantId).get();
-        Project project =
-                projectRepository.save(
-                        Project.createProject(team, title, description, dueDt));
-        projectParticipantRepository.save(
-                ProjectParticipant.createProjectParticipant(
-                        participant,
-                        project,
-                        member.getNickname(),
-                        "Profile",
-                        ProjectParticipantRole.ADMIN));
-        return project;
+    void createTestProject(Long teamId) {
+        ProjectCreateRequest request = new ProjectCreateRequest(teamId, title, dueDt, description);
+
+        projectService.createProject(request);
     }
 
-    Project createTestProject(
-            Long teamId,
-            Long teamParticipantId,
-            String title,
-            LocalDate dueDt,
-            String description) {
-        Member member = memberUtil.getCurrentMember();
-        Team team = teamRepository.findById(teamId).orElseThrow();
-        TeamParticipant participant = teamParticipantRepository.findById(teamParticipantId).get();
-        Project project =
-                projectRepository.save(
-                        Project.createProject(team, title, description, dueDt));
-        projectParticipantRepository.save(
-                ProjectParticipant.createProjectParticipant(
-                        participant,
-                        project,
-                        member.getNickname(),
-                        "Profile",
-                        ProjectParticipantRole.ADMIN));
-        return project;
+    void createTestProject(Long teamId, String title, LocalDate dueDt, String description) {
+        ProjectCreateRequest request = new ProjectCreateRequest(teamId, title, dueDt, description);
+
+        projectService.createProject(request);
     }
 
     @BeforeEach
@@ -179,10 +138,7 @@ public class ProjectServiceTest extends IntegrationTest {
         // given
         Long teamId = getTeamId();
         // when
-        ProjectCreateRequest request =
-                new ProjectCreateRequest(teamId, title, dueDt, description);
-
-        projectService.createProject(request);
+        createTestProject(teamId, title, dueDt, description);
 
         // then
         Project project = projectRepository.findById(1L).get();
@@ -198,57 +154,22 @@ public class ProjectServiceTest extends IntegrationTest {
         void 팀_ID로_조회하면_전체_프로젝트가_정상적으로_반환된다() {
             // given
             Long teamId = getTeamId();
-            createTestProject(teamId, 1L, "project1", dueDt, description);
-            Project member1JoinProject =
-                    createTestProject(teamId, 1L, "project2", dueDt, description);
-
+            createTestProject(teamId, "project1", dueDt, description);
             // member logout 후 anotherMember 로그인
             logout();
             loginAs(member1);
             // 팀 참가
             teamService.joinTeam(teamInviteCodeRequest);
             // anotherMember 새 프로젝트 생성
-            createTestProject(teamId, 2L, "project3", dueDt, description);
-            // Project1에 일반 멤버로 참여
-            TeamParticipant participant = teamParticipantRepository.findById(2L).get();
-            projectParticipantRepository.save(
-                    ProjectParticipant.createProjectParticipant(
-                            participant,
-                            member1JoinProject,
-                            "Nickname",
-                            "Profile",
-                            ProjectParticipantRole.MEMBER));
+            createTestProject(teamId, "project2", dueDt, description);
+
             // when
-            Slice<ProjectListInfoResponse> response =
-                    projectService.getProjectListInfo(teamId, null, 10);
-            response.getContent().forEach(System.out::println);
-            assertThat(
-                            response.getContent().stream()
-                                    .filter(r -> !r.isParticipant())
-                                    //				.filter(ProjectListInfoResponse::isAdmin)
-                                    .map(ProjectListInfoResponse::projectInfo)
-                                    .findAny()
-                                    .get()
-                                    .projectTitle())
-                    .isEqualTo("project1");
-            assertThat(
-                            response.getContent().stream()
-                                    .filter(ProjectListInfoResponse::isParticipant)
-                                    .filter(f -> !f.isAdmin())
-                                    .map(ProjectListInfoResponse::projectInfo)
-                                    .findAny()
-                                    .get()
-                                    .projectTitle())
-                    .isEqualTo("project2");
-            assertThat(
-                            response.getContent().stream()
-                                    .filter(ProjectListInfoResponse::isParticipant)
-                                    .filter(ProjectListInfoResponse::isAdmin)
-                                    .map(ProjectListInfoResponse::projectInfo)
-                                    .findAny()
-                                    .get()
-                                    .projectTitle())
-                    .isEqualTo("project3");
+            Slice<ProjectInfoResponse> responseTrue =
+                    projectService.getProjectListInfo(teamId, null, 10, true);
+            Slice<ProjectInfoResponse> responseFalse =
+                    projectService.getProjectListInfo(teamId, null, 10, false);
+            assertThat(responseTrue.getContent().get(0).projectTitle()).isEqualTo("project2");
+            assertThat(responseFalse.getContent().get(0).projectTitle()).isEqualTo("project1");
         }
 
         @Test
@@ -285,6 +206,7 @@ public class ProjectServiceTest extends IntegrationTest {
     @Nested
     class 프로젝트_업데이트 {
         String originalTitle = "originalProjectTitle";
+        String originalGoal = "originalProjectTitle";
         String originalDescription = "originalProjectGoal";
         String updatedTitle = "updatedProjectTitle";
         String updatedGoal = "updatedProjectGoal";
@@ -292,7 +214,7 @@ public class ProjectServiceTest extends IntegrationTest {
 
         void createOriginalProject() {
             Long teamId = getTeamId();
-            createTestProject(teamId, 1L, originalTitle, dueDt, originalDescription);
+            createTestProject(teamId, originalTitle, dueDt, originalDescription);
         }
 
         @Test
@@ -426,7 +348,7 @@ public class ProjectServiceTest extends IntegrationTest {
         void 프로젝트_가입신청을_하면_정상적으로_요청이_생성된다() {
             // given
             Long teamId = getTeamId();
-            createTestProject(teamId, 1L);
+            createTestProject(teamId);
             logout();
             loginAs(member1);
             teamService.joinTeam(teamInviteCodeRequest);
@@ -452,7 +374,7 @@ public class ProjectServiceTest extends IntegrationTest {
         void 프로젝트_멤버_수가_15명을_초과하면_가입신청이_제한된다() {
             // given
             Long teamId = getTeamId();
-            createTestProject(teamId, 1L);
+            createTestProject(teamId);
             logout();
 
             for (int i = 0; i < 14; i++) {
@@ -490,7 +412,7 @@ public class ProjectServiceTest extends IntegrationTest {
             // given
             Long teamId = getTeamId();
             Team team = teamRepository.findById(teamId).get();
-            createTestProject(teamId, 1L);
+            createTestProject(teamId);
             logout();
 
             // when
@@ -524,7 +446,7 @@ public class ProjectServiceTest extends IntegrationTest {
         void 이미_가입신청한_팀참여자는_신청하면_예외가_발생한다() {
             // given
             Long teamId = getTeamId();
-            createTestProject(teamId, 1L);
+            createTestProject(teamId);
             logout();
             loginAs(member1);
             teamService.joinTeam(teamInviteCodeRequest);
@@ -543,7 +465,7 @@ public class ProjectServiceTest extends IntegrationTest {
         void 이미_가입된_프로젝트_참여자가_가입신청하면_예외가_발생한다() {
             // given
             Long teamId = getTeamId();
-            createTestProject(teamId, 1L);
+            createTestProject(teamId);
 
             // when,then
             assertThatThrownBy(() -> projectService.requestToProjectRegistration(1L))
@@ -556,7 +478,7 @@ public class ProjectServiceTest extends IntegrationTest {
         void 프로젝트_가입을_승인하면_정상적으로_승인된다() {
             // given
             Long teamId = getTeamId();
-            createTestProject(teamId, 1L);
+            createTestProject(teamId);
             logout();
             loginAs(member1);
             teamService.joinTeam(teamInviteCodeRequest);
@@ -587,7 +509,7 @@ public class ProjectServiceTest extends IntegrationTest {
         void 프로젝트_가입을_거부하면_정상적으로_거부된다() {
             // given
             Long teamId = getTeamId();
-            createTestProject(teamId, 1L);
+            createTestProject(teamId);
             logout();
             loginAs(member1);
             teamService.joinTeam(teamInviteCodeRequest);
@@ -618,7 +540,7 @@ public class ProjectServiceTest extends IntegrationTest {
         void 프로젝트_가입을_취소하면_요청이_정상적으로_삭제된다() {
             // given
             Long teamId = getTeamId();
-            createTestProject(teamId, 1L);
+            createTestProject(teamId);
             logout();
             loginAs(member1);
             teamService.joinTeam(teamInviteCodeRequest);
@@ -638,7 +560,7 @@ public class ProjectServiceTest extends IntegrationTest {
         void 프로젝트_참여자를_조회하면_정상적으로_조회된다() {
             // given
             Long teamId = getTeamId();
-            createTestProject(teamId, 1L);
+            createTestProject(teamId);
             logout(); // 어드민 로그아웃
             loginAs(member1);
             teamService.joinTeam(teamInviteCodeRequest);
@@ -666,7 +588,7 @@ public class ProjectServiceTest extends IntegrationTest {
         void 프로젝트_참여자_목록을_조회하면_정상적으로_조회된다() {
             // given
             Long teamId = getTeamId();
-            createTestProject(teamId, 1L);
+            createTestProject(teamId);
             logout(); // admin 로그아웃
 
             // when
