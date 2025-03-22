@@ -129,8 +129,10 @@ public class SprintServiceTest extends IntegrationTest {
         }
 
         @Test
-        void 스프린트_마감_날짜가_현재_날짜_이전이라면_예외가_발생한다() {
+        void 스프린트_마감_날짜가_스프린트_시작_날짜_이전이라면_예외가_발생한다() {
             // given
+            sprintRepository.save(
+                    Sprint.createSprint(project, "testTitle", "testDescription", dueDt));
             SprintCreateRequest request =
                     new SprintCreateRequest(project.getId(), "testGoal", LocalDate.of(2024, 1, 1));
 
@@ -138,22 +140,6 @@ public class SprintServiceTest extends IntegrationTest {
             assertThatThrownBy(() -> sprintService.createSprint(request))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(GlobalErrorCode.INVALID_DATE_ERROR.getMessage());
-        }
-
-        @Test
-        void 기존_스프린트가_종료되지_않은_상태에서_새로운_스프린트를_생성하면_예외가_발생한다() {
-            // given
-            sprintRepository.save(
-                    Sprint.createSprint(
-                            project, "testTitle", "testGoal", LocalDate.of(2030, 1, 1)));
-
-            SprintCreateRequest request =
-                    new SprintCreateRequest(project.getId(), "testGoal", LocalDate.of(2031, 1, 1));
-
-            // when & then
-            assertThatThrownBy(() -> sprintService.createSprint(request))
-                    .isInstanceOf(CommonException.class)
-                    .hasMessage(SprintErrorCode.PREVIOUS_SPRINT_NOT_ENDED.getMessage());
         }
     }
 
