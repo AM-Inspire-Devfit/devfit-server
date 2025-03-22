@@ -96,7 +96,9 @@ public class MeetingService {
     // util
     private void validateMeetingTime(
             Sprint sprint, LocalDateTime meetingStart, LocalDateTime meetingEnd) {
-
+        if (meetingStart != null && meetingEnd != null && !meetingStart.isBefore(meetingEnd)) {
+            throw new CommonException(MeetingErrorCode.INVALID_MEETING_TIME_RANGE);
+        }
         // 8:00~00:00
         if (meetingStart.getHour() < 8
                 || (meetingEnd.getHour() == 0 && meetingEnd.getMinute() > 0)) {

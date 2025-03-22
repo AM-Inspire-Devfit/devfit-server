@@ -315,6 +315,7 @@ public class MeetingServiceTest extends IntegrationTest {
 
         @Test
         void 시작시간이_종료시간보다_느리거나_같으면_업데이트중_오류가_발생한다() {
+            meetingRepository.deleteAll();
             createTestMeeting(1L);
             MeetingDtUpdateRequest request1 = new MeetingDtUpdateRequest(meetingEnd, meetingStart);
             MeetingDtUpdateRequest request2 =
