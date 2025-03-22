@@ -7,7 +7,6 @@ import com.amcamp.domain.project.domain.*;
 import com.amcamp.domain.project.domain.ProjectRegistration;
 import com.amcamp.domain.project.dto.request.*;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
-import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectParticipantInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectRegistrationInfoResponse;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
@@ -69,14 +68,14 @@ public class ProjectService {
     }
 
     @Transactional(readOnly = true)
-    public Slice<ProjectListInfoResponse> getProjectListInfo(
-            Long teamId, Long lastProjectId, int pageSize) {
+    public Slice<ProjectInfoResponse> getProjectListInfo(
+            Long teamId, Long lastProjectId, int pageSize, boolean isParticipant) {
 
         Member member = memberUtil.getCurrentMember();
         Team team = getTeam(teamId);
         TeamParticipant teamParticipant = getValidTeamParticipant(member, team);
         return projectRepository.findAllByTeamIdWithPagination(
-                teamId, lastProjectId, pageSize, teamParticipant);
+                teamId, lastProjectId, pageSize, teamParticipant, isParticipant);
     }
 
     // update
@@ -286,5 +285,11 @@ public class ProjectService {
     private boolean isProjectAdmin(Member member, Project project) {
         ProjectParticipant participant = getValidProjectParticipant(member, project);
         return participant.getProjectRole().equals(ProjectParticipantRole.ADMIN);
+    }
+
+    private Boolean isProjectParticipant(Project project, TeamParticipant teamParticipant) {
+        return projectParticipantRepository
+                .findByProjectAndTeamParticipant(project, teamParticipant)
+                .isPresent();
     }
 }
