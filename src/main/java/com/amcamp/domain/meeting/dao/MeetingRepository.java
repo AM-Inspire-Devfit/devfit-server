@@ -13,11 +13,13 @@ import org.springframework.data.jpa.repository.Query;
 public interface MeetingRepository extends JpaRepository<Meeting, Long>, MeetingRepositoryCustom {
     @Query(
             "select m from Meeting m where m.sprint = :sprint "
+                    + " and ((:meetingId is NULL) or m.id <> :meetingId)"
                     + "and ((:meetingStart between m.meetingStart and m.meetingEnd) "
                     + "or (:meetingEnd between m.meetingStart and m.meetingEnd) "
                     + "or (m.meetingStart between :meetingStart and :meetingEnd) "
                     + "or (m.meetingEnd between :meetingStart and :meetingEnd))")
     Optional<Meeting> findOverlappingMeeting(
+            @Param("meetingId") Long meetingId,
             @Param("sprint") Sprint sprint,
             @Param("meetingStart") LocalDateTime meetingStart,
             @Param("meetingEnd") LocalDateTime meetingEnd);

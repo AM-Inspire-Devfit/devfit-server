@@ -22,6 +22,7 @@ import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.SprintErrorCode;
 import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.util.MemberUtil;
+import jakarta.annotation.Nullable;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +45,7 @@ public class MeetingService {
     public void createMeeting(MeetingCreateRequest request) {
         Member member = memberUtil.getCurrentMember();
         Sprint sprint = getValidSprint(member, request.sprintId());
-        validateMeetingTime(sprint, request.meetingStart(), request.meetingEnd());
+        validateMeetingTime(null, sprint, request.meetingStart(), request.meetingEnd());
         meetingRepository.save(
                 Meeting.createMeeting(
                         request.title(), request.meetingStart(), request.meetingEnd(), sprint));
@@ -80,9 +81,12 @@ public class MeetingService {
         Member member = memberUtil.getCurrentMember();
         Meeting meeting = getMeetingById(meetingId);
         validateProjectParticipant(member, meeting.getSprint().getProject());
-        validateMeetingTime(meeting.getSprint(), request.meetingStart(), request.meetingEnd());
-
-        meeting.updateMeetingDt(request.meetingStart(), request.meetingEnd());
+        LocalDateTime meetingStart =
+                request.meetingStart() != null ? request.meetingStart() : meeting.getMeetingStart();
+        LocalDateTime meetingEnd =
+                request.meetingEnd() != null ? request.meetingEnd() : meeting.getMeetingEnd();
+        validateMeetingTime(meeting.getId(), meeting.getSprint(), meetingStart, meetingEnd);
+        meeting.updateMeetingDt(meetingStart, meetingEnd);
     }
 
     // 삭제
@@ -95,8 +99,12 @@ public class MeetingService {
 
     // util
     private void validateMeetingTime(
-            Sprint sprint, LocalDateTime meetingStart, LocalDateTime meetingEnd) {
-        if (meetingStart != null && meetingEnd != null && !meetingStart.isBefore(meetingEnd)) {
+            @Nullable Long meetingId,
+            Sprint sprint,
+            LocalDateTime meetingStart,
+            LocalDateTime meetingEnd) {
+
+        if (!meetingStart.isBefore(meetingEnd) || meetingStart.isEqual(meetingEnd)) {
             throw new CommonException(MeetingErrorCode.INVALID_MEETING_TIME_RANGE);
         }
         // 8:00~00:00
@@ -110,7 +118,7 @@ public class MeetingService {
             throw new CommonException(MeetingErrorCode.MEETING_DATE_OUT_OF_SPRINT);
         } // 기존 일정과의 중복 확인
         if (meetingRepository
-                .findOverlappingMeeting(sprint, meetingStart, meetingEnd)
+                .findOverlappingMeeting(meetingId, sprint, meetingStart, meetingEnd)
                 .isPresent()) {
             throw new CommonException(MeetingErrorCode.MEETING_ALREADY_EXISTS);
         }

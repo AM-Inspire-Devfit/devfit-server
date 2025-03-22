@@ -75,13 +75,6 @@ public class Meeting extends BaseTimeEntity {
     }
 
     public void updateMeetingDt(LocalDateTime meetingStart, LocalDateTime meetingEnd) {
-        LocalDateTime newStart = meetingStart != null ? meetingStart : this.meetingStart;
-        LocalDateTime newEnd = meetingEnd != null ? meetingEnd : this.meetingEnd;
-
-        if (newStart != null && newEnd != null && !newStart.isBefore(newEnd)) {
-            throw new CommonException(MeetingErrorCode.INVALID_MEETING_TIME_RANGE);
-        }
-
         if (meetingStart != null) {
             this.meetingStart = meetingStart;
         }

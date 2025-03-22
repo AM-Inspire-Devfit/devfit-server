@@ -285,6 +285,26 @@ public class MeetingServiceTest extends IntegrationTest {
         }
 
         @Test
+        void 미팅_일시를_하나만_변경해도_정상적으로_변경된다() {
+            // given
+            createTestMeeting(1L);
+            LocalDateTime modifiedStart = LocalDateTime.of(2026, 3, 15, 14, 0);
+            LocalDateTime modifiedEnd = LocalDateTime.of(2026, 3, 15, 20, 0);
+
+            // when
+            MeetingDtUpdateRequest request1 = new MeetingDtUpdateRequest(modifiedStart, null);
+            MeetingDtUpdateRequest request2 = new MeetingDtUpdateRequest(null, modifiedEnd);
+
+            // then
+            meetingService.updateMeetingDt(1L, request1);
+            assertThat(meetingRepository.findById(1L).get().getMeetingStart())
+                    .isEqualTo(modifiedStart);
+            assertThat(meetingRepository.findById(1L).get().getMeetingEnd()).isEqualTo(meetingEnd);
+            meetingService.updateMeetingDt(1L, request2);
+            assertThat(meetingRepository.findById(1L).get().getMeetingEnd()).isEqualTo(modifiedEnd);
+        }
+
+        @Test
         void 스프린트_시작일을_벗어나면_업데이트중_오류가_발생한다() {
             // given
             createTestMeeting(1L);
