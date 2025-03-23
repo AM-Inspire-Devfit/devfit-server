@@ -11,7 +11,7 @@ public class MeetingStatusScheduler {
 
     private final MeetingService meetingService;
 
-    @Scheduled(fixedRate = 24 * 60 * 60000) // 하루 한번 체크(시간당 한번..?)
+    @Scheduled(fixedRate = 24 * 60 * 60000) // 하루 한번 체크
     public void updateExpiredMeetings() {
         meetingService.updateExpiredMeetings();
     }
