@@ -5,13 +5,12 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 import com.amcamp.domain.auth.application.JwtTokenService;
 import com.amcamp.global.common.constants.UrlConstants;
+import com.amcamp.global.helper.SpringEnvironmentHelper;
 import com.amcamp.global.security.JwtAuthenticationFilter;
 import com.amcamp.global.util.CookieUtil;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -27,9 +26,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @RequiredArgsConstructor
 public class WebSecurityConfig {
 
+    private final SpringEnvironmentHelper springEnvironmentHelper;
     private final JwtTokenService jwtTokenService;
     private final CookieUtil cookieUtil;
-    private final Environment environment;
 
     @Bean
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -60,9 +59,7 @@ public class WebSecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        List<String> profiles = List.of(environment.getActiveProfiles());
-
-        if (profiles.contains("dev")) {
+        if (springEnvironmentHelper.isDevProfile()) {
             configuration.addAllowedOriginPattern(UrlConstants.DEV_SERVER_URL);
             configuration.addAllowedOriginPattern(UrlConstants.DEV_DOMAIN_URL);
             configuration.addAllowedOriginPattern(UrlConstants.LOCAL_DOMAIN_URL);

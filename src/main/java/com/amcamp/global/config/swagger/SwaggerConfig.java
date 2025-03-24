@@ -1,6 +1,7 @@
 package com.amcamp.global.config.swagger;
 
 import com.amcamp.global.common.constants.UrlConstants;
+import com.amcamp.global.helper.SpringEnvironmentHelper;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
@@ -13,14 +14,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
 public class SwaggerConfig {
 
-    private final Environment environment;
+    private final SpringEnvironmentHelper springEnvironmentHelper;
 
     @Bean
     public GroupedOpenApi publicApi() {
@@ -41,17 +41,14 @@ public class SwaggerConfig {
     }
 
     private List<Server> getSwaggerServers() {
-        return List.of(new Server().url(resolveServerUrl()));
+        return List.of(new Server().url(getServerUrlByProfile()));
     }
 
-    private String resolveServerUrl() {
-        List<String> profiles = List.of(environment.getActiveProfiles());
-
-        if (profiles.contains("dev")) {
-            return UrlConstants.DEV_SERVER_URL;
-        }
-
-        return UrlConstants.LOCAL_SERVER_URL;
+    private String getServerUrlByProfile() {
+        return switch (springEnvironmentHelper.getCurrentProfile()) {
+            case "dev" -> UrlConstants.DEV_SERVER_URL;
+            default -> UrlConstants.LOCAL_SERVER_URL;
+        };
     }
 
     private Components authSetting() {
