@@ -45,6 +45,8 @@ public class WebSecurityConfig {
                                 .permitAll()
                                 .requestMatchers("/**")
                                 .permitAll()
+                                .requestMatchers("/feedbacks/**")
+                                .authenticated()
                                 .anyRequest()
                                 .authenticated());
 
