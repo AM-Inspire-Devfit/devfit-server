@@ -19,8 +19,6 @@ import com.amcamp.global.exception.errorcode.MemberErrorCode;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.util.MemberUtil;
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -206,20 +204,27 @@ public class ProjectService {
     }
 
     // project participant info
+
+    @Transactional(readOnly = true)
     public ProjectParticipantInfoResponse getProjectParticipant(Long projectId) {
-        Member member = memberUtil.getCurrentMember();
-        Project project = getProjectById(projectId);
+        final Member member = memberUtil.getCurrentMember();
+        final Project project = getProjectById(projectId);
+
         ProjectParticipant participant = getValidProjectParticipant(member, project);
+
         return ProjectParticipantInfoResponse.from(participant);
     }
 
-    public List<ProjectParticipantInfoResponse> getProjectParticipantList(Long projectId) {
-        Member member = memberUtil.getCurrentMember();
-        Project project = getProjectById(projectId);
-        getValidProjectParticipant(member, project);
-        return projectParticipantRepository.findAllByProject(project).stream()
-                .map(ProjectParticipantInfoResponse::from)
-                .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public Slice<ProjectParticipantInfoResponse> getProjectParticipantList(
+            Long projectId, Long lastProjectParticipantId, int pageSize) {
+        final Member member = memberUtil.getCurrentMember();
+        final Project project = getProjectById(projectId);
+
+        getValidTeamParticipant(member, project.getTeam());
+
+        return projectRepository.findAllProjectParticipantByProject(
+                projectId, lastProjectParticipantId, pageSize);
     }
 
     // project utils

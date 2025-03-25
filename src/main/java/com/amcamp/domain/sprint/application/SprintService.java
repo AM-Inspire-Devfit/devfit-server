@@ -43,6 +43,8 @@ public class SprintService {
         final Project project = findByProjectId(request.projectId());
 
         validateProjectParticipant(project, project.getTeam(), currentMember);
+
+        validatePreviousSprintEnded(project);
         validateSprintDueDate(request.dueDt(), project.getToDoInfo().getDueDt());
 
         long count = sprintRepository.countByProject(project);
@@ -113,6 +115,16 @@ public class SprintService {
         return sprintRepository.findAllSprintByProjectId(projectId, lastSprintId);
     }
 
+    @Transactional(readOnly = true)
+    public Slice<SprintInfoResponse> findAllSprintByMember(Long projectId, Long lastSprintId) {
+        final Member currentMember = memberUtil.getCurrentMember();
+        final Project project = findByProjectId(projectId);
+
+        validateProjectParticipant(project, project.getTeam(), currentMember);
+
+        return sprintRepository.findAllSprintByProjectId(projectId, lastSprintId);
+    }
+
     private Sprint findBySprintId(Long sprintId) {
         return sprintRepository
                 .findById(sprintId)
@@ -149,5 +161,15 @@ public class SprintService {
         if (sprintDueDt.isAfter(projectDueDt)) {
             throw new CommonException(SprintErrorCode.SPRINT_DUE_DATE_INVALID);
         }
+    }
+
+    private void validatePreviousSprintEnded(Project project) {
+        sprintRepository
+                .findTopByProjectOrderByCreatedDtDesc(project)
+                .filter(sprint -> !sprint.getToDoInfo().getDueDt().isBefore(LocalDate.now()))
+                .ifPresent(
+                        sprint -> {
+                            throw new CommonException(SprintErrorCode.PREVIOUS_SPRINT_NOT_ENDED);
+                        });
     }
 }

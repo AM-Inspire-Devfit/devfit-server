@@ -2,7 +2,11 @@ package com.amcamp.domain.meeting.application;
 
 import com.amcamp.domain.meeting.dao.MeetingRepository;
 import com.amcamp.domain.meeting.domain.Meeting;
+import com.amcamp.domain.meeting.domain.MeetingStatus;
 import com.amcamp.domain.meeting.dto.request.MeetingCreateRequest;
+import com.amcamp.domain.meeting.dto.request.MeetingDtUpdateRequest;
+import com.amcamp.domain.meeting.dto.request.MeetingTitleUpdateRequest;
+import com.amcamp.domain.meeting.dto.response.MeetingInfoResponse;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.project.dao.ProjectParticipantRepository;
 import com.amcamp.domain.project.domain.Project;
@@ -18,8 +22,11 @@ import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.SprintErrorCode;
 import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.util.MemberUtil;
+import jakarta.annotation.Nullable;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,19 +44,67 @@ public class MeetingService {
     // 미팅 생성
     public void createMeeting(MeetingCreateRequest request) {
         Member member = memberUtil.getCurrentMember();
-        Sprint sprint = getValidateSprint(member, request.sprintId());
-        validateMeetingTime(sprint, request.meetingStart(), request.meetingEnd());
+        Sprint sprint = getValidSprint(member, request.sprintId());
+        validateMeetingTime(null, sprint, request.meetingStart(), request.meetingEnd());
         meetingRepository.save(
                 Meeting.createMeeting(
                         request.title(), request.meetingStart(), request.meetingEnd(), sprint));
     }
 
+    @Transactional(readOnly = true)
+    public MeetingInfoResponse getMeeting(Long meetingId) {
+        Member member = memberUtil.getCurrentMember();
+        Meeting meeting = getMeetingById(meetingId);
+        validateProjectParticipant(member, meeting.getSprint().getProject());
+        return MeetingInfoResponse.from(meeting);
+    }
+
+    @Transactional(readOnly = true)
+    public Slice<MeetingInfoResponse> getMeetingList(
+            Long sprintId, Long lastMeetingId, int pageSize) {
+        Member member = memberUtil.getCurrentMember();
+        Sprint sprint = getValidSprint(member, sprintId);
+        validateProjectParticipant(member, sprint.getProject());
+        return meetingRepository.findAllBySprintIdWithPagination(sprintId, lastMeetingId, pageSize);
+    }
+
+    // 업데이트
+    public void updateMeetingTitle(Long meetingId, MeetingTitleUpdateRequest request) {
+        Member member = memberUtil.getCurrentMember();
+        Meeting meeting = getMeetingById(meetingId);
+        validateProjectParticipant(member, meeting.getSprint().getProject());
+
+        meeting.updateTitle(request.title());
+    }
+
+    public void updateMeetingDt(Long meetingId, MeetingDtUpdateRequest request) {
+        Member member = memberUtil.getCurrentMember();
+        Meeting meeting = getMeetingById(meetingId);
+        validateProjectParticipant(member, meeting.getSprint().getProject());
+        LocalDateTime meetingStart =
+                request.meetingStart() != null ? request.meetingStart() : meeting.getMeetingStart();
+        LocalDateTime meetingEnd =
+                request.meetingEnd() != null ? request.meetingEnd() : meeting.getMeetingEnd();
+        validateMeetingTime(meeting.getId(), meeting.getSprint(), meetingStart, meetingEnd);
+        meeting.updateMeetingDt(meetingStart, meetingEnd);
+    }
+
+    // 삭제
+    public void deleteMeeting(Long meetingId) {
+        Member member = memberUtil.getCurrentMember();
+        Meeting meeting = getMeetingById(meetingId);
+        validateProjectParticipant(member, meeting.getSprint().getProject());
+        meetingRepository.delete(meeting);
+    }
+
     // util
     private void validateMeetingTime(
-            Sprint sprint, LocalDateTime meetingStart, LocalDateTime meetingEnd) {
+            @Nullable Long meetingId,
+            Sprint sprint,
+            LocalDateTime meetingStart,
+            LocalDateTime meetingEnd) {
 
-        // start,end 선후 관계 확인
-        if (meetingStart.isAfter(meetingEnd) || meetingStart.isEqual(meetingEnd)) {
+        if (!meetingStart.isBefore(meetingEnd) || meetingStart.isEqual(meetingEnd)) {
             throw new CommonException(MeetingErrorCode.INVALID_MEETING_TIME_RANGE);
         }
         // 8:00~00:00
@@ -63,7 +118,7 @@ public class MeetingService {
             throw new CommonException(MeetingErrorCode.MEETING_DATE_OUT_OF_SPRINT);
         } // 기존 일정과의 중복 확인
         if (meetingRepository
-                .findOverlappingMeeting(sprint, meetingStart, meetingEnd)
+                .findOverlappingMeeting(meetingId, sprint, meetingStart, meetingEnd)
                 .isPresent()) {
             throw new CommonException(MeetingErrorCode.MEETING_ALREADY_EXISTS);
         }
@@ -83,7 +138,7 @@ public class MeetingService {
                         () -> new CommonException(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED));
     }
 
-    private Sprint getValidateSprint(Member member, Long sprintId) {
+    private Sprint getValidSprint(Member member, Long sprintId) {
         Sprint sprint =
                 sprintRepository
                         .findById(sprintId)
@@ -98,7 +153,13 @@ public class MeetingService {
                 .orElseThrow(() -> new CommonException(MeetingErrorCode.MEETING_NOT_FOUND));
     }
 
-    private boolean isMeetingExist(Long meetingId) {
-        return meetingRepository.findById(meetingId).isPresent();
+    public void updateExpiredMeetings() {
+        // 상태:OPEN, meetingEnd 현재 시간보다 이전인 미팅
+        List<Meeting> expiredMeetings =
+                meetingRepository.findByStatusAndMeetingEndBefore(
+                        MeetingStatus.OPEN, LocalDateTime.now());
+
+        // CLOSE로 변경
+        expiredMeetings.forEach(meeting -> meeting.updateStatus(MeetingStatus.CLOSE));
     }
 }
