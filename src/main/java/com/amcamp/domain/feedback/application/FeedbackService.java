@@ -56,6 +56,7 @@ public class FeedbackService {
 
         // 피드백을 받을 대상
         final ProjectParticipant receiver = findReceiver(request.receiverId());
+        validateUnknownUser(receiver);
 
         validateSenderIsNotReceiver(sender, receiver);
         validateDuplicateFeedback(sender, receiver, sprint);
@@ -156,5 +157,12 @@ public class FeedbackService {
                 .findByProjectAndTeamParticipant(project, teamParticipant)
                 .orElseThrow(
                         () -> new CommonException(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED));
+    }
+
+    private void validateUnknownUser(ProjectParticipant participant) {
+        if (participant.getProjectNickname().equals("UNKNOWN_PROJECT_NICKNAME")
+                && participant.getProjectProfile().equals("UNKNOWN_PROJECT_PROFILE_URL")) {
+            throw new CommonException(FeedbackErrorCode.PARTICIPANT_IS_UNKNOWN);
+        }
     }
 }

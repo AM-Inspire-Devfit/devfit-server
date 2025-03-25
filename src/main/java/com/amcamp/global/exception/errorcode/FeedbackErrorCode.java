@@ -17,6 +17,8 @@ public enum FeedbackErrorCode implements BaseErrorCode {
     FEEDBACK_DUE_DATE_ONLY(HttpStatus.BAD_REQUEST, "스프린트 마감 당일에만 피드백을 전송할 수 있습니다."),
 
     FEEDBACK_NOT_EXISTS(HttpStatus.NOT_FOUND, "해당 스프린트에서 받은 피드백이 존재하지 않습니다."),
+
+    PARTICIPANT_IS_UNKNOWN(HttpStatus.BAD_REQUEST, "프로젝트에서 나간 사용자에게는 피드백을 전송할 수 없습니다."),
     ;
 
     private final HttpStatus httpStatus;
