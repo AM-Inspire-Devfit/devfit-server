@@ -1,9 +1,9 @@
 package com.amcamp.domain.project.dao;
 
-import static com.amcamp.domain.project.domain.QProject.project;
+import static com.amcamp.domain.member.domain.QMember.member;
 import static com.amcamp.domain.project.domain.QProjectRegistration.projectRegistration;
 
-import com.amcamp.domain.project.dto.response.ProjectRegistrationInfoResponse;
+import com.amcamp.domain.project.dto.response.ProjectRegisterDetailResponse;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -19,21 +19,23 @@ public class ProjectRegistrationRepositoryImpl implements ProjectRegistrationRep
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
-    public Slice<ProjectRegistrationInfoResponse> findAllByProjectIdWithPagination(
+    public Slice<ProjectRegisterDetailResponse> findAllByProjectIdWithPagination(
             Long projectId, Long lastRegistrationId, int pageSize) {
 
-        List<ProjectRegistrationInfoResponse> responses =
+        List<ProjectRegisterDetailResponse> responses =
                 jpaQueryFactory
                         .select(
                                 Projections.constructor(
-                                        ProjectRegistrationInfoResponse.class,
+                                        ProjectRegisterDetailResponse.class,
                                         projectRegistration.project.id,
                                         projectRegistration.id,
                                         projectRegistration.requester.id,
+                                        member.nickname,
+                                        member.profileImageUrl,
                                         projectRegistration.requestStatus))
                         .from(projectRegistration)
-                        .leftJoin(project)
-                        .on(projectRegistration.project.eq(project))
+                        .leftJoin(member)
+                        .on(projectRegistration.requester.member.eq(member))
                         .where(
                                 projectRegistration.project.id.eq(projectId),
                                 lastProjectRegistrationCondition(lastRegistrationId))
@@ -50,8 +52,8 @@ public class ProjectRegistrationRepositoryImpl implements ProjectRegistrationRep
                 : projectRegistration.id.lt(projectRegistrationId);
     }
 
-    private Slice<ProjectRegistrationInfoResponse> checkLastPage(
-            int pageSize, List<ProjectRegistrationInfoResponse> results) {
+    private Slice<ProjectRegisterDetailResponse> checkLastPage(
+            int pageSize, List<ProjectRegisterDetailResponse> results) {
         boolean hasNext = false;
 
         if (results.size() > pageSize) {

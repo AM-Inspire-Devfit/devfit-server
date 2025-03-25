@@ -16,6 +16,7 @@ import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
 import com.amcamp.domain.project.dto.request.ProjectTodoInfoUpdateRequest;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectParticipantInfoResponse;
+import com.amcamp.domain.project.dto.response.ProjectRegisterDetailResponse;
 import com.amcamp.domain.project.dto.response.ProjectRegistrationInfoResponse;
 import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
@@ -432,11 +433,11 @@ public class ProjectServiceTest extends IntegrationTest {
             // then
             logout();
             loginAs(memberAdmin);
-            Slice<ProjectRegistrationInfoResponse> response =
+            Slice<ProjectRegisterDetailResponse> response =
                     projectService.getProjectRegistrationList(1L, null, 10);
 
             List<Long> requesterIds =
-                    response.stream().map(ProjectRegistrationInfoResponse::requesterId).toList();
+                    response.stream().map(ProjectRegisterDetailResponse::requesterId).toList();
 
             assertThat(new HashSet<>(requesterIds))
                     .isEqualTo(Set.of(teamParticipant1.getId(), teamParticipant2.getId()));
@@ -605,7 +606,7 @@ public class ProjectServiceTest extends IntegrationTest {
             loginAs(memberAdmin);
 
             projectService.getProjectRegistrationList(1L, null, 10).stream()
-                    .map(ProjectRegistrationInfoResponse::registrationId)
+                    .map(ProjectRegisterDetailResponse::registrationId)
                     .forEach(i -> projectService.approveProjectRegistration(1L, i));
 
             // then

@@ -4,7 +4,7 @@ import com.amcamp.domain.project.application.ProjectService;
 import com.amcamp.domain.project.dto.request.*;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectParticipantInfoResponse;
-import com.amcamp.domain.project.dto.response.ProjectRegistrationInfoResponse;
+import com.amcamp.domain.project.dto.response.ProjectRegisterDetailResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -96,7 +96,7 @@ public class ProjectController {
 
     @Operation(summary = "프로젝트 가입 신청 목록 조회", description = "현재 프로젝트에 신청된 가입 요청 목록을 조회합니다.")
     @GetMapping("/{projectId}/registration/list")
-    public Slice<ProjectRegistrationInfoResponse> projectRegistrationListGet(
+    public Slice<ProjectRegisterDetailResponse> projectRegistrationListGet(
             @PathVariable Long projectId,
             @RequestParam(required = false) Long lastRegistrationId,
             @RequestParam(defaultValue = "10") int pageSize) {
