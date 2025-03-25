@@ -9,6 +9,7 @@ import com.amcamp.domain.project.dto.request.*;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectParticipantInfoResponse;
+import com.amcamp.domain.project.dto.response.ProjectRegisterDetailResponse;
 import com.amcamp.domain.project.dto.response.ProjectRegistrationInfoResponse;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.dao.TeamRepository;
@@ -159,7 +160,7 @@ public class ProjectService {
     }
 
     @Transactional(readOnly = true)
-    public Slice<ProjectRegistrationInfoResponse> getProjectRegistrationList(
+    public Slice<ProjectRegisterDetailResponse> getProjectRegistrationList(
             Long projectId, Long lastRegistrationId, int pageSize) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
