@@ -87,8 +87,7 @@ public class ProjectServiceTest extends IntegrationTest {
         Team team = teamRepository.findById(teamId).orElseThrow();
         TeamParticipant participant = teamParticipantRepository.findById(1L).get();
         Project project =
-                projectRepository.save(
-                        Project.createProject(team, title, description, dueDt));
+                projectRepository.save(Project.createProject(team, title, description, dueDt));
         projectParticipantRepository.save(
                 ProjectParticipant.createProjectParticipant(
                         participant,
@@ -104,8 +103,7 @@ public class ProjectServiceTest extends IntegrationTest {
         Team team = teamRepository.findById(teamId).orElseThrow();
         TeamParticipant participant = teamParticipantRepository.findById(teamParticipantId).get();
         Project project =
-                projectRepository.save(
-                        Project.createProject(team, title, description, dueDt));
+                projectRepository.save(Project.createProject(team, title, description, dueDt));
         projectParticipantRepository.save(
                 ProjectParticipant.createProjectParticipant(
                         participant,
@@ -126,8 +124,7 @@ public class ProjectServiceTest extends IntegrationTest {
         Team team = teamRepository.findById(teamId).orElseThrow();
         TeamParticipant participant = teamParticipantRepository.findById(teamParticipantId).get();
         Project project =
-                projectRepository.save(
-                        Project.createProject(team, title, description, dueDt));
+                projectRepository.save(Project.createProject(team, title, description, dueDt));
         projectParticipantRepository.save(
                 ProjectParticipant.createProjectParticipant(
                         participant,
@@ -179,8 +176,7 @@ public class ProjectServiceTest extends IntegrationTest {
         // given
         Long teamId = getTeamId();
         // when
-        ProjectCreateRequest request =
-                new ProjectCreateRequest(teamId, title, dueDt, description);
+        ProjectCreateRequest request = new ProjectCreateRequest(teamId, title, dueDt, description);
 
         projectService.createProject(request);
 
