@@ -53,8 +53,10 @@ public class FeedbackServiceTest extends IntegrationTest {
     @Autowired private ProjectParticipantRepository projectParticipantRepository;
 
     private ProjectParticipant sender;
+    private ProjectParticipant anotherSender;
     private ProjectParticipant receiver;
     private ProjectParticipant anotherReceiver;
+    private ProjectParticipant unknownReceiver;
     private Sprint sprint;
     private Sprint anotherSprint;
     private Project project;
@@ -124,6 +126,24 @@ public class FeedbackServiceTest extends IntegrationTest {
                                 "test",
                                 "test",
                                 ProjectParticipantRole.ADMIN));
+
+        anotherSender =
+                projectParticipantRepository.save(
+                        ProjectParticipant.createProjectParticipant(
+                                teamParticipantUser,
+                                anotherProject,
+                                "test",
+                                "test",
+                                ProjectParticipantRole.ADMIN));
+
+        unknownReceiver =
+                projectParticipantRepository.save(
+                        ProjectParticipant.createProjectParticipant(
+                                teamParticipantUser,
+                                anotherProject,
+                                "UNKNOWN_PROJECT_NICKNAME",
+                                "UNKNOWN_PROJECT_PROFILE_URL",
+                                ProjectParticipantRole.MEMBER));
 
         sprint =
                 sprintRepository.save(
@@ -239,6 +259,22 @@ public class FeedbackServiceTest extends IntegrationTest {
             assertThatThrownBy(() -> feedbackService.sendFeedback(request))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(FeedbackErrorCode.FEEDBACK_DUE_DATE_ONLY.getMessage());
+        }
+
+        @Test
+        void 프로젝트에서_나간_사용자에게_피드백_메시지를_전송하면_예외가_발생한다() {
+            // given
+            //  로그인한 사용자를 project(2)에 참여중인 anotherSender로 변경
+            setAuthenticatedUser(anotherSender.getTeamParticipant().getMember());
+
+            FeedbackSendRequest request =
+                    new FeedbackSendRequest(
+                            sprint.getId(), unknownReceiver.getId(), feedbackMessage);
+
+            // when & then
+            assertThatThrownBy(() -> feedbackService.sendFeedback(request))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(FeedbackErrorCode.PARTICIPANT_IS_UNKNOWN.getMessage());
         }
     }
 

@@ -43,6 +43,8 @@ public class WebSecurityConfig {
                 auth ->
                         auth.requestMatchers("/devfit-actuator/**")
                                 .permitAll()
+                                .requestMatchers("/feedbacks/**")
+                                .authenticated()
                                 .requestMatchers("/**")
                                 .permitAll()
                                 .requestMatchers("/feedbacks/**")
