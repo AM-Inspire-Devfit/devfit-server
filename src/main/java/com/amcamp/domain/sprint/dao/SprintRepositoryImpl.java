@@ -1,14 +1,19 @@
 package com.amcamp.domain.sprint.dao;
 
 import static com.amcamp.domain.sprint.domain.QSprint.sprint;
+import static com.amcamp.domain.task.domain.QTask.task;
 
-import com.amcamp.domain.sprint.dto.response.SprintInfoResponse;
+import com.amcamp.domain.sprint.dto.response.SprintDetailResponse;
+import com.amcamp.domain.task.dto.response.TaskBasicInfoResponse;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.SprintErrorCode;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
@@ -22,20 +27,23 @@ public class SprintRepositoryImpl implements SprintRepositoryCustom {
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
-    public Slice<SprintInfoResponse> findAllSprintByProjectId(Long projectId, Long lastSprintId) {
-        List<SprintInfoResponse> results =
+    public Slice<SprintDetailResponse> findAllSprintByProjectId(Long projectId, Long lastSprintId) {
+        List<SprintDetailResponse> results =
                 jpaQueryFactory
                         .select(
                                 Projections.constructor(
-                                        SprintInfoResponse.class,
+                                        SprintDetailResponse.class,
                                         sprint.id,
                                         sprint.title,
                                         sprint.goal,
                                         sprint.toDoInfo.startDt,
                                         sprint.toDoInfo.dueDt,
                                         sprint.toDoInfo.toDoStatus,
-                                        sprint.progress.intValue()))
+                                        sprint.progress.intValue(),
+                                        Expressions.constant(Collections.emptyList())))
                         .from(sprint)
+                        .leftJoin(task)
+                        .on(task.sprint.id.eq(sprint.id))
                         .where(lastSprintId(lastSprintId), sprint.project.id.eq(projectId))
                         .orderBy(sprint.title.asc())
                         .limit(2)
@@ -45,18 +53,33 @@ public class SprintRepositoryImpl implements SprintRepositoryCustom {
             throw new CommonException(SprintErrorCode.SPRINT_NOT_FOUND);
         }
 
-        return checkLastPage(results);
+        List<TaskBasicInfoResponse> taskList = fetchTaskList(results.get(0).id());
+
+        List<SprintDetailResponse> finalResult =
+                results.stream()
+                        .map(
+                                sprint ->
+                                        new SprintDetailResponse(
+                                                sprint.id(),
+                                                sprint.title(),
+                                                sprint.goal(),
+                                                sprint.startDt(),
+                                                sprint.dueDt(),
+                                                sprint.status(),
+                                                sprint.progress(),
+                                                taskList))
+                        .collect(Collectors.toList());
+        return checkLastPage(finalResult);
     }
 
     private BooleanExpression lastSprintId(Long sprintId) {
         if (sprintId == null) {
             return null;
         }
-
         return sprint.id.gt(sprintId);
     }
 
-    private Slice<SprintInfoResponse> checkLastPage(List<SprintInfoResponse> results) {
+    private Slice<SprintDetailResponse> checkLastPage(List<SprintDetailResponse> results) {
         boolean hasNext = false;
 
         if (results.size() > 1) {
@@ -65,5 +88,20 @@ public class SprintRepositoryImpl implements SprintRepositoryCustom {
         }
 
         return new SliceImpl<>(results, PageRequest.of(0, 1), hasNext);
+    }
+
+    private List<TaskBasicInfoResponse> fetchTaskList(Long sprintId) {
+        return jpaQueryFactory
+                .select(
+                        Projections.constructor(
+                                TaskBasicInfoResponse.class,
+                                task.sprint.id,
+                                task.id,
+                                task.description,
+                                task.taskStatus))
+                .from(task)
+                .where(task.sprint.id.eq(sprintId))
+                .orderBy(task.id.asc())
+                .fetch();
     }
 }
