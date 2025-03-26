@@ -11,6 +11,7 @@ import com.amcamp.domain.sprint.domain.Sprint;
 import com.amcamp.domain.sprint.dto.request.SprintBasicUpdateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintToDoUpdateRequest;
+import com.amcamp.domain.sprint.dto.response.SprintDetailResponse;
 import com.amcamp.domain.sprint.dto.response.SprintInfoResponse;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.domain.Team;
@@ -106,7 +107,7 @@ public class SprintService {
     }
 
     @Transactional(readOnly = true)
-    public Slice<SprintInfoResponse> findAllSprint(Long projectId, Long lastSprintId) {
+    public Slice<SprintDetailResponse> findAllSprint(Long projectId, Long lastSprintId) {
         final Member currentMember = memberUtil.getCurrentMember();
         final Project project = findByProjectId(projectId);
 
@@ -118,7 +119,7 @@ public class SprintService {
     }
 
     @Transactional(readOnly = true)
-    public Slice<SprintInfoResponse> findAllSprintByMember(Long projectId, Long lastSprintId) {
+    public Slice<SprintDetailResponse> findAllSprintByMember(Long projectId, Long lastSprintId) {
         final Member currentMember = memberUtil.getCurrentMember();
         final Project project = findByProjectId(projectId);
 

@@ -19,7 +19,12 @@ import com.amcamp.domain.sprint.domain.Sprint;
 import com.amcamp.domain.sprint.dto.request.SprintBasicUpdateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintToDoUpdateRequest;
+import com.amcamp.domain.sprint.dto.response.SprintDetailResponse;
 import com.amcamp.domain.sprint.dto.response.SprintInfoResponse;
+import com.amcamp.domain.task.application.TaskService;
+import com.amcamp.domain.task.dao.TaskRepository;
+import com.amcamp.domain.task.domain.Task;
+import com.amcamp.domain.task.domain.TaskDifficulty;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.dao.TeamRepository;
 import com.amcamp.domain.team.domain.Team;
@@ -29,6 +34,7 @@ import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.GlobalErrorCode;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.SprintErrorCode;
+import com.amcamp.global.exception.errorcode.TaskErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
 import java.time.LocalDate;
 import java.util.List;
@@ -52,6 +58,7 @@ public class SprintServiceTest extends IntegrationTest {
     @Autowired private TeamParticipantRepository teamParticipantRepository;
     @Autowired private ProjectRepository projectRepository;
     @Autowired private ProjectParticipantRepository projectParticipantRepository;
+	@Autowired private TaskRepository taskRepository;
 
     private Project project;
     private Member newMember;
@@ -280,14 +287,33 @@ public class SprintServiceTest extends IntegrationTest {
                             Sprint.createSprint(project, "3", "testDescription3", dueDt));
             sprintRepository.saveAll(sprintList);
 
+            Sprint sprint =
+                    sprintRepository
+                            .findById(1L)
+                            .orElseThrow(
+                                    () -> new CommonException(SprintErrorCode.SPRINT_NOT_FOUND));
+
+            taskRepository.save(Task.createTask(sprint, "태스크 조회 기능 구현1", TaskDifficulty.MID));
+            taskRepository.save(Task.createTask(sprint, "태스크 조회 기능 구현2", TaskDifficulty.MID));
+
+            Task task =
+                    taskRepository
+                            .findById(1L)
+                            .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
+
             // when
-            Slice<SprintInfoResponse> results = sprintService.findAllSprint(project.getId(), null);
+            Slice<SprintDetailResponse> results =
+                    sprintService.findAllSprint(project.getId(), null);
 
             // then
             assertThat(results.getSize()).isEqualTo(1);
             assertThat(results)
                     .extracting("id", "title", "goal")
                     .containsExactlyInAnyOrder(tuple(1L, "1", "testDescription1"));
+
+            assertThat(results.getContent().get(0).taskList().get(0).description())
+                    .isEqualTo(task.getDescription());
+            assertThat(results.getContent().get(0).taskList().size()).isEqualTo(2);
         }
     }
 
@@ -315,7 +341,8 @@ public class SprintServiceTest extends IntegrationTest {
             sprintRepository.saveAll(sprintList);
 
             // when
-            Slice<SprintInfoResponse> results = sprintService.findAllSprint(project.getId(), null);
+            Slice<SprintDetailResponse> results =
+                    sprintService.findAllSprint(project.getId(), null);
 
             // then
             assertThat(results.getSize()).isEqualTo(1);

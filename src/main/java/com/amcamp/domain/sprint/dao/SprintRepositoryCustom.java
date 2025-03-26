@@ -1,8 +1,8 @@
 package com.amcamp.domain.sprint.dao;
 
-import com.amcamp.domain.sprint.dto.response.SprintInfoResponse;
+import com.amcamp.domain.sprint.dto.response.SprintDetailResponse;
 import org.springframework.data.domain.Slice;
 
 public interface SprintRepositoryCustom {
-    Slice<SprintInfoResponse> findAllSprintByProjectId(Long projectId, Long lastSprintId);
+    Slice<SprintDetailResponse> findAllSprintByProjectId(Long projectId, Long lastSprintId);
 }
