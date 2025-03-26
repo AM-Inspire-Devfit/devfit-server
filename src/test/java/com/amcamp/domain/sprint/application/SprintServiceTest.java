@@ -20,8 +20,6 @@ import com.amcamp.domain.sprint.dto.request.SprintBasicUpdateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintToDoUpdateRequest;
 import com.amcamp.domain.sprint.dto.response.SprintInfoResponse;
-import com.amcamp.domain.task.application.TaskService;
-import com.amcamp.domain.task.dao.TaskRepository;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.dao.TeamRepository;
 import com.amcamp.domain.team.domain.Team;
@@ -48,14 +46,12 @@ public class SprintServiceTest extends IntegrationTest {
     private final LocalDate dueDt = LocalDate.of(2026, 3, 1);
 
     @Autowired private SprintService sprintService;
-    @Autowired private TaskService taskService;
     @Autowired private SprintRepository sprintRepository;
     @Autowired private MemberRepository memberRepository;
     @Autowired private TeamRepository teamRepository;
     @Autowired private TeamParticipantRepository teamParticipantRepository;
     @Autowired private ProjectRepository projectRepository;
     @Autowired private ProjectParticipantRepository projectParticipantRepository;
-    @Autowired private TaskRepository taskRepository;
 
     private Project project;
     private Member newMember;
@@ -202,7 +198,7 @@ public class SprintServiceTest extends IntegrationTest {
             SprintToDoUpdateRequest request =
                     new SprintToDoUpdateRequest(LocalDate.of(2030, 1, 1), null);
 
-            // when
+            // when & then
             assertThatThrownBy(() -> sprintService.updateSprintToDoInfo(1L, request))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(SprintErrorCode.SPRINT_DUE_DATE_INVALID.getMessage());
@@ -216,10 +212,26 @@ public class SprintServiceTest extends IntegrationTest {
             SprintToDoUpdateRequest request =
                     new SprintToDoUpdateRequest(LocalDate.of(2024, 1, 1), null);
 
-            // when
+            // when & then
             assertThatThrownBy(() -> sprintService.updateSprintToDoInfo(1L, request))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(GlobalErrorCode.INVALID_DATE_ERROR.getMessage());
+        }
+
+        @Test
+        void 다음_스프린트의_시작일_이전에_마감일을_설정하면_예외가_발생한다() {
+            // given
+            sprintRepository.save(
+                    Sprint.createSprint(project, "sprint 1", "sprint 1", LocalDate.now()));
+            sprintRepository.save(Sprint.createSprint(project, "sprint 2", "sprint 2", dueDt));
+
+            SprintToDoUpdateRequest request =
+                    new SprintToDoUpdateRequest(LocalDate.of(2026, 1, 1), null);
+
+            // when & then
+            assertThatThrownBy(() -> sprintService.updateSprintToDoInfo(1L, request))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(SprintErrorCode.NEXT_SPRINT_ALREADY_EXISTS.getMessage());
         }
     }
 
