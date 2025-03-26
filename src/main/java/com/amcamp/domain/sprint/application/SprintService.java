@@ -107,6 +107,12 @@ public class SprintService {
     }
 
     @Transactional(readOnly = true)
+    public SprintInfoResponse findSprint(Long sprintId) {
+        Sprint sprint = findBySprintId(sprintId);
+        return SprintInfoResponse.from(sprint);
+    }
+
+    @Transactional(readOnly = true)
     public Slice<SprintDetailResponse> findAllSprint(Long projectId, Long lastSprintId) {
         final Member currentMember = memberUtil.getCurrentMember();
         final Project project = findByProjectId(projectId);

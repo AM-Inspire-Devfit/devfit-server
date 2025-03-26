@@ -53,6 +53,12 @@ public class SprintController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    @Operation(summary = "스프린트 상세 조회", description = "스프린트 기본 정보를 조회합니다.")
+    @GetMapping("/{sprintId}")
+    public SprintInfoResponse sprintRead(@PathVariable Long sprintId) {
+        return sprintService.findSprint(sprintId);
+    }
+
     @Operation(summary = "프로젝트별 스프린트 목록 조회", description = "특정 프로젝트의 스프린트 목록을 조회합니다.")
     @GetMapping("/{projectId}/project")
     public Slice<SprintDetailResponse> sprintFindAll(
