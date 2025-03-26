@@ -140,7 +140,6 @@ public class SprintRepositoryImpl implements SprintRepositoryCustom {
                 .select(
                         Projections.constructor(
                                 TaskBasicInfoResponse.class,
-                                task.sprint.id,
                                 task.id,
                                 task.description,
                                 task.taskStatus,
@@ -157,7 +156,6 @@ public class SprintRepositoryImpl implements SprintRepositoryCustom {
                 .select(
                         Projections.constructor(
                                 TaskBasicInfoResponse.class,
-                                task.sprint.id,
                                 task.id,
                                 task.description,
                                 task.taskStatus,
