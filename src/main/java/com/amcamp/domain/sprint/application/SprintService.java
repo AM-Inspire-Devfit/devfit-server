@@ -129,9 +129,11 @@ public class SprintService {
         final Member currentMember = memberUtil.getCurrentMember();
         final Project project = findByProjectId(projectId);
 
-        validateProjectParticipant(project, project.getTeam(), currentMember);
+        ProjectParticipant participant =
+                validateProjectParticipant(project, project.getTeam(), currentMember);
 
-        return sprintRepository.findAllSprintByProjectId(projectId, lastSprintId);
+        return sprintRepository.findAllSprintByProjectIdAndAssignee(
+                projectId, lastSprintId, participant);
     }
 
     private Sprint findBySprintId(Long sprintId) {
