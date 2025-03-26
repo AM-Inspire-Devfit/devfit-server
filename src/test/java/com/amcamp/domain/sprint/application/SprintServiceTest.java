@@ -268,6 +268,32 @@ public class SprintServiceTest extends IntegrationTest {
     }
 
     @Nested
+    class 스프린트_기본정보를_조회할_떄 {
+        @Test
+        void 스프린트가_존재하지_않으면_예외가_발생한다() {
+            // when & then
+            assertThatThrownBy(() -> sprintService.deleteSprint(2L))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(SprintErrorCode.SPRINT_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        void 스프린트_기본_정보를_조회한다() {
+            // given
+            List<Sprint> sprintList =
+                    List.of(
+                            Sprint.createSprint(project, "1", "testDescription1", dueDt),
+                            Sprint.createSprint(project, "2", "testDescription2", dueDt),
+                            Sprint.createSprint(project, "3", "testDescription3", dueDt));
+            sprintRepository.saveAll(sprintList);
+
+            SprintInfoResponse response = sprintService.findSprint(1L);
+
+            assertThat(response.goal()).isEqualTo("testDescription1");
+        }
+    }
+
+    @Nested
     class 프로젝트별_스프린트_목록을_조회할_때 {
         @Test
         void 프로젝트가_존재하지_않으면_예외가_발생한다() {
