@@ -70,6 +70,7 @@ public class TaskController {
         return taskService.getTasksBySprint(sprintId, lastTaskId, size);
     }
 
+    @Deprecated
     @Operation(
             summary = "마이 페이지 내 스프린트별 태스크 조회",
             description = "멤버에 할당된 태스크를 스프린트 아이디값에 따라 불러 옵니다.")

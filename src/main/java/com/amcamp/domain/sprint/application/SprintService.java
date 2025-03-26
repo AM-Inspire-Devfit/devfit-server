@@ -108,7 +108,14 @@ public class SprintService {
 
     @Transactional(readOnly = true)
     public SprintInfoResponse findSprint(Long sprintId) {
-        Sprint sprint = findBySprintId(sprintId);
+        final Member currentMember = memberUtil.getCurrentMember();
+        final Sprint sprint = findBySprintId(sprintId);
+        final Project project = findByProjectId(sprint.getProject().getId());
+
+        teamParticipantRepository
+                .findByMemberAndTeam(currentMember, project.getTeam())
+                .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED));
+
         return SprintInfoResponse.from(sprint);
     }
 
