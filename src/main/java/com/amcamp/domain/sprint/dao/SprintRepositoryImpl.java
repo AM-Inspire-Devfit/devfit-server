@@ -143,7 +143,8 @@ public class SprintRepositoryImpl implements SprintRepositoryCustom {
                                 task.sprint.id,
                                 task.id,
                                 task.description,
-                                task.taskStatus))
+                                task.taskStatus,
+                                task.sosStatus))
                 .from(task)
                 .where(task.sprint.id.eq(sprintId))
                 .orderBy(task.id.asc())
@@ -159,7 +160,8 @@ public class SprintRepositoryImpl implements SprintRepositoryCustom {
                                 task.sprint.id,
                                 task.id,
                                 task.description,
-                                task.taskStatus))
+                                task.taskStatus,
+                                task.sosStatus))
                 .from(task)
                 .where(task.sprint.id.eq(sprintId), task.assignee.eq(participant))
                 .orderBy(task.id.asc())
