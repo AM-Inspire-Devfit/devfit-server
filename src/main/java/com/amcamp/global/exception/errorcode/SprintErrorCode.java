@@ -14,6 +14,7 @@ public enum SprintErrorCode implements BaseErrorCode {
 
     SPRINT_DUE_DATE_INVALID(HttpStatus.BAD_REQUEST, "스프린트 마감일은 프로젝트 마감일 이내여야 합니다."),
     PREVIOUS_SPRINT_NOT_ENDED(HttpStatus.BAD_REQUEST, "이전 스프린트가 아직 종료되지 않았습니다."),
+    NEXT_SPRINT_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "다음 스프린트가 존재할 경우, 마감일은 그 이전이어야 합니다."),
     ;
 
     private final HttpStatus httpStatus;
