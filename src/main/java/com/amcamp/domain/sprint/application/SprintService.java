@@ -22,6 +22,7 @@ import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.util.MemberUtil;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -78,6 +79,7 @@ public class SprintService {
                 sprint.getProject(), sprint.getProject().getTeam(), currentMember);
 
         validateSprintDueDate(request.dueDt(), sprint.getProject().getToDoInfo().getDueDt());
+        validateDueDtIfNextSprintExists(sprint.getProject(), request.dueDt(), sprintId);
 
         sprint.updateSprintToDo(request.dueDt(), request.status());
 
@@ -171,5 +173,16 @@ public class SprintService {
                         sprint -> {
                             throw new CommonException(SprintErrorCode.PREVIOUS_SPRINT_NOT_ENDED);
                         });
+    }
+
+    private void validateDueDtIfNextSprintExists(Project project, LocalDate dueDt, Long sprintId) {
+        Optional<Sprint> nextSprint =
+                sprintRepository.findNextSprintAfterDueDate(project.getId(), dueDt, sprintId);
+
+        if (nextSprint.isPresent()) {
+            if (!dueDt.isBefore(nextSprint.get().getToDoInfo().getStartDt())) {
+                throw new CommonException(SprintErrorCode.NEXT_SPRINT_ALREADY_EXISTS);
+            }
+        }
     }
 }
