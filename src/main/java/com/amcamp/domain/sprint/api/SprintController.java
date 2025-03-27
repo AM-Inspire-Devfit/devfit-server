@@ -55,7 +55,7 @@ public class SprintController {
 
     @Operation(summary = "스프린트 상세 조회", description = "스프린트 기본 정보를 조회합니다.")
     @GetMapping("/{sprintId}")
-    public SprintInfoResponse sprintRead(@PathVariable Long sprintId) {
+    public SprintInfoResponse sprintFind(@PathVariable Long sprintId) {
         return sprintService.findSprint(sprintId);
     }
 
