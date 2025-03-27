@@ -21,7 +21,6 @@ import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintToDoUpdateRequest;
 import com.amcamp.domain.sprint.dto.response.SprintDetailResponse;
 import com.amcamp.domain.sprint.dto.response.SprintInfoResponse;
-import com.amcamp.domain.task.application.TaskService;
 import com.amcamp.domain.task.dao.TaskRepository;
 import com.amcamp.domain.task.domain.Task;
 import com.amcamp.domain.task.domain.TaskDifficulty;
@@ -60,7 +59,7 @@ public class SprintServiceTest extends IntegrationTest {
     @Autowired private TeamParticipantRepository teamParticipantRepository;
     @Autowired private ProjectRepository projectRepository;
     @Autowired private ProjectParticipantRepository projectParticipantRepository;
-	@Autowired private TaskRepository taskRepository;
+    @Autowired private TaskRepository taskRepository;
 
     private Project project;
     private Member newMember;
