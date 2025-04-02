@@ -19,13 +19,7 @@ import com.amcamp.domain.sprint.domain.Sprint;
 import com.amcamp.domain.sprint.dto.request.SprintBasicUpdateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintToDoUpdateRequest;
-import com.amcamp.domain.sprint.dto.response.SprintDetailResponse;
 import com.amcamp.domain.sprint.dto.response.SprintInfoResponse;
-import com.amcamp.domain.task.application.TaskService;
-import com.amcamp.domain.task.dao.TaskRepository;
-import com.amcamp.domain.task.domain.Task;
-import com.amcamp.domain.task.domain.TaskDifficulty;
-import com.amcamp.domain.task.domain.TaskStatus;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.dao.TeamRepository;
 import com.amcamp.domain.team.domain.Team;
@@ -35,7 +29,6 @@ import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.GlobalErrorCode;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.SprintErrorCode;
-import com.amcamp.global.exception.errorcode.TaskErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
 import java.time.LocalDate;
 import java.util.List;
@@ -47,7 +40,6 @@ import org.springframework.data.domain.Slice;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.transaction.annotation.Transactional;
 
 public class SprintServiceTest extends IntegrationTest {
 
@@ -60,7 +52,6 @@ public class SprintServiceTest extends IntegrationTest {
     @Autowired private TeamParticipantRepository teamParticipantRepository;
     @Autowired private ProjectRepository projectRepository;
     @Autowired private ProjectParticipantRepository projectParticipantRepository;
-	@Autowired private TaskRepository taskRepository;
 
     private Project project;
     private Member newMember;
@@ -270,32 +261,6 @@ public class SprintServiceTest extends IntegrationTest {
     }
 
     @Nested
-    class 스프린트_기본정보를_조회할_떄 {
-        @Test
-        void 스프린트가_존재하지_않으면_예외가_발생한다() {
-            // when & then
-            assertThatThrownBy(() -> sprintService.deleteSprint(2L))
-                    .isInstanceOf(CommonException.class)
-                    .hasMessage(SprintErrorCode.SPRINT_NOT_FOUND.getMessage());
-        }
-
-        @Test
-        void 스프린트_기본_정보를_조회한다() {
-            // given
-            List<Sprint> sprintList =
-                    List.of(
-                            Sprint.createSprint(project, "1", "testDescription1", dueDt),
-                            Sprint.createSprint(project, "2", "testDescription2", dueDt),
-                            Sprint.createSprint(project, "3", "testDescription3", dueDt));
-            sprintRepository.saveAll(sprintList);
-
-            SprintInfoResponse response = sprintService.findSprint(1L);
-
-            assertThat(response.goal()).isEqualTo("testDescription1");
-        }
-    }
-
-    @Nested
     class 프로젝트별_스프린트_목록을_조회할_때 {
         @Test
         void 프로젝트가_존재하지_않으면_예외가_발생한다() {
@@ -306,7 +271,6 @@ public class SprintServiceTest extends IntegrationTest {
         }
 
         @Test
-        @Transactional
         void 프로젝트가_존재한다면_첫_번째_스프린트를_반환한다() {
             // given
             List<Sprint> sprintList =
@@ -316,46 +280,14 @@ public class SprintServiceTest extends IntegrationTest {
                             Sprint.createSprint(project, "3", "testDescription3", dueDt));
             sprintRepository.saveAll(sprintList);
 
-            Sprint sprint =
-                    sprintRepository
-                            .findById(1L)
-                            .orElseThrow(
-                                    () -> new CommonException(SprintErrorCode.SPRINT_NOT_FOUND));
-
-            taskRepository.save(Task.createTask(sprint, "태스크 조회 기능 구현1", TaskDifficulty.MID));
-            taskRepository.save(Task.createTask(sprint, "태스크 조회 기능 구현2", TaskDifficulty.MID));
-
-            Task task =
-                    taskRepository
-                            .findById(1L)
-                            .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
-            ProjectParticipant participant =
-                    projectParticipantRepository
-                            .findById(1L)
-                            .orElseThrow(
-                                    () ->
-                                            new CommonException(
-                                                    ProjectErrorCode
-                                                            .PROJECT_PARTICIPATION_REQUIRED));
-
-            task.assignTask(participant);
-            task.updateTaskStatus();
-
             // when
-            Slice<SprintDetailResponse> results =
-                    sprintService.findAllSprint(project.getId(), null);
+            Slice<SprintInfoResponse> results = sprintService.findAllSprint(project.getId(), null);
 
             // then
             assertThat(results.getSize()).isEqualTo(1);
             assertThat(results)
                     .extracting("id", "title", "goal")
                     .containsExactlyInAnyOrder(tuple(1L, "1", "testDescription1"));
-
-            assertThat(results.getContent().get(0).taskList().get(0).description())
-                    .isEqualTo(task.getDescription());
-            assertThat(results.getContent().get(0).taskList().size()).isEqualTo(2);
-            assertThat(results.getContent().get(0).taskList().get(0).taskStatus())
-                    .isEqualTo(TaskStatus.COMPLETED);
         }
     }
 
@@ -373,7 +305,6 @@ public class SprintServiceTest extends IntegrationTest {
         }
 
         @Test
-        @Transactional
         void 프로젝트가_존재한다면_첫_번째_스프린트를_반환한다() {
             // given
             List<Sprint> sprintList =
@@ -383,47 +314,15 @@ public class SprintServiceTest extends IntegrationTest {
                             Sprint.createSprint(project, "3", "testDescription3", dueDt));
             sprintRepository.saveAll(sprintList);
 
-            Sprint sprint =
-                    sprintRepository
-                            .findById(1L)
-                            .orElseThrow(
-                                    () -> new CommonException(SprintErrorCode.SPRINT_NOT_FOUND));
-
-            taskRepository.save(Task.createTask(sprint, "태스크 조회 기능 구현1", TaskDifficulty.MID));
-            taskRepository.save(Task.createTask(sprint, "태스크 조회 기능 구현2", TaskDifficulty.MID));
-
-            Task task =
-                    taskRepository
-                            .findById(2L)
-                            .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
-            ProjectParticipant participant =
-                    projectParticipantRepository
-                            .findById(1L)
-                            .orElseThrow(
-                                    () ->
-                                            new CommonException(
-                                                    ProjectErrorCode
-                                                            .PROJECT_PARTICIPATION_REQUIRED));
-
-            task.assignTask(participant);
-            task.updateTaskStatus();
-
             // when
-            Slice<SprintDetailResponse> results =
-                    sprintService.findAllSprintByMember(project.getId(), null);
+            Slice<SprintInfoResponse> results = sprintService.findAllSprint(project.getId(), null);
 
             // then
             assertThat(results.getSize()).isEqualTo(1);
             assertThat(results)
                     .extracting("id", "title", "goal")
                     .containsExactlyInAnyOrder(tuple(1L, "1", "testDescription1"));
-
-            assertThat(results.getContent().get(0).taskList().get(0).description())
-                    .isEqualTo(task.getDescription());
-            assertThat(results.getContent().get(0).taskList().size()).isEqualTo(1);
-
             assertThat(results.getContent().get(0).progress()).isInstanceOf(Integer.class);
-            //			assertThat(results.getContent().get(0).progress()).isEqualTo(50);
         }
     }
 }
