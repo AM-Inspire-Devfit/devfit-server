@@ -284,7 +284,6 @@ public class ProjectServiceTest extends IntegrationTest {
         String originalTitle = "originalProjectTitle";
         String originalDescription = "originalProjectGoal";
         String updatedTitle = "updatedProjectTitle";
-        String updatedGoal = "updatedProjectGoal";
         String updatedDescription = "updatedProjectDescription";
 
         void createOriginalProject() {
@@ -298,9 +297,7 @@ public class ProjectServiceTest extends IntegrationTest {
             createOriginalProject();
             // when
             projectService.updateProjectBasicInfo(
-                    1L,
-                    new ProjectBasicInfoUpdateRequest(
-                            updatedTitle, updatedGoal, updatedDescription));
+                    1L, new ProjectBasicInfoUpdateRequest(updatedTitle, updatedDescription));
             Project updatedProject = projectRepository.findById(1L).get();
             // then
             assertThat(updatedProject.getTitle()).isEqualTo(updatedTitle);
@@ -321,7 +318,7 @@ public class ProjectServiceTest extends IntegrationTest {
                                     projectService.updateProjectBasicInfo(
                                             1L,
                                             new ProjectBasicInfoUpdateRequest(
-                                                    updatedTitle, updatedGoal, updatedDescription)))
+                                                    updatedTitle, updatedDescription)))
                     .isInstanceOf(CommonException.class)
                     .hasMessageContaining(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED.getMessage());
         }
@@ -341,7 +338,7 @@ public class ProjectServiceTest extends IntegrationTest {
                                     projectService.updateProjectBasicInfo(
                                             1L,
                                             new ProjectBasicInfoUpdateRequest(
-                                                    updatedTitle, updatedGoal, updatedDescription)))
+                                                    updatedTitle, updatedDescription)))
                     .isInstanceOf(CommonException.class)
                     .hasMessageContaining(
                             ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED.getMessage());
@@ -353,7 +350,7 @@ public class ProjectServiceTest extends IntegrationTest {
             createOriginalProject();
             // when
             projectService.updateProjectBasicInfo(
-                    1L, new ProjectBasicInfoUpdateRequest(updatedTitle, null, null));
+                    1L, new ProjectBasicInfoUpdateRequest(updatedTitle, null));
             Project updatedProject = projectRepository.findById(1L).get();
             // then
             assertThat(updatedProject.getTitle()).isEqualTo(updatedTitle);
@@ -366,7 +363,7 @@ public class ProjectServiceTest extends IntegrationTest {
             createOriginalProject();
             // when
             projectService.updateProjectBasicInfo(
-                    1L, new ProjectBasicInfoUpdateRequest(null, updatedGoal, null));
+                    1L, new ProjectBasicInfoUpdateRequest(null, null));
             Project updatedProject = projectRepository.findById(1L).get();
             // then
             assertThat(updatedProject.getTitle()).isEqualTo(originalTitle);
@@ -379,7 +376,7 @@ public class ProjectServiceTest extends IntegrationTest {
             createOriginalProject();
             // when
             projectService.updateProjectBasicInfo(
-                    1L, new ProjectBasicInfoUpdateRequest(null, null, updatedDescription));
+                    1L, new ProjectBasicInfoUpdateRequest(null, updatedDescription));
             Project updatedProject = projectRepository.findById(1L).get();
             // then
             assertThat(updatedProject.getTitle()).isEqualTo(originalTitle);
