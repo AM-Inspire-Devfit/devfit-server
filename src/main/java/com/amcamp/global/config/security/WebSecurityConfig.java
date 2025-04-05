@@ -34,12 +34,20 @@ public class WebSecurityConfig {
     @Bean
     @Order(1)
     public SecurityFilterChain swaggerSecurityFilterChain(HttpSecurity http) throws Exception {
-        http.securityMatcher("/swagger-ui/**", "/v3/api-docs/**")
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-                .httpBasic(withDefaults())
-                .sessionManagement(
-                        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+        if (springEnvironmentHelper.isDevProfile()) {
+            http.securityMatcher("/swagger-ui/**", "/v3/api-docs/**")
+                    .csrf(AbstractHttpConfigurer::disable)
+                    .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+                    .httpBasic(withDefaults())
+                    .sessionManagement(
+                            session ->
+                                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        } else {
+            http.securityMatcher("/swagger-ui/**", "/v3/api-docs/**")
+                    .csrf(AbstractHttpConfigurer::disable)
+                    .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        }
 
         return http.build();
     }
