@@ -37,9 +37,8 @@ public class SprintRepositoryImpl implements SprintRepositoryCustom {
                                         sprint.id,
                                         sprint.title,
                                         sprint.goal,
-                                        sprint.toDoInfo.startDt,
-                                        sprint.toDoInfo.dueDt,
-                                        sprint.toDoInfo.toDoStatus,
+                                        sprint.startDt,
+                                        sprint.dueDt,
                                         sprint.progress.intValue(),
                                         Expressions.constant(Collections.emptyList())))
                         .from(sprint)
@@ -64,7 +63,6 @@ public class SprintRepositoryImpl implements SprintRepositoryCustom {
                                                 sprint.goal(),
                                                 sprint.startDt(),
                                                 sprint.dueDt(),
-                                                sprint.status(),
                                                 sprint.progress(),
                                                 taskList))
                         .collect(Collectors.toList());
@@ -82,9 +80,8 @@ public class SprintRepositoryImpl implements SprintRepositoryCustom {
                                         sprint.id,
                                         sprint.title,
                                         sprint.goal,
-                                        sprint.toDoInfo.startDt,
-                                        sprint.toDoInfo.dueDt,
-                                        sprint.toDoInfo.toDoStatus,
+                                        sprint.startDt,
+                                        sprint.dueDt,
                                         sprint.progress.intValue(),
                                         Expressions.constant(Collections.emptyList())))
                         .from(sprint)
@@ -110,7 +107,6 @@ public class SprintRepositoryImpl implements SprintRepositoryCustom {
                                                 sprint.goal(),
                                                 sprint.startDt(),
                                                 sprint.dueDt(),
-                                                sprint.status(),
                                                 sprint.progress(),
                                                 taskList))
                         .collect(Collectors.toList());
