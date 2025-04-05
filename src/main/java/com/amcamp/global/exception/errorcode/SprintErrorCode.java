@@ -12,11 +12,11 @@ public enum SprintErrorCode implements BaseErrorCode {
 
     TASK_NOT_CREATED_YET(HttpStatus.NOT_FOUND, "스프린트 내 태스크가 존재하지 않습니다."),
 
-    SPRINT_DUE_DATE_INVALID(HttpStatus.BAD_REQUEST, "스프린트 마감일은 프로젝트 마감일 이내여야 합니다."),
+    SPRINT_DUE_DATE_BEFORE_START(HttpStatus.BAD_REQUEST, "스프린트 마감일자는 시작일자 이후여야 합니다."),
+    SPRINT_DUE_DATE_EXCEEDS_PROJECT_END(HttpStatus.BAD_REQUEST, "스프린트 마감일은 프로젝트 마감일 이내여야 합니다."),
     PREVIOUS_SPRINT_NOT_ENDED(HttpStatus.BAD_REQUEST, "이전 스프린트가 아직 종료되지 않았습니다."),
-    NEXT_SPRINT_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "다음 스프린트가 존재할 경우, 마감일은 그 이전이어야 합니다."),
-
-    INVALID_SPRINT_DUE_DATE(HttpStatus.BAD_REQUEST, "스프린트 마감일자는 시작일자 이후여야 합니다.");
+    SPRINT_DUE_DATE_CONFLICT_WITH_NEXT(
+            HttpStatus.BAD_REQUEST, "다음 스프린트가 존재할 경우, 마감일은 그 이전이어야 합니다."),
     ;
 
     private final HttpStatus httpStatus;

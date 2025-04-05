@@ -133,7 +133,7 @@ public class SprintServiceTest extends IntegrationTest {
             // when & then
             assertThatThrownBy(() -> sprintService.createSprint(request))
                     .isInstanceOf(CommonException.class)
-                    .hasMessage(SprintErrorCode.SPRINT_DUE_DATE_INVALID.getMessage());
+                    .hasMessage(SprintErrorCode.SPRINT_DUE_DATE_EXCEEDS_PROJECT_END.getMessage());
         }
 
         @Test
@@ -145,7 +145,7 @@ public class SprintServiceTest extends IntegrationTest {
             // when
             assertThatThrownBy(() -> sprintService.createSprint(request))
                     .isInstanceOf(CommonException.class)
-                    .hasMessage(SprintErrorCode.INVALID_SPRINT_DUE_DATE.getMessage());
+                    .hasMessage(SprintErrorCode.SPRINT_DUE_DATE_BEFORE_START.getMessage());
         }
 
         @Test
@@ -203,7 +203,7 @@ public class SprintServiceTest extends IntegrationTest {
             // when & then
             assertThatThrownBy(() -> sprintService.updateSprint(1L, request))
                     .isInstanceOf(CommonException.class)
-                    .hasMessage(SprintErrorCode.SPRINT_DUE_DATE_INVALID.getMessage());
+                    .hasMessage(SprintErrorCode.SPRINT_DUE_DATE_EXCEEDS_PROJECT_END.getMessage());
         }
 
         @Test
@@ -216,7 +216,7 @@ public class SprintServiceTest extends IntegrationTest {
             // when & then
             assertThatThrownBy(() -> sprintService.updateSprint(1L, request))
                     .isInstanceOf(CommonException.class)
-                    .hasMessage(SprintErrorCode.INVALID_SPRINT_DUE_DATE.getMessage());
+                    .hasMessage(SprintErrorCode.SPRINT_DUE_DATE_BEFORE_START.getMessage());
         }
 
         @Test
@@ -231,7 +231,7 @@ public class SprintServiceTest extends IntegrationTest {
             // when & then
             assertThatThrownBy(() -> sprintService.updateSprint(1L, request))
                     .isInstanceOf(CommonException.class)
-                    .hasMessage(SprintErrorCode.NEXT_SPRINT_ALREADY_EXISTS.getMessage());
+                    .hasMessage(SprintErrorCode.SPRINT_DUE_DATE_CONFLICT_WITH_NEXT.getMessage());
         }
     }
 

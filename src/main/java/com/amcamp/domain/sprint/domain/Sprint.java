@@ -102,7 +102,7 @@ public class Sprint extends BaseTimeEntity {
 
     private static void validateDueDt(LocalDate startDt, LocalDate dueDt) {
         if (dueDt.isBefore(startDt)) {
-            throw new CommonException(SprintErrorCode.INVALID_SPRINT_DUE_DATE);
+            throw new CommonException(SprintErrorCode.SPRINT_DUE_DATE_BEFORE_START);
         }
     }
 }

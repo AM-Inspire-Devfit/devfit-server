@@ -165,7 +165,7 @@ public class SprintService {
 
     private void validateSprintDueDate(LocalDate sprintDueDt, LocalDate projectDueDt) {
         if (sprintDueDt.isAfter(projectDueDt)) {
-            throw new CommonException(SprintErrorCode.SPRINT_DUE_DATE_INVALID);
+            throw new CommonException(SprintErrorCode.SPRINT_DUE_DATE_EXCEEDS_PROJECT_END);
         }
     }
 
@@ -185,7 +185,7 @@ public class SprintService {
 
         if (nextSprint.isPresent()) {
             if (!dueDt.isBefore(nextSprint.get().getStartDt())) {
-                throw new CommonException(SprintErrorCode.NEXT_SPRINT_ALREADY_EXISTS);
+                throw new CommonException(SprintErrorCode.SPRINT_DUE_DATE_CONFLICT_WITH_NEXT);
             }
         }
     }
