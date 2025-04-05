@@ -78,23 +78,16 @@ public class ProjectService {
                 teamId, lastProjectId, pageSize, teamParticipant);
     }
 
-    // update
-    public void updateProjectBasicInfo(Long projectId, ProjectBasicInfoUpdateRequest request) {
-        Member member = memberUtil.getCurrentMember();
-        Project project = getProjectById(projectId);
+    public ProjectInfoResponse updateProject(Long projectId, ProjectUpdateRequest request) {
+        final Member member = memberUtil.getCurrentMember();
+        final Project project = getProjectById(projectId);
+
         getValidProjectParticipant(member, project);
-        project.updateBasic(request.title(), request.description());
+        project.updateProject(request.title(), request.description(), request.dueDt());
+
+        return ProjectInfoResponse.from(project);
     }
 
-    public void updateProjectTodoInfo(Long projectId, ProjectTodoInfoUpdateRequest request) {
-        Member member = memberUtil.getCurrentMember();
-        Project project = getProjectById(projectId);
-        getValidProjectParticipant(member, project);
-
-        project.updateToDo(request.dueDt(), request.toDoStatus());
-    }
-
-    // delete
     public void deleteProject(Long projectId) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);

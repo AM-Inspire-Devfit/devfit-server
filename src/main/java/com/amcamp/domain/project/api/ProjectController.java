@@ -24,9 +24,6 @@ public class ProjectController {
 
     private final ProjectService projectService;
 
-    // project
-
-    // create
     @Operation(summary = "프로젝트 생성", description = "새로운 프로젝트를 생성합니다.")
     @PostMapping("/create")
     public ResponseEntity<Void> projectCreate(
@@ -52,26 +49,13 @@ public class ProjectController {
         return projectService.getProjectInfo(projectId);
     }
 
-    // update
-    @Operation(summary = "프로젝트 기본 정보 업데이트", description = "프로젝트 타이틀/목표/상세설정을 수정합니다")
-    @PatchMapping("/{projectId}/basic-info")
-    public ResponseEntity<Void> projectBasicInfoUpdate(
-            @PathVariable Long projectId,
-            @Valid @RequestBody ProjectBasicInfoUpdateRequest request) {
-        projectService.updateProjectBasicInfo(projectId, request);
-        return ResponseEntity.ok().build();
+    @Operation(summary = "프로젝트 정보 수정", description = "프로젝트 제목, 설명, 마감일자를 수정합니다.")
+    @PatchMapping("/{projectId}")
+    public ProjectInfoResponse projectUpdate(
+            @PathVariable Long projectId, @Valid @RequestBody ProjectUpdateRequest request) {
+        return projectService.updateProject(projectId, request);
     }
 
-    @Operation(summary = "프로젝트 마감기한/진행상태 업데이트", description = "프로젝트 마감기한/진행상태를 수정합니다")
-    @PatchMapping("/{projectId}/todo-info")
-    public ResponseEntity<Void> projectTodoInfoUpdate(
-            @PathVariable Long projectId,
-            @Valid @RequestBody ProjectTodoInfoUpdateRequest request) {
-        projectService.updateProjectTodoInfo(projectId, request);
-        return ResponseEntity.ok().build();
-    }
-
-    // delete
     @Operation(summary = "프로젝트 삭제", description = "프로젝트를 삭제합니다.")
     @DeleteMapping("/{projectId}")
     public ResponseEntity<Void> projectDelete(@PathVariable Long projectId) {
@@ -79,20 +63,12 @@ public class ProjectController {
         return ResponseEntity.ok().build();
     }
 
-    // project member
     @Operation(summary = "프로젝트 가입 신청", description = "프로젝트 가입 신청 요청을 보냅니다.")
     @PostMapping("/{projectId}/registration")
     public ResponseEntity<Void> projectRegister(@PathVariable Long projectId) {
         projectService.requestToProjectRegistration(projectId);
         return ResponseEntity.ok().build();
     }
-
-    //    @Operation(summary = "프로젝트 가입 신청 조회", description = "프로젝트 가입 신청 정보를 조회합니다.")
-    //    @GetMapping("/{projectId}/registration")
-    //    public List<ProjectRegistrationInfoResponse> projectRegistrationGet(
-    //            @PathVariable Long projectId) {
-    //        return projectService.getProjectRegistration(projectId);
-    //    }
 
     @Operation(summary = "프로젝트 가입 신청 목록 조회", description = "현재 프로젝트에 신청된 가입 요청 목록을 조회합니다.")
     @GetMapping("/{projectId}/registration/list")

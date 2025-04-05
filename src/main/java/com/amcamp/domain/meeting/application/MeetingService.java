@@ -113,8 +113,8 @@ public class MeetingService {
             throw new CommonException(MeetingErrorCode.INVALID_MEETING_TIME_RANGE);
         }
         // 스프린트 범위 확인
-        if (meetingStart.toLocalDate().isBefore(sprint.getToDoInfo().getStartDt())
-                || meetingEnd.toLocalDate().isAfter(sprint.getToDoInfo().getDueDt())) {
+        if (meetingStart.toLocalDate().isBefore(sprint.getStartDt())
+                || meetingEnd.toLocalDate().isAfter(sprint.getDueDt())) {
             throw new CommonException(MeetingErrorCode.MEETING_DATE_OUT_OF_SPRINT);
         } // 기존 일정과의 중복 확인
         if (meetingRepository

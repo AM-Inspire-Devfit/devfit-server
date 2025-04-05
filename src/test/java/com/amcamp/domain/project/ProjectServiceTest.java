@@ -11,9 +11,8 @@ import com.amcamp.domain.project.dao.ProjectParticipantRepository;
 import com.amcamp.domain.project.dao.ProjectRegistrationRepository;
 import com.amcamp.domain.project.dao.ProjectRepository;
 import com.amcamp.domain.project.domain.*;
-import com.amcamp.domain.project.dto.request.ProjectBasicInfoUpdateRequest;
 import com.amcamp.domain.project.dto.request.ProjectCreateRequest;
-import com.amcamp.domain.project.dto.request.ProjectTodoInfoUpdateRequest;
+import com.amcamp.domain.project.dto.request.ProjectUpdateRequest;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectParticipantInfoResponse;
@@ -27,7 +26,6 @@ import com.amcamp.domain.team.domain.TeamParticipant;
 import com.amcamp.domain.team.dto.request.TeamCreateRequest;
 import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
 import com.amcamp.global.exception.CommonException;
-import com.amcamp.global.exception.errorcode.GlobalErrorCode;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
@@ -264,8 +262,8 @@ public class ProjectServiceTest extends IntegrationTest {
                             project.getId(),
                             project.getTitle(),
                             project.getDescription(),
-                            project.getToDoInfo().getStartDt(),
-                            project.getToDoInfo().getDueDt());
+                            project.getStartDt(),
+                            project.getDueDt());
         }
 
         @Test
@@ -296,8 +294,8 @@ public class ProjectServiceTest extends IntegrationTest {
             // given
             createOriginalProject();
             // when
-            projectService.updateProjectBasicInfo(
-                    1L, new ProjectBasicInfoUpdateRequest(updatedTitle, updatedDescription));
+            projectService.updateProject(
+                    1L, new ProjectUpdateRequest(updatedTitle, updatedDescription, null));
             Project updatedProject = projectRepository.findById(1L).get();
             // then
             assertThat(updatedProject.getTitle()).isEqualTo(updatedTitle);
@@ -315,10 +313,10 @@ public class ProjectServiceTest extends IntegrationTest {
             // when, then
             assertThatThrownBy(
                             () ->
-                                    projectService.updateProjectBasicInfo(
+                                    projectService.updateProject(
                                             1L,
-                                            new ProjectBasicInfoUpdateRequest(
-                                                    updatedTitle, updatedDescription)))
+                                            new ProjectUpdateRequest(
+                                                    updatedTitle, updatedDescription, null)))
                     .isInstanceOf(CommonException.class)
                     .hasMessageContaining(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED.getMessage());
         }
@@ -335,22 +333,21 @@ public class ProjectServiceTest extends IntegrationTest {
             // when, then
             assertThatThrownBy(
                             () ->
-                                    projectService.updateProjectBasicInfo(
+                                    projectService.updateProject(
                                             1L,
-                                            new ProjectBasicInfoUpdateRequest(
-                                                    updatedTitle, updatedDescription)))
+                                            new ProjectUpdateRequest(
+                                                    updatedTitle, updatedDescription, null)))
                     .isInstanceOf(CommonException.class)
                     .hasMessageContaining(
                             ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED.getMessage());
         }
 
         @Test
-        void 프로젝트_기본정보를_타이틀만_수정하면_타이틀만_수정된다() {
+        void 프로젝트_정보를_타이틀만_수정하면_타이틀만_수정된다() {
             // given
             createOriginalProject();
             // when
-            projectService.updateProjectBasicInfo(
-                    1L, new ProjectBasicInfoUpdateRequest(updatedTitle, null));
+            projectService.updateProject(1L, new ProjectUpdateRequest(updatedTitle, null, null));
             Project updatedProject = projectRepository.findById(1L).get();
             // then
             assertThat(updatedProject.getTitle()).isEqualTo(updatedTitle);
@@ -358,25 +355,12 @@ public class ProjectServiceTest extends IntegrationTest {
         }
 
         @Test
-        void 프로젝트_기본정보를_목표만_수정하면_목표만_수정된다() {
+        void 프로젝트_정보를_상세설명만_수정하면_상세설명만_수정된다() {
             // given
             createOriginalProject();
             // when
-            projectService.updateProjectBasicInfo(
-                    1L, new ProjectBasicInfoUpdateRequest(null, null));
-            Project updatedProject = projectRepository.findById(1L).get();
-            // then
-            assertThat(updatedProject.getTitle()).isEqualTo(originalTitle);
-            assertThat(updatedProject.getDescription()).isEqualTo(originalDescription);
-        }
-
-        @Test
-        void 프로젝트_기본정보를_상세설명만_수정하면_상세설명만_수정된다() {
-            // given
-            createOriginalProject();
-            // when
-            projectService.updateProjectBasicInfo(
-                    1L, new ProjectBasicInfoUpdateRequest(null, updatedDescription));
+            projectService.updateProject(
+                    1L, new ProjectUpdateRequest(null, updatedDescription, null));
             Project updatedProject = projectRepository.findById(1L).get();
             // then
             assertThat(updatedProject.getTitle()).isEqualTo(originalTitle);
@@ -384,18 +368,15 @@ public class ProjectServiceTest extends IntegrationTest {
         }
 
         @Test
-        void 프로젝트_일정정보를_수정하면_정상적으로_수정된다() {
+        void 프로젝트_정보를_마감일자만_수정하면_마감일자만_수정된다() {
             // given
             createOriginalProject();
             // when
             LocalDate updatedDueDt = LocalDate.of(2027, 12, 1);
-            projectService.updateProjectTodoInfo(
-                    1L, new ProjectTodoInfoUpdateRequest(updatedDueDt, ToDoStatus.COMPLETED));
+            projectService.updateProject(1L, new ProjectUpdateRequest(null, null, updatedDueDt));
             Project updatedProject = projectRepository.findById(1L).get();
             // then
-            assertThat(updatedProject.getToDoInfo().getDueDt()).isEqualTo(updatedDueDt);
-            assertThat(updatedProject.getToDoInfo().getToDoStatus())
-                    .isEqualTo(ToDoStatus.COMPLETED);
+            assertThat(updatedProject.getDueDt()).isEqualTo(updatedDueDt);
         }
 
         @Test
@@ -404,13 +385,13 @@ public class ProjectServiceTest extends IntegrationTest {
             createOriginalProject();
             // when
             LocalDate updatedDueDt = LocalDate.of(2024, 1, 1);
-            ProjectTodoInfoUpdateRequest request =
-                    new ProjectTodoInfoUpdateRequest(updatedDueDt, ToDoStatus.COMPLETED);
+            ProjectUpdateRequest request = new ProjectUpdateRequest(null, null, updatedDueDt);
 
             // then
-            assertThatThrownBy(() -> projectService.updateProjectTodoInfo(1L, request))
+            assertThatThrownBy(() -> projectService.updateProject(1L, request))
                     .isInstanceOf(CommonException.class)
-                    .hasMessageContaining(GlobalErrorCode.INVALID_DATE_ERROR.getMessage());
+                    .hasMessageContaining(
+                            ProjectErrorCode.PROJECT_DUE_DATE_BEFORE_START.getMessage());
         }
     }
 

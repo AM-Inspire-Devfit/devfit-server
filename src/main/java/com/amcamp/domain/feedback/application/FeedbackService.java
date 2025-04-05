@@ -135,7 +135,7 @@ public class FeedbackService {
     }
 
     private void validateSprintDueDate(Sprint sprint) {
-        if (!sprint.getToDoInfo().getDueDt().isEqual(LocalDate.now())) {
+        if (!sprint.getDueDt().isEqual(LocalDate.now())) {
             throw new CommonException(FeedbackErrorCode.FEEDBACK_DUE_DATE_ONLY);
         }
     }

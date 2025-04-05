@@ -8,9 +8,8 @@ import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.project.domain.ProjectParticipantRole;
 import com.amcamp.domain.sprint.dao.SprintRepository;
 import com.amcamp.domain.sprint.domain.Sprint;
-import com.amcamp.domain.sprint.dto.request.SprintBasicUpdateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
-import com.amcamp.domain.sprint.dto.request.SprintToDoUpdateRequest;
+import com.amcamp.domain.sprint.dto.request.SprintUpdateRequest;
 import com.amcamp.domain.sprint.dto.response.SprintDetailResponse;
 import com.amcamp.domain.sprint.dto.response.SprintInfoResponse;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
@@ -47,7 +46,7 @@ public class SprintService {
         validateProjectParticipant(project, project.getTeam(), currentMember);
 
         validatePreviousSprintEnded(project);
-        validateSprintDueDate(request.dueDt(), project.getToDoInfo().getDueDt());
+        validateSprintDueDate(request.dueDt(), project.getDueDt());
 
         long count = sprintRepository.countByProject(project);
         String autoTitle = String.valueOf(count + 1);
@@ -59,30 +58,19 @@ public class SprintService {
         return SprintInfoResponse.from(sprint);
     }
 
-    public SprintInfoResponse updateSprintBasicInfo(
-            Long sprintId, SprintBasicUpdateRequest request) {
+    public SprintInfoResponse updateSprint(Long sprintId, SprintUpdateRequest request) {
         final Member currentMember = memberUtil.getCurrentMember();
         final Sprint sprint = findBySprintId(sprintId);
 
         validateProjectParticipant(
                 sprint.getProject(), sprint.getProject().getTeam(), currentMember);
 
-        sprint.updateSprintBasic(request.goal());
+        if (request.dueDt() != null) {
+            validateSprintDueDate(request.dueDt(), sprint.getProject().getDueDt());
+            validateDueDtIfNextSprintExists(sprint.getProject(), request.dueDt(), sprintId);
+        }
 
-        return SprintInfoResponse.from(sprint);
-    }
-
-    public SprintInfoResponse updateSprintToDoInfo(Long sprintId, SprintToDoUpdateRequest request) {
-        final Member currentMember = memberUtil.getCurrentMember();
-        final Sprint sprint = findBySprintId(sprintId);
-
-        validateProjectParticipant(
-                sprint.getProject(), sprint.getProject().getTeam(), currentMember);
-
-        validateSprintDueDate(request.dueDt(), sprint.getProject().getToDoInfo().getDueDt());
-        validateDueDtIfNextSprintExists(sprint.getProject(), request.dueDt(), sprintId);
-
-        sprint.updateSprintToDo(request.dueDt(), request.status());
+        sprint.updateSprint(request.goal(), request.dueDt());
 
         return SprintInfoResponse.from(sprint);
     }
@@ -177,14 +165,14 @@ public class SprintService {
 
     private void validateSprintDueDate(LocalDate sprintDueDt, LocalDate projectDueDt) {
         if (sprintDueDt.isAfter(projectDueDt)) {
-            throw new CommonException(SprintErrorCode.SPRINT_DUE_DATE_INVALID);
+            throw new CommonException(SprintErrorCode.SPRINT_DUE_DATE_EXCEEDS_PROJECT_END);
         }
     }
 
     private void validatePreviousSprintEnded(Project project) {
         sprintRepository
                 .findTopByProjectOrderByCreatedDtDesc(project)
-                .filter(sprint -> !sprint.getToDoInfo().getDueDt().isBefore(LocalDate.now()))
+                .filter(sprint -> !sprint.getDueDt().isBefore(LocalDate.now()))
                 .ifPresent(
                         sprint -> {
                             throw new CommonException(SprintErrorCode.PREVIOUS_SPRINT_NOT_ENDED);
@@ -196,8 +184,8 @@ public class SprintService {
                 sprintRepository.findNextSprintAfterDueDate(project.getId(), dueDt, sprintId);
 
         if (nextSprint.isPresent()) {
-            if (!dueDt.isBefore(nextSprint.get().getToDoInfo().getStartDt())) {
-                throw new CommonException(SprintErrorCode.NEXT_SPRINT_ALREADY_EXISTS);
+            if (!dueDt.isBefore(nextSprint.get().getStartDt())) {
+                throw new CommonException(SprintErrorCode.SPRINT_DUE_DATE_CONFLICT_WITH_NEXT);
             }
         }
     }

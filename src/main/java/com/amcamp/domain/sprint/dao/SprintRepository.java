@@ -21,9 +21,9 @@ public interface SprintRepository extends JpaRepository<Sprint, Long>, SprintRep
     @Query(
             "SELECT s FROM Sprint s "
                     + "WHERE s.project.id = :projectId "
-                    + "AND s.toDoInfo.dueDt > :currentDueDate "
+                    + "AND s.dueDt > :currentDueDate "
                     + "AND s.id != :currentSprintId "
-                    + "ORDER BY s.toDoInfo.dueDt ASC")
+                    + "ORDER BY s.dueDt ASC")
     Optional<Sprint> findNextSprintAfterDueDate(
             @Param("projectId") Long projectId,
             @Param("currentDueDate") LocalDate currentDueDate,
