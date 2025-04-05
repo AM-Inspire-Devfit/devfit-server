@@ -2,7 +2,6 @@ package com.amcamp.domain.team.api;
 
 import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.domain.team.dto.request.TeamCreateRequest;
-import com.amcamp.domain.team.dto.request.TeamEmojiUpdateRequest;
 import com.amcamp.domain.team.dto.request.TeamInviteCodeRequest;
 import com.amcamp.domain.team.dto.request.TeamUpdateRequest;
 import com.amcamp.domain.team.dto.response.TeamAdminResponse;
@@ -53,19 +52,11 @@ public class TeamController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "팀 수정", description = "팀 이름과 설명을 수정합니다.")
+    @Operation(summary = "팀 수정", description = "팀 이름과 설명, 이모지 등 팀 기본정보를 수정합니다.")
     @PatchMapping("/{teamId}")
     public TeamInfoResponse teamEdit(
             @PathVariable Long teamId, @Valid @RequestBody TeamUpdateRequest teamUpdateRequest) {
         return teamService.editTeam(teamId, teamUpdateRequest);
-    }
-
-    @Operation(summary = "팀 이모지 수정", description = "팀 이모지를 수정합니다.")
-    @PatchMapping("/{teamId}/emoji")
-    public TeamInfoResponse teamEmojiEdit(
-            @PathVariable Long teamId,
-            @Valid @RequestBody TeamEmojiUpdateRequest teamEmojiUpdateRequest) {
-        return teamService.editTeamEmoji(teamId, teamEmojiUpdateRequest);
     }
 
     @Operation(summary = "팀 삭제", description = "팀을 삭제합니다.")
