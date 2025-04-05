@@ -13,12 +13,10 @@ import com.amcamp.domain.project.dao.ProjectRepository;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.project.domain.ProjectParticipantRole;
-import com.amcamp.domain.project.domain.ToDoStatus;
 import com.amcamp.domain.sprint.dao.SprintRepository;
 import com.amcamp.domain.sprint.domain.Sprint;
-import com.amcamp.domain.sprint.dto.request.SprintBasicUpdateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
-import com.amcamp.domain.sprint.dto.request.SprintToDoUpdateRequest;
+import com.amcamp.domain.sprint.dto.request.SprintUpdateRequest;
 import com.amcamp.domain.sprint.dto.response.SprintDetailResponse;
 import com.amcamp.domain.sprint.dto.response.SprintInfoResponse;
 import com.amcamp.domain.task.dao.TaskRepository;
@@ -31,7 +29,6 @@ import com.amcamp.domain.team.domain.Team;
 import com.amcamp.domain.team.domain.TeamParticipant;
 import com.amcamp.domain.team.domain.TeamParticipantRole;
 import com.amcamp.global.exception.CommonException;
-import com.amcamp.global.exception.errorcode.GlobalErrorCode;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.SprintErrorCode;
 import com.amcamp.global.exception.errorcode.TaskErrorCode;
@@ -148,7 +145,7 @@ public class SprintServiceTest extends IntegrationTest {
             // when
             assertThatThrownBy(() -> sprintService.createSprint(request))
                     .isInstanceOf(CommonException.class)
-                    .hasMessage(GlobalErrorCode.INVALID_DATE_ERROR.getMessage());
+                    .hasMessage(SprintErrorCode.INVALID_SPRINT_DUE_DATE.getMessage());
         }
 
         @Test
@@ -173,10 +170,10 @@ public class SprintServiceTest extends IntegrationTest {
         @Test
         void 스프린트가_존재하지_않으면_예외가_발생한다() {
             // given
-            SprintBasicUpdateRequest request = new SprintBasicUpdateRequest("testGoal");
+            SprintUpdateRequest request = new SprintUpdateRequest("testGoal", null);
 
             // when & then
-            assertThatThrownBy(() -> sprintService.updateSprintBasicInfo(2L, request))
+            assertThatThrownBy(() -> sprintService.updateSprint(2L, request))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(SprintErrorCode.SPRINT_NOT_FOUND.getMessage());
         }
@@ -186,15 +183,13 @@ public class SprintServiceTest extends IntegrationTest {
             // given
             sprintRepository.save(
                     Sprint.createSprint(project, "testTitle", "testDescription", dueDt));
-            SprintToDoUpdateRequest request =
-                    new SprintToDoUpdateRequest(LocalDate.of(2026, 2, 28), null);
+            SprintUpdateRequest request = new SprintUpdateRequest(null, LocalDate.of(2026, 2, 28));
 
             // when
-            SprintInfoResponse response = sprintService.updateSprintToDoInfo(1L, request);
+            SprintInfoResponse response = sprintService.updateSprint(1L, request);
 
             // then
             assertThat(response.dueDt()).isEqualTo(LocalDate.of(2026, 2, 28));
-            assertThat(response.status()).isEqualTo(ToDoStatus.ON_GOING);
             assertThat(response.title()).isEqualTo("testTitle");
         }
 
@@ -203,11 +198,10 @@ public class SprintServiceTest extends IntegrationTest {
             // given
             sprintRepository.save(
                     Sprint.createSprint(project, "testTitle", "testDescription", dueDt));
-            SprintToDoUpdateRequest request =
-                    new SprintToDoUpdateRequest(LocalDate.of(2030, 1, 1), null);
+            SprintUpdateRequest request = new SprintUpdateRequest(null, LocalDate.of(2030, 1, 1));
 
             // when & then
-            assertThatThrownBy(() -> sprintService.updateSprintToDoInfo(1L, request))
+            assertThatThrownBy(() -> sprintService.updateSprint(1L, request))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(SprintErrorCode.SPRINT_DUE_DATE_INVALID.getMessage());
         }
@@ -217,13 +211,12 @@ public class SprintServiceTest extends IntegrationTest {
             // given
             sprintRepository.save(
                     Sprint.createSprint(project, "testTitle", "testDescription", dueDt));
-            SprintToDoUpdateRequest request =
-                    new SprintToDoUpdateRequest(LocalDate.of(2024, 1, 1), null);
+            SprintUpdateRequest request = new SprintUpdateRequest(null, LocalDate.of(2024, 1, 1));
 
             // when & then
-            assertThatThrownBy(() -> sprintService.updateSprintToDoInfo(1L, request))
+            assertThatThrownBy(() -> sprintService.updateSprint(1L, request))
                     .isInstanceOf(CommonException.class)
-                    .hasMessage(GlobalErrorCode.INVALID_DATE_ERROR.getMessage());
+                    .hasMessage(SprintErrorCode.INVALID_SPRINT_DUE_DATE.getMessage());
         }
 
         @Test
@@ -233,11 +226,10 @@ public class SprintServiceTest extends IntegrationTest {
                     Sprint.createSprint(project, "sprint 1", "sprint 1", LocalDate.now()));
             sprintRepository.save(Sprint.createSprint(project, "sprint 2", "sprint 2", dueDt));
 
-            SprintToDoUpdateRequest request =
-                    new SprintToDoUpdateRequest(LocalDate.of(2026, 1, 1), null);
+            SprintUpdateRequest request = new SprintUpdateRequest(null, LocalDate.of(2026, 1, 1));
 
             // when & then
-            assertThatThrownBy(() -> sprintService.updateSprintToDoInfo(1L, request))
+            assertThatThrownBy(() -> sprintService.updateSprint(1L, request))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(SprintErrorCode.NEXT_SPRINT_ALREADY_EXISTS.getMessage());
         }
