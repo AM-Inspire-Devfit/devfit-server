@@ -17,7 +17,7 @@ public record ProjectInfoResponse(
                 project.getId(),
                 project.getTitle(),
                 project.getDescription(),
-                project.getToDoInfo().getStartDt(),
-                project.getToDoInfo().getDueDt());
+                project.getStartDt(),
+                project.getDueDt());
     }
 }

@@ -46,8 +46,8 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                                                 project.id,
                                                 project.title,
                                                 project.description,
-                                                project.toDoInfo.startDt,
-                                                project.toDoInfo.dueDt),
+                                                project.startDt,
+                                                project.dueDt),
                                         projectParticipant.id.count().gt(0),
                                         adminCase.sum().gt(0)))
                         .from(project)
