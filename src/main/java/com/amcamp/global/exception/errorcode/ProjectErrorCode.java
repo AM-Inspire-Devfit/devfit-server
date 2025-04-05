@@ -20,7 +20,7 @@ public enum ProjectErrorCode implements BaseErrorCode {
 
     PROJECT_PARTICIPANT_NOT_EXISTS(HttpStatus.NOT_FOUND, "프로젝트 참가자가 존재하지 않습니다."),
 
-    INVALID_PROJECT_DUE_DATE(HttpStatus.BAD_REQUEST, "프로젝트 마감일자는 시작일자 이후여야 합니다.");
+    PROJECT_DUE_DATE_BEFORE_START(HttpStatus.BAD_REQUEST, "프로젝트 마감일자는 시작일자 이후여야 합니다.");
     ;
 
     private final HttpStatus httpStatus;

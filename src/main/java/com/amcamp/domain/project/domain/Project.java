@@ -76,7 +76,7 @@ public class Project extends BaseTimeEntity {
 
     private static void validateDueDt(LocalDate startDt, LocalDate dueDt) {
         if (dueDt.isBefore(startDt)) {
-            throw new CommonException(ProjectErrorCode.INVALID_PROJECT_DUE_DATE);
+            throw new CommonException(ProjectErrorCode.PROJECT_DUE_DATE_BEFORE_START);
         }
     }
 }

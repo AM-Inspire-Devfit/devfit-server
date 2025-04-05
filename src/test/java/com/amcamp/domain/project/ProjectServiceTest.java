@@ -390,7 +390,8 @@ public class ProjectServiceTest extends IntegrationTest {
             // then
             assertThatThrownBy(() -> projectService.updateProject(1L, request))
                     .isInstanceOf(CommonException.class)
-                    .hasMessageContaining(ProjectErrorCode.INVALID_PROJECT_DUE_DATE.getMessage());
+                    .hasMessageContaining(
+                            ProjectErrorCode.PROJECT_DUE_DATE_BEFORE_START.getMessage());
         }
     }
 
