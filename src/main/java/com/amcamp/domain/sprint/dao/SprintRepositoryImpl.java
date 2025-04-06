@@ -34,20 +34,9 @@ public class SprintRepositoryImpl implements SprintRepositoryCustom {
         List<SprintDetailResponse> sprintList = fetchSprintList(projectId, baseSprintId, direction);
         List<TaskBasicInfoResponse> taskList = fetchTaskList(sprintList.get(0).id());
 
-        List<SprintDetailResponse> finalResult =
-                sprintList.stream()
-                        .map(
-                                sprint ->
-                                        new SprintDetailResponse(
-                                                sprint.id(),
-                                                sprint.title(),
-                                                sprint.goal(),
-                                                sprint.startDt(),
-                                                sprint.dueDt(),
-                                                sprint.progress(),
-                                                taskList))
-                        .collect(Collectors.toList());
-        return checkLastPage(finalResult);
+        List<SprintDetailResponse> results = convertToSprintDetails(sprintList, taskList);
+
+        return checkLastPage(results);
     }
 
     @Override
@@ -60,20 +49,9 @@ public class SprintRepositoryImpl implements SprintRepositoryCustom {
         List<TaskBasicInfoResponse> taskList =
                 fetchTaskListByAssignee(sprintList.get(0).id(), participant);
 
-        List<SprintDetailResponse> finalResult =
-                sprintList.stream()
-                        .map(
-                                sprint ->
-                                        new SprintDetailResponse(
-                                                sprint.id(),
-                                                sprint.title(),
-                                                sprint.goal(),
-                                                sprint.startDt(),
-                                                sprint.dueDt(),
-                                                sprint.progress(),
-                                                taskList))
-                        .collect(Collectors.toList());
-        return checkLastPage(finalResult);
+        List<SprintDetailResponse> results = convertToSprintDetails(sprintList, taskList);
+
+        return checkLastPage(results);
     }
 
     private BooleanExpression buildPagingCondition(
@@ -101,6 +79,22 @@ public class SprintRepositoryImpl implements SprintRepositoryCustom {
         }
 
         return new SliceImpl<>(results, PageRequest.of(0, 1), hasNext);
+    }
+
+    private List<SprintDetailResponse> convertToSprintDetails(
+            List<SprintDetailResponse> sprintList, List<TaskBasicInfoResponse> taskList) {
+        return sprintList.stream()
+                .map(
+                        sprint ->
+                                new SprintDetailResponse(
+                                        sprint.id(),
+                                        sprint.title(),
+                                        sprint.goal(),
+                                        sprint.startDt(),
+                                        sprint.dueDt(),
+                                        sprint.progress(),
+                                        taskList))
+                .collect(Collectors.toList());
     }
 
     private List<SprintDetailResponse> fetchSprintList(
@@ -140,22 +134,16 @@ public class SprintRepositoryImpl implements SprintRepositoryCustom {
     }
 
     private List<TaskBasicInfoResponse> fetchTaskList(Long sprintId) {
-        return jpaQueryFactory
-                .select(
-                        Projections.constructor(
-                                TaskBasicInfoResponse.class,
-                                task.id,
-                                task.description,
-                                task.taskStatus,
-                                task.sosStatus))
-                .from(task)
-                .where(task.sprint.id.eq(sprintId))
-                .orderBy(task.id.asc())
-                .fetch();
+        return fetchTaskListWithCondition(sprintId, null);
     }
 
     private List<TaskBasicInfoResponse> fetchTaskListByAssignee(
             Long sprintId, ProjectParticipant participant) {
+        return fetchTaskListWithCondition(sprintId, task.assignee.eq(participant));
+    }
+
+    private List<TaskBasicInfoResponse> fetchTaskListWithCondition(
+            Long sprintId, BooleanExpression condition) {
         return jpaQueryFactory
                 .select(
                         Projections.constructor(
@@ -165,7 +153,7 @@ public class SprintRepositoryImpl implements SprintRepositoryCustom {
                                 task.taskStatus,
                                 task.sosStatus))
                 .from(task)
-                .where(task.sprint.id.eq(sprintId), task.assignee.eq(participant))
+                .where(task.sprint.id.eq(sprintId), condition)
                 .orderBy(task.id.asc())
                 .fetch();
     }
