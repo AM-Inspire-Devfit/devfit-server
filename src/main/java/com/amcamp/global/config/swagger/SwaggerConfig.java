@@ -76,8 +76,8 @@ public class SwaggerConfig {
 
     @Bean
     public UserDetailsService userDetailsService(
-            @Value("${SWAGGER_USERNAME}") String username,
-            @Value("${SWAGGER_PASSWORD}") String password) {
+            @Value("${spring-doc.swagger-ui.username}") String username,
+            @Value("${spring-doc.swagger-ui.password}") String password) {
         UserDetails user =
                 User.withUsername(username).password("{noop}" + password).roles("SWAGGER").build();
 

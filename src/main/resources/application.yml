@@ -19,3 +19,5 @@ spring-doc:
     disable-swagger-default-url: true
     path: /swagger-ui
     doc-expansion : none
+    username: ${SWAGGER_USERNAME}
+    password: ${SWAGGER_PASSWORD}
