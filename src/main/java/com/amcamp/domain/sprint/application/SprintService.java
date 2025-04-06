@@ -6,6 +6,7 @@ import com.amcamp.domain.project.dao.ProjectRepository;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.project.domain.ProjectParticipantRole;
+import com.amcamp.domain.sprint.dao.SprintPagingDirection;
 import com.amcamp.domain.sprint.dao.SprintRepository;
 import com.amcamp.domain.sprint.domain.Sprint;
 import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
@@ -108,7 +109,8 @@ public class SprintService {
     }
 
     @Transactional(readOnly = true)
-    public Slice<SprintDetailResponse> findAllSprint(Long projectId, Long lastSprintId) {
+    public Slice<SprintDetailResponse> findAllSprint(
+            Long projectId, Long baseSprintId, SprintPagingDirection direction) {
         final Member currentMember = memberUtil.getCurrentMember();
         final Project project = findByProjectId(projectId);
 
@@ -116,19 +118,24 @@ public class SprintService {
                 .findByMemberAndTeam(currentMember, project.getTeam())
                 .orElseThrow(() -> new CommonException(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED));
 
-        return sprintRepository.findAllSprintByProjectId(projectId, lastSprintId);
+        validatePagingRequest(baseSprintId, direction);
+
+        return sprintRepository.findAllSprintByProjectId(projectId, baseSprintId, direction);
     }
 
     @Transactional(readOnly = true)
-    public Slice<SprintDetailResponse> findAllSprintByMember(Long projectId, Long lastSprintId) {
+    public Slice<SprintDetailResponse> findAllSprintByMember(
+            Long projectId, Long baseSprintId, SprintPagingDirection direction) {
         final Member currentMember = memberUtil.getCurrentMember();
         final Project project = findByProjectId(projectId);
 
         ProjectParticipant participant =
                 validateProjectParticipant(project, project.getTeam(), currentMember);
 
+        validatePagingRequest(baseSprintId, direction);
+
         return sprintRepository.findAllSprintByProjectIdAndAssignee(
-                projectId, lastSprintId, participant);
+                projectId, baseSprintId, direction, participant);
     }
 
     private Sprint findBySprintId(Long sprintId) {
@@ -187,6 +194,13 @@ public class SprintService {
             if (!dueDt.isBefore(nextSprint.get().getStartDt())) {
                 throw new CommonException(SprintErrorCode.SPRINT_DUE_DATE_CONFLICT_WITH_NEXT);
             }
+        }
+    }
+
+    private void validatePagingRequest(Long baseSprintId, SprintPagingDirection direction) {
+        boolean onlyOnePresent = (baseSprintId == null) != (direction == null);
+        if (onlyOnePresent) {
+            throw new CommonException(SprintErrorCode.INVALID_PAGING_REQUEST);
         }
     }
 }

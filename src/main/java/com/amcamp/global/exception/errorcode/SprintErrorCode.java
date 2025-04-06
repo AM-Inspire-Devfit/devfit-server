@@ -17,6 +17,13 @@ public enum SprintErrorCode implements BaseErrorCode {
     PREVIOUS_SPRINT_NOT_ENDED(HttpStatus.BAD_REQUEST, "이전 스프린트가 아직 종료되지 않았습니다."),
     SPRINT_DUE_DATE_CONFLICT_WITH_NEXT(
             HttpStatus.BAD_REQUEST, "다음 스프린트가 존재할 경우, 마감일은 그 이전이어야 합니다."),
+
+    INVALID_PAGING_REQUEST(
+            HttpStatus.BAD_REQUEST, "baseSprintId와 direction은 함께 전달되어야 합니다. 첫 요청 시에는 둘 다 생략하세요."),
+
+    SPRINT_NOT_EXISTS(HttpStatus.NOT_FOUND, "스프린트가 존재하지 않습니다."),
+    NEXT_SPRINT_NOT_EXISTS(HttpStatus.NOT_FOUND, "다음 스프린트가 존재하지 않습니다."),
+    PREV_SPRINT_NOT_EXISTS(HttpStatus.NOT_FOUND, "이전 스프린트가 존재하지 않습니다."),
     ;
 
     private final HttpStatus httpStatus;
