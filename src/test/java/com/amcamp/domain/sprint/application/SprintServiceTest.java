@@ -31,7 +31,6 @@ import com.amcamp.domain.team.domain.TeamParticipantRole;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.SprintErrorCode;
-import com.amcamp.global.exception.errorcode.TaskErrorCode;
 import com.amcamp.global.security.PrincipalDetails;
 import java.time.LocalDate;
 import java.util.List;
@@ -291,7 +290,7 @@ public class SprintServiceTest extends IntegrationTest {
         @Test
         void 프로젝트가_존재하지_않으면_예외가_발생한다() {
             // when & then
-            assertThatThrownBy(() -> sprintService.findAllSprint(999L, null))
+            assertThatThrownBy(() -> sprintService.findAllSprint(999L, null, null))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(ProjectErrorCode.PROJECT_NOT_FOUND.getMessage());
         }
@@ -307,40 +306,26 @@ public class SprintServiceTest extends IntegrationTest {
                             Sprint.createSprint(project, "3", "testDescription3", dueDt));
             sprintRepository.saveAll(sprintList);
 
-            Sprint sprint =
-                    sprintRepository
-                            .findById(1L)
-                            .orElseThrow(
-                                    () -> new CommonException(SprintErrorCode.SPRINT_NOT_FOUND));
+            Sprint sprint = sprintRepository.findById(3L).get();
 
             taskRepository.save(Task.createTask(sprint, "태스크 조회 기능 구현1", TaskDifficulty.MID));
             taskRepository.save(Task.createTask(sprint, "태스크 조회 기능 구현2", TaskDifficulty.MID));
 
-            Task task =
-                    taskRepository
-                            .findById(1L)
-                            .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
-            ProjectParticipant participant =
-                    projectParticipantRepository
-                            .findById(1L)
-                            .orElseThrow(
-                                    () ->
-                                            new CommonException(
-                                                    ProjectErrorCode
-                                                            .PROJECT_PARTICIPATION_REQUIRED));
+            Task task = taskRepository.findById(1L).get();
+            ProjectParticipant participant = projectParticipantRepository.findById(1L).get();
 
             task.assignTask(participant);
             task.updateTaskStatus();
 
             // when
             Slice<SprintDetailResponse> results =
-                    sprintService.findAllSprint(project.getId(), null);
+                    sprintService.findAllSprint(project.getId(), null, null);
 
             // then
             assertThat(results.getSize()).isEqualTo(1);
             assertThat(results)
                     .extracting("id", "title", "goal")
-                    .containsExactlyInAnyOrder(tuple(1L, "1", "testDescription1"));
+                    .containsExactlyInAnyOrder(tuple(3L, "3", "testDescription3"));
 
             assertThat(results.getContent().get(0).taskList().get(0).description())
                     .isEqualTo(task.getDescription());
@@ -358,63 +343,51 @@ public class SprintServiceTest extends IntegrationTest {
             loginAs(newMember);
 
             // when & then
-            assertThatThrownBy(() -> sprintService.findAllSprintByMember(1L, null))
+            assertThatThrownBy(() -> sprintService.findAllSprintByMember(1L, null, null))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED.getMessage());
         }
 
         @Test
         @Transactional
-        void 프로젝트가_존재한다면_첫_번째_스프린트를_반환한다() {
+        void 프로젝트가_존재한다면_마지막_스프린트를_반환한다() {
             // given
             List<Sprint> sprintList =
                     List.of(
-                            Sprint.createSprint(project, "1", "testDescription1", dueDt),
-                            Sprint.createSprint(project, "2", "testDescription2", dueDt),
-                            Sprint.createSprint(project, "3", "testDescription3", dueDt));
+                            Sprint.createSprint(
+                                    project, "1", "testDescription1", LocalDate.of(2026, 1, 1)),
+                            Sprint.createSprint(
+                                    project, "2", "testDescription2", LocalDate.of(2026, 2, 1)),
+                            Sprint.createSprint(
+                                    project, "3", "testDescription3", LocalDate.of(2026, 3, 1)));
             sprintRepository.saveAll(sprintList);
 
-            Sprint sprint =
-                    sprintRepository
-                            .findById(1L)
-                            .orElseThrow(
-                                    () -> new CommonException(SprintErrorCode.SPRINT_NOT_FOUND));
+            Sprint sprint = sprintRepository.findById(3L).get();
 
             taskRepository.save(Task.createTask(sprint, "태스크 조회 기능 구현1", TaskDifficulty.MID));
             taskRepository.save(Task.createTask(sprint, "태스크 조회 기능 구현2", TaskDifficulty.MID));
 
-            Task task =
-                    taskRepository
-                            .findById(2L)
-                            .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
-            ProjectParticipant participant =
-                    projectParticipantRepository
-                            .findById(1L)
-                            .orElseThrow(
-                                    () ->
-                                            new CommonException(
-                                                    ProjectErrorCode
-                                                            .PROJECT_PARTICIPATION_REQUIRED));
+            Task task = taskRepository.findById(1L).get();
+            ProjectParticipant participant = projectParticipantRepository.findById(1L).get();
 
             task.assignTask(participant);
             task.updateTaskStatus();
 
             // when
             Slice<SprintDetailResponse> results =
-                    sprintService.findAllSprintByMember(project.getId(), null);
+                    sprintService.findAllSprintByMember(project.getId(), null, null);
 
             // then
             assertThat(results.getSize()).isEqualTo(1);
             assertThat(results)
                     .extracting("id", "title", "goal")
-                    .containsExactlyInAnyOrder(tuple(1L, "1", "testDescription1"));
+                    .containsExactlyInAnyOrder(tuple(3L, "3", "testDescription3"));
 
             assertThat(results.getContent().get(0).taskList().get(0).description())
                     .isEqualTo(task.getDescription());
             assertThat(results.getContent().get(0).taskList().size()).isEqualTo(1);
 
             assertThat(results.getContent().get(0).progress()).isInstanceOf(Integer.class);
-            //			assertThat(results.getContent().get(0).progress()).isEqualTo(50);
         }
     }
 }

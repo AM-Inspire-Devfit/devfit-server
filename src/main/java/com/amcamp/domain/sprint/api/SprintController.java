@@ -1,6 +1,7 @@
 package com.amcamp.domain.sprint.api;
 
 import com.amcamp.domain.sprint.application.SprintService;
+import com.amcamp.domain.sprint.dao.SprintPagingDirection;
 import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintUpdateRequest;
 import com.amcamp.domain.sprint.dto.response.SprintDetailResponse;
@@ -55,19 +56,25 @@ public class SprintController {
     @GetMapping("/{projectId}/project")
     public Slice<SprintDetailResponse> sprintFindAll(
             @PathVariable Long projectId,
-            @Parameter(description = "이전 페이지의 스프린트 ID (첫 페이지는 비워두세요)")
+            @Parameter(description = "기준이 되는 스프린트 ID입니다. 첫 요청 시에는 비워두세요.")
                     @RequestParam(required = false)
-                    Long lastSprintId) {
-        return sprintService.findAllSprint(projectId, lastSprintId);
+                    Long baseSprintId,
+            @Parameter(description = "페이징 방향입니다.(NEXT 또는 PREV) 첫 요청 시에는 비워두세요.")
+                    @RequestParam(required = false)
+                    SprintPagingDirection direction) {
+        return sprintService.findAllSprint(projectId, baseSprintId, direction);
     }
 
     @Operation(summary = "회원별 프로젝트 내 스프린트 목록 조회", description = "마이페이지에서 특정 프로젝트의 스프린트 목록을 조회합니다.")
     @GetMapping("/{projectId}/me")
     public Slice<SprintDetailResponse> sprintFindAllByMember(
             @PathVariable Long projectId,
-            @Parameter(description = "이전 페이지의 스프린트 ID (첫 페이지는 비워두세요)")
+            @Parameter(description = "기준이 되는 스프린트 ID입니다. 첫 요청 시에는 비워두세요.")
                     @RequestParam(required = false)
-                    Long lastSprintId) {
-        return sprintService.findAllSprintByMember(projectId, lastSprintId);
+                    Long baseSprintId,
+            @Parameter(description = "페이징 방향입니다.(NEXT 또는 PREV) 첫 요청 시에는 비워두세요.")
+                    @RequestParam(required = false)
+                    SprintPagingDirection direction) {
+        return sprintService.findAllSprintByMember(projectId, baseSprintId, direction);
     }
 }
