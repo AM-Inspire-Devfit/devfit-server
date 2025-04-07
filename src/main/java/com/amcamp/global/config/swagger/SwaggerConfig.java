@@ -15,6 +15,7 @@ import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -74,6 +75,7 @@ public class SwaggerConfig {
         return securityRequirement;
     }
 
+    @Profile({"dev", "local"})
     @Bean
     public UserDetailsService userDetailsService(
             @Value("${spring-doc.swagger-ui.username}") String username,
