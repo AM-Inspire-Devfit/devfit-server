@@ -259,6 +259,50 @@ public class TaskServiceTest extends IntegrationTest {
         }
 
         @Test
+        @Transactional
+        void 태스크가_SOS_상태면_예외처리() {
+            // given
+            TaskCreateRequest taskRequest =
+                    new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID);
+            taskService.createTask(taskRequest);
+
+            Task task =
+                    taskRepository
+                            .findById(1L)
+                            .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
+
+            task.assignTask(participant);
+            task.updateTaskSOS();
+
+            // when & then
+            assertThatThrownBy(() -> taskService.updateTaskStatus(1L))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(TaskErrorCode.TASK_COMPLETE_FORBIDDEN.getMessage());
+        }
+
+        @Test
+        void 정상적으로_완료된_태스크를_미완료처리한다() {
+            // given
+            TaskCreateRequest taskRequest =
+                    new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID);
+            taskService.createTask(taskRequest);
+
+            Task task =
+                    taskRepository
+                            .findById(1L)
+                            .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
+
+            task.assignTask(participant);
+            task.updateTaskStatus();
+
+            // when
+            task.updateTaskStatus();
+
+            // then
+            assertThat(task.getTaskStatus()).isEqualTo(TaskStatus.ON_GOING);
+        }
+
+        @Test
         void 정상적으로_기본_기한정보를_수정_한다() {
             // given
             Member member = memberUtil.getCurrentMember();
