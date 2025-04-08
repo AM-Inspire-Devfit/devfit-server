@@ -167,6 +167,13 @@ public class TaskServiceTest extends IntegrationTest {
     @Nested
     class 태스크_수정_시 {
         @Test
+        void 태스크가_존재하지않으면_예외처리() {
+            assertThatThrownBy(() -> taskService.updateTaskStatus(1L))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(TaskErrorCode.TASK_NOT_FOUND.getMessage());
+        }
+
+        @Test
         @Transactional
         void 수정_권한이_없으면_예외처리() {
             TaskCreateRequest taskRequest =
@@ -192,10 +199,35 @@ public class TaskServiceTest extends IntegrationTest {
         }
 
         @Test
-        void 태스크가_존재하지않으면_예외처리() {
-            assertThatThrownBy(() -> taskService.updateTaskStatus(1L))
+        @Transactional
+        void 태스크가_완료상태면_예외처리() {
+            // given
+            TaskCreateRequest taskRequest =
+                    new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID);
+            taskService.createTask(taskRequest);
+
+            Task task =
+                    taskRepository
+                            .findById(1L)
+                            .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
+
+            // when
+            task.assignTask(participant);
+            task.updateTaskStatus();
+
+            // then
+            assertThatThrownBy(
+                            () ->
+                                    taskService.updateTaskBasicInfo(
+                                            1L,
+                                            new TaskBasicInfoUpdateRequest(
+                                                    "피그마 화면 설계 재수정", TaskDifficulty.HIGH)))
                     .isInstanceOf(CommonException.class)
-                    .hasMessage(TaskErrorCode.TASK_NOT_FOUND.getMessage());
+                    .hasMessage(TaskErrorCode.TASK_MODIFY_FORBIDDEN.getMessage());
+
+            assertThatThrownBy(() -> taskService.deleteTask(1L))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(TaskErrorCode.TASK_MODIFY_FORBIDDEN.getMessage());
         }
 
         @Test
@@ -226,26 +258,6 @@ public class TaskServiceTest extends IntegrationTest {
                     .isEqualTo(taskBasicInfoUpdateRequest.taskDifficulty());
             assertThat(response.taskStatus()).isEqualTo(TaskStatus.ON_GOING);
             assertThat(response.assignedStatus()).isEqualTo(AssignedStatus.ASSIGNED);
-            //			assertThat(response.projectNickname()).isEqualTo(member.getNickname());
-
-            // when & then - finished
-            response = taskService.updateTaskStatus(1L);
-            assertThat(response.taskStatus()).isEqualTo(TaskStatus.COMPLETED);
-
-            // when - delete
-            taskService.deleteTask(1L);
-
-            // then
-            assertThatThrownBy(
-                            () ->
-                                    taskRepository
-                                            .findById(1L)
-                                            .orElseThrow(
-                                                    () ->
-                                                            new CommonException(
-                                                                    TaskErrorCode.TASK_NOT_FOUND)))
-                    .isInstanceOf(CommonException.class)
-                    .hasMessage(TaskErrorCode.TASK_NOT_FOUND.getMessage());
         }
 
         @Test
