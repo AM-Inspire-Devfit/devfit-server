@@ -220,13 +220,14 @@ public class TaskService {
 
     private void validateTaskModify(ProjectParticipant participant, Task task) {
         if (task.getAssignedStatus() != AssignedStatus.NOT_ASSIGNED || task.getAssignee() != null) {
-            System.out.println(task.getAssignee().getProjectRole());
-            System.out.println(task.getAssignee().getTeamParticipant().getMember().getId());
-
             if (!participant.getProjectRole().equals(ProjectParticipantRole.ADMIN)
                     && !participant.equals(task.getAssignee())) {
                 throw new CommonException(TaskErrorCode.TASK_MODIFY_FORBIDDEN);
             }
+        }
+
+        if (task.getTaskStatus() == TaskStatus.COMPLETED) {
+            throw new CommonException(TaskErrorCode.TASK_MODIFY_FORBIDDEN);
         }
     }
 
