@@ -90,6 +90,9 @@ public class Task extends BaseTimeEntity {
 
     public void updateTaskStatus() {
         if (this.taskStatus != TaskStatus.COMPLETED) this.taskStatus = TaskStatus.COMPLETED;
+        else {
+            this.taskStatus = TaskStatus.ON_GOING;
+        }
     }
 
     public void assignTask(ProjectParticipant projectParticipant) {

@@ -76,11 +76,7 @@ public class TaskService {
 
         ProjectParticipant participant =
                 validateProjectParticipant(project, project.getTeam(), currentMember);
-        validateTaskModify(participant, task);
-
-        if (task.getTaskStatus() == TaskStatus.COMPLETED) {
-            throw new CommonException(TaskErrorCode.TASK_ALREADY_COMPLETED);
-        }
+        validateTaskStatusModify(participant, task);
 
         task.updateTaskStatus();
         Contribution contribution = validateContribution(sprint, participant);
@@ -225,15 +221,25 @@ public class TaskService {
     }
 
     private void validateTaskModify(ProjectParticipant participant, Task task) {
+        validateTaskModifyAccess(participant, task);
+        if (task.getTaskStatus() == TaskStatus.COMPLETED) {
+            throw new CommonException(TaskErrorCode.TASK_MODIFY_FORBIDDEN);
+        }
+    }
+
+    private void validateTaskStatusModify(ProjectParticipant participant, Task task) {
+        validateTaskModifyAccess(participant, task);
+        if (task.getSosStatus() == SOSStatus.SOS) {
+            throw new CommonException(TaskErrorCode.TASK_COMPLETE_FORBIDDEN);
+        }
+    }
+
+    private void validateTaskModifyAccess(ProjectParticipant participant, Task task) {
         if (task.getAssignedStatus() != AssignedStatus.NOT_ASSIGNED || task.getAssignee() != null) {
             if (!participant.getProjectRole().equals(ProjectParticipantRole.ADMIN)
                     && !participant.equals(task.getAssignee())) {
                 throw new CommonException(TaskErrorCode.TASK_MODIFY_FORBIDDEN);
             }
-        }
-
-        if (task.getTaskStatus() == TaskStatus.COMPLETED) {
-            throw new CommonException(TaskErrorCode.TASK_MODIFY_FORBIDDEN);
         }
     }
 
