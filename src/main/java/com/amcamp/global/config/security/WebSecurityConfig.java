@@ -11,6 +11,7 @@ import com.amcamp.global.util.CookieUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -29,6 +30,27 @@ public class WebSecurityConfig {
     private final SpringEnvironmentHelper springEnvironmentHelper;
     private final JwtTokenService jwtTokenService;
     private final CookieUtil cookieUtil;
+
+    @Bean
+    @Order(1)
+    public SecurityFilterChain swaggerSecurityFilterChain(HttpSecurity http) throws Exception {
+
+        if (springEnvironmentHelper.isDevProfile()) {
+            http.securityMatcher("/swagger-ui/**", "/v3/api-docs/**")
+                    .csrf(AbstractHttpConfigurer::disable)
+                    .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+                    .httpBasic(withDefaults())
+                    .sessionManagement(
+                            session ->
+                                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        } else {
+            http.securityMatcher("/swagger-ui/**", "/v3/api-docs/**")
+                    .csrf(AbstractHttpConfigurer::disable)
+                    .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        }
+
+        return http.build();
+    }
 
     @Bean
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
