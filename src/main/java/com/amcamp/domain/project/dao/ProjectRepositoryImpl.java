@@ -45,6 +45,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                                                 ProjectInfoResponse.class,
                                                 project.id,
                                                 project.title,
+                                                project.team.name,
                                                 project.description,
                                                 project.startDt,
                                                 project.dueDt),
