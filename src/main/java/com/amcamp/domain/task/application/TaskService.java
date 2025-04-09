@@ -124,6 +124,12 @@ public class TaskService {
             throw new CommonException(TaskErrorCode.TASK_ALREADY_ASSIGNED);
         }
 
+        if (task.getAssignedStatus() != AssignedStatus.NOT_ASSIGNED
+                && task.getAssignee() == projectParticipant
+                && task.getSosStatus() == SOSStatus.SOS) {
+            throw new CommonException(TaskErrorCode.TASK_ASSIGN_FORBIDDEN);
+        }
+
         task.assignTask(projectParticipant);
         return findProjectParticipantMember(task) != null
                 ? TaskInfoResponse.from(task, findProjectParticipantMember(task))
