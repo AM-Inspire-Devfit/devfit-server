@@ -52,6 +52,7 @@ public class SwaggerConfig {
 
     private String getServerUrlByProfile() {
         return switch (springEnvironmentHelper.getCurrentProfile()) {
+            case "prod" -> UrlConstants.PROD_SERVER_URL;
             case "dev" -> UrlConstants.DEV_SERVER_URL;
             default -> UrlConstants.LOCAL_SERVER_URL;
         };
