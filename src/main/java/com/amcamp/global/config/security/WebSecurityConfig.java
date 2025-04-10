@@ -20,6 +20,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -55,11 +57,16 @@ public class WebSecurityConfig {
     public InMemoryUserDetailsManager inMemoryUserDetailsManager() {
         UserDetails user =
                 User.withUsername(swaggerUsername)
-                        .password("{noop}" + swaggerPassword)
+                        .password(passwordEncoder().encode(swaggerPassword))
                         .roles("SWAGGER")
                         .build();
 
         return new InMemoryUserDetailsManager(user);
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
@@ -111,7 +118,6 @@ public class WebSecurityConfig {
         }
 
         if (springEnvironmentHelper.isDevProfile()) {
-            configuration.addAllowedOriginPattern(UrlConstants.DEV_SERVER_URL);
             configuration.addAllowedOriginPattern(UrlConstants.DEV_DOMAIN_URL);
             configuration.addAllowedOriginPattern(UrlConstants.LOCAL_DOMAIN_URL);
         }
