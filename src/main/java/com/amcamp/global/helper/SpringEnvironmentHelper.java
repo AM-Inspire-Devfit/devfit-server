@@ -12,11 +12,19 @@ public class SpringEnvironmentHelper {
 
     private final Environment environment;
 
+    public static final String PROD = "prod";
     public static final String DEV = "dev";
     public static final String LOCAL = "local";
 
     public String getCurrentProfile() {
-        return getActiveProfiles().filter(profile -> profile.equals(DEV)).findFirst().orElse(LOCAL);
+        return getActiveProfiles()
+                .filter(profile -> profile.equals(PROD) || profile.equals(DEV))
+                .findFirst()
+                .orElse(LOCAL);
+    }
+
+    public Boolean isProdProfile() {
+        return getActiveProfiles().anyMatch(PROD::equals);
     }
 
     public Boolean isDevProfile() {
