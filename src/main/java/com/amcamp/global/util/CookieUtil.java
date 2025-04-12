@@ -2,20 +2,25 @@ package com.amcamp.global.util;
 
 import static com.amcamp.global.common.constants.SecurityConstants.REFRESH_TOKEN_COOKIE_NAME;
 
+import com.amcamp.global.helper.SpringEnvironmentHelper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.server.Cookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class CookieUtil {
+
+    private final SpringEnvironmentHelper springEnvironmentHelper;
 
     public HttpHeaders generateRefreshTokenCookie(String refreshToken) {
         ResponseCookie refreshTokenCookie =
                 ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, refreshToken)
                         .path("/")
                         .secure(false)
-                        .sameSite(Cookie.SameSite.NONE.attributeValue())
+                        .sameSite(determineSameSitePolicy())
                         .httpOnly(true)
                         .build();
 
@@ -31,7 +36,7 @@ public class CookieUtil {
                         .path("/")
                         .maxAge(0)
                         .secure(false)
-                        .sameSite(Cookie.SameSite.NONE.attributeValue())
+                        .sameSite(determineSameSitePolicy())
                         .httpOnly(true)
                         .build();
 
@@ -39,5 +44,12 @@ public class CookieUtil {
         headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
         return headers;
+    }
+
+    private String determineSameSitePolicy() {
+        if (springEnvironmentHelper.isProdProfile()) {
+            return Cookie.SameSite.STRICT.attributeValue();
+        }
+        return Cookie.SameSite.NONE.attributeValue();
     }
 }
