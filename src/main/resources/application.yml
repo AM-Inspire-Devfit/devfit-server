@@ -21,5 +21,5 @@ spring-doc:
     doc-expansion : none
 
 swagger:
-  username: ${SWAGGER_USERNAME}
-  password: ${SWAGGER_PASSWORD}
+  username: ${SWAGGER_USERNAME:default}
+  password: ${SWAGGER_PASSWORD:default}
