@@ -19,7 +19,7 @@ public class CookieUtil {
         ResponseCookie refreshTokenCookie =
                 ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, refreshToken)
                         .path("/")
-                        .secure(false)
+                        .secure(true)
                         .sameSite(determineSameSitePolicy())
                         .httpOnly(true)
                         .build();
@@ -35,7 +35,7 @@ public class CookieUtil {
                 ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, "")
                         .path("/")
                         .maxAge(0)
-                        .secure(false)
+                        .secure(true)
                         .sameSite(determineSameSitePolicy())
                         .httpOnly(true)
                         .build();
