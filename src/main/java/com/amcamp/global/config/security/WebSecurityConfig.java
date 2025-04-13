@@ -115,6 +115,7 @@ public class WebSecurityConfig {
 
         if (springEnvironmentHelper.isProdProfile()) {
             configuration.addAllowedOriginPattern(UrlConstants.PROD_DOMAIN_URL);
+            configuration.addAllowedOriginPattern(UrlConstants.LOCAL_DOMAIN_URL); // API 연동 완료 후, 삭제
         }
 
         if (springEnvironmentHelper.isDevProfile()) {
