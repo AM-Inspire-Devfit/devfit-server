@@ -195,10 +195,10 @@ public class ContributionServiceTest extends IntegrationTest {
 
         @Test
         void 프로젝트_참여자라면_기여도_반환() {
-            Member member = memberUtil.getCurrentMember();
             BasicContributionInfoResponse basicContributionInfoResponse =
                     contributionService.getContributionByMember(1L, 1L);
-            assertThat(basicContributionInfoResponse.memberId()).isEqualTo(member.getId());
+            assertThat(basicContributionInfoResponse.projectParticipantId())
+                    .isEqualTo(participant.getId());
             assertThat(basicContributionInfoResponse.score()).isEqualTo(61);
         }
     }
@@ -234,10 +234,10 @@ public class ContributionServiceTest extends IntegrationTest {
 
         @Test
         void 팀_참여자라면_기여도_반환() {
-            Member member = memberUtil.getCurrentMember();
             List<ContributionInfoResponse> contributionInfoResponse =
                     contributionService.getContributionBySprint(1L);
-            assertThat(contributionInfoResponse.get(0).memberId()).isEqualTo(member.getId());
+            assertThat(contributionInfoResponse.get(0).projectParticipantId())
+                    .isEqualTo(participant.getId());
             assertThat(contributionInfoResponse.get(0).score()).isEqualTo(61);
         }
     }
