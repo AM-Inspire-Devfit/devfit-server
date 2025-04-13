@@ -40,7 +40,7 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
                                         task.sosStatus,
                                         getAssigneeId(task),
                                         getAssigneeNickname(task),
-                                        getAssigneeProfile(task)))
+                                        getAssigneeProfileImageUrl(task)))
                         .from(task)
                         .leftJoin(task.assignee)
                         .where(task.sprint.id.eq(sprintId), lastTaskId(lastTaskId))
@@ -67,9 +67,7 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
                                         task.taskStatus,
                                         task.assignedStatus,
                                         task.sosStatus,
-                                        task.assignee.id,
-                                        task.assignee.projectNickname,
-                                        task.assignee.projectProfile))
+                                        task.assignee.id))
                         .from(task)
                         .where(
                                 task.sprint.id.eq(sprintId),
@@ -92,14 +90,14 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
     public Expression<String> getAssigneeNickname(QTask task) {
         return new CaseBuilder()
                 .when(task.assignedStatus.eq(AssignedStatus.ASSIGNED))
-                .then(task.assignee.projectNickname)
+                .then(task.assignee.teamParticipant.member.nickname)
                 .otherwise(Expressions.nullExpression());
     }
 
-    private Expression<String> getAssigneeProfile(QTask task) {
+    private Expression<String> getAssigneeProfileImageUrl(QTask task) {
         return new CaseBuilder()
                 .when(task.assignedStatus.eq(AssignedStatus.ASSIGNED))
-                .then(task.assignee.projectProfile)
+                .then(task.assignee.teamParticipant.member.profileImageUrl)
                 .otherwise(Expressions.nullExpression());
     }
 

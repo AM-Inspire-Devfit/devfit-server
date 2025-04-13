@@ -78,9 +78,10 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                                 Projections.constructor(
                                         ProjectParticipantInfoResponse.class,
                                         projectParticipant.id,
-                                        projectParticipant.projectNickname,
-                                        projectParticipant.projectProfile,
-                                        projectParticipant.projectRole))
+                                        projectParticipant.teamParticipant.member.nickname,
+                                        projectParticipant.teamParticipant.member.profileImageUrl,
+                                        projectParticipant.projectRole,
+                                        projectParticipant.status))
                         .from(projectParticipant)
                         .where(
                                 projectParticipant.project.id.eq(projectId),
@@ -93,15 +94,6 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
         }
 
         return checkLastPage(pageSize, results);
-    }
-
-    private BooleanExpression participantCondition(
-            boolean isParticipant, TeamParticipant teamParticipant) {
-        if (isParticipant) {
-            return projectParticipant.teamParticipant.eq(teamParticipant);
-        } else {
-            return projectParticipant.teamParticipant.isNull();
-        }
     }
 
     private BooleanExpression lastProjectCondition(Long projectId) {

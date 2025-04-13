@@ -52,11 +52,7 @@ public class ProjectService {
 
         projectParticipantRepository.save(
                 ProjectParticipant.createProjectParticipant(
-                        teamParticipant,
-                        project,
-                        member.getNickname(),
-                        member.getProfileImageUrl(),
-                        ProjectParticipantRole.ADMIN));
+                        teamParticipant, project, ProjectParticipantRole.ADMIN));
     }
 
     @Transactional(readOnly = true)
@@ -111,7 +107,7 @@ public class ProjectService {
             projectParticipantRepository.deleteAllByProject(project);
             projectRepository.delete(project);
         } else {
-            participant.changeParticipantToUnknown();
+            participant.changeStatus(ProjectParticipantStatus.INACTIVE);
         }
     }
 
@@ -169,11 +165,7 @@ public class ProjectService {
         ProjectRegistration registration = getProjectRegistrationById(registrationId);
         projectParticipantRepository.save(
                 ProjectParticipant.createProjectParticipant(
-                        registration.getRequester(),
-                        project,
-                        registration.getRequester().getMember().getNickname(),
-                        registration.getRequester().getMember().getProfileImageUrl(),
-                        ProjectParticipantRole.MEMBER));
+                        registration.getRequester(), project, ProjectParticipantRole.MEMBER));
         registration.updateStatus(ProjectRegistrationStatus.APPROVED);
     }
 

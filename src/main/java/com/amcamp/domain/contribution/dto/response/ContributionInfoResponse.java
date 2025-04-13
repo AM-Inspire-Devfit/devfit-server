@@ -15,8 +15,8 @@ public record ContributionInfoResponse(
                 contribution.getId(),
                 contribution.getSprint().getId(),
                 contribution.getParticipant().getId(),
-                contribution.getParticipant().getProjectNickname(),
-                contribution.getParticipant().getProjectProfile(),
+                contribution.getParticipant().getTeamParticipant().getMember().getNickname(),
+                contribution.getParticipant().getTeamParticipant().getMember().getProfileImageUrl(),
                 score.intValue());
     }
 }
