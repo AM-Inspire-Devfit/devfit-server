@@ -740,7 +740,7 @@ public class ProjectServiceTest extends IntegrationTest {
             projectService.deleteProjectParticipant(1L);
             // then
             assertThat(projectService.getProjectParticipant(1L).status())
-                    .isEqualTo(String.valueOf(ProjectParticipantStatus.INACTIVE));
+                    .isEqualTo(ProjectParticipantStatus.INACTIVE);
         }
     }
 }
