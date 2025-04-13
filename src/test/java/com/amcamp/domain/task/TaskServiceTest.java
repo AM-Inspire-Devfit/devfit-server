@@ -21,6 +21,7 @@ import com.amcamp.domain.task.dao.TaskRepository;
 import com.amcamp.domain.task.domain.*;
 import com.amcamp.domain.task.dto.request.TaskBasicInfoUpdateRequest;
 import com.amcamp.domain.task.dto.request.TaskCreateRequest;
+import com.amcamp.domain.task.dto.response.TaskBasicInfoResponse;
 import com.amcamp.domain.task.dto.response.TaskInfoResponse;
 import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
@@ -36,10 +37,12 @@ import com.amcamp.global.security.PrincipalDetails;
 import com.amcamp.global.util.MemberUtil;
 import jakarta.transaction.Transactional;
 import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Slice;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -523,62 +526,63 @@ public class TaskServiceTest extends IntegrationTest {
                     .hasMessage(TeamErrorCode.TEAM_PARTICIPANT_REQUIRED.getMessage());
         }
 
-        //        @Test
-        //		@Transactional
-        //        void 프로젝트별로_조회한다() {
-        //            // given
-        //			List<Task> taskList =
-        //				List.of(Task.createTask(sprint, "피그마 화면 설계 수정", TaskDifficulty.MID),
-        // Task.createTask(sprint, "mvp 완성", TaskDifficulty.HIGH));
-        //			taskRepository.saveAll(taskList);
-        //
-        //			for (Task task : taskList) {
-        //				task.assignTask(participant);
-        //			}
-        //
-        //			for (Task task : taskList) {
-        //				System.out.println(task.getAssignee().getTeamParticipant().getMember().getNickname());
-        //			}
-        //
-        //            // when
-        //            Slice<TaskInfoResponse> result = taskService.getTasksBySprint(1L, null, 3);
-        //
-        //            // then
-        //            assertThat(result.getContent()).hasSize(2);
-        //        }
-        //
-        //        @Test
-        //        void 멤버별로_조회한다() {
-        //            // given
-        //            Member member = memberUtil.getCurrentMember();
-        //            TaskCreateRequest taskRequest1 =
-        //                    new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID);
-        //            taskService.createTask(taskRequest1);
-        //            TaskCreateRequest taskRequest2 =
-        //                    new TaskCreateRequest(1L, "mvp 완성", TaskDifficulty.HIGH);
-        //            taskService.createTask(taskRequest2);
-        //
-        //            Task task =
-        //                    taskRepository
-        //                            .findById(1L)
-        //                            .orElseThrow(() -> new
-        // CommonException(TaskErrorCode.TASK_NOT_FOUND));
-        //
-        //            taskService.assignTask(task.getId()); // 첫번쨰 태스크에만 담당자 배정
-        //
-        //            Task task1 =
-        //                    taskRepository
-        //                            .findById(2L)
-        //                            .orElseThrow(() -> new
-        // CommonException(TaskErrorCode.TASK_NOT_FOUND));
-        //
-        //            taskService.assignTask(task1.getId()); // 첫번쨰 태스크에만 담당자 배정
-        //
-        //            // when
-        //            Slice<TaskInfoResponse> result = taskService.getTasksByMember(1L, 0L, 3);
-        //
-        //            // then
-        //            assertThat(result.getContent()).hasSize(2);
-        //        }
+        @Test
+        @Transactional
+        void 프로젝트별로_조회한다() {
+            // given
+            List<Task> taskList =
+                    List.of(
+                            Task.createTask(sprint, "피그마 화면 설계 수정", TaskDifficulty.MID),
+                            Task.createTask(sprint, "mvp 완성", TaskDifficulty.HIGH));
+            taskRepository.saveAll(taskList);
+
+            for (Task task : taskList) {
+                task.assignTask(participant);
+            }
+
+            for (Task task : taskList) {
+                System.out.println(
+                        task.getAssignee().getTeamParticipant().getMember().getNickname());
+            }
+
+            // when
+            Slice<TaskInfoResponse> result = taskService.getTasksBySprint(1L, null, 3);
+
+            // then
+            assertThat(result.getContent()).hasSize(2);
+            System.out.println(result.getContent());
+        }
+
+        @Test
+        void 멤버별로_조회한다() {
+            // given
+            Member member = memberUtil.getCurrentMember();
+            TaskCreateRequest taskRequest1 =
+                    new TaskCreateRequest(1L, "피그마 화면 설계 수정", TaskDifficulty.MID);
+            taskService.createTask(taskRequest1);
+            TaskCreateRequest taskRequest2 =
+                    new TaskCreateRequest(1L, "mvp 완성", TaskDifficulty.HIGH);
+            taskService.createTask(taskRequest2);
+
+            Task task =
+                    taskRepository
+                            .findById(1L)
+                            .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
+
+            taskService.assignTask(task.getId()); // 첫번쨰 태스크에만 담당자 배정
+
+            Task task1 =
+                    taskRepository
+                            .findById(2L)
+                            .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
+
+            taskService.assignTask(task1.getId()); // 첫번쨰 태스크에만 담당자 배정
+
+            // when
+            Slice<TaskBasicInfoResponse> result = taskService.getTasksByMember(1L, 0L, 3);
+
+            // then
+            assertThat(result.getContent()).hasSize(2);
+        }
     }
 }
