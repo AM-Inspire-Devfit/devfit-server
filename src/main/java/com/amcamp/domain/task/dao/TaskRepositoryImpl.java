@@ -55,7 +55,7 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
                         .limit(size + 1)
                         .fetch();
 
-        return checkLastPageInfo(size, results);
+        return checkLastPage(size, results);
     }
 
     @Override
@@ -79,7 +79,7 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
                         .limit(size + 1)
                         .fetch();
 
-        return checkLastPageBasic(size, results);
+        return checkLastPage(size, results);
     }
 
     public Expression<Long> getAssigneeId(QTask task) {
@@ -110,27 +110,13 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
         return task.id.gt(taskId);
     }
 
-    private Slice<TaskInfoResponse> checkLastPageInfo(
-            int pageSize, List<TaskInfoResponse> results) {
+    private <T> Slice<T> checkLastPage(int pageSize, List<T> results) {
         boolean hasNext = false;
 
         if (results.size() > pageSize) {
             hasNext = true;
             results.remove(pageSize);
         }
-
-        return new SliceImpl<>(results, PageRequest.of(0, pageSize), hasNext);
-    }
-
-    private Slice<TaskBasicInfoResponse> checkLastPageBasic(
-            int pageSize, List<TaskBasicInfoResponse> results) {
-        boolean hasNext = false;
-
-        if (results.size() > pageSize) {
-            hasNext = true;
-            results.remove(pageSize);
-        }
-
         return new SliceImpl<>(results, PageRequest.of(0, pageSize), hasNext);
     }
 }
