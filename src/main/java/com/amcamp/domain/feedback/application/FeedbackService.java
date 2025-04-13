@@ -11,6 +11,7 @@ import com.amcamp.domain.project.dao.ProjectParticipantRepository;
 import com.amcamp.domain.project.dao.ProjectRepository;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ProjectParticipant;
+import com.amcamp.domain.project.domain.ProjectParticipantStatus;
 import com.amcamp.domain.sprint.dao.SprintRepository;
 import com.amcamp.domain.sprint.domain.Sprint;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
@@ -160,8 +161,7 @@ public class FeedbackService {
     }
 
     private void validateUnknownUser(ProjectParticipant participant) {
-        if (participant.getProjectNickname().equals("UNKNOWN_PROJECT_NICKNAME")
-                && participant.getProjectProfile().equals("UNKNOWN_PROJECT_PROFILE_URL")) {
+        if (participant.getStatus() == ProjectParticipantStatus.INACTIVE) {
             throw new CommonException(FeedbackErrorCode.PARTICIPANT_IS_UNKNOWN);
         }
     }
