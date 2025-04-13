@@ -89,11 +89,7 @@ public class ProjectServiceTest extends IntegrationTest {
                 projectRepository.save(Project.createProject(team, title, description, dueDt));
         projectParticipantRepository.save(
                 ProjectParticipant.createProjectParticipant(
-                        participant,
-                        project,
-                        member.getNickname(),
-                        "Profile",
-                        ProjectParticipantRole.ADMIN));
+                        participant, project, ProjectParticipantRole.ADMIN));
         return project;
     }
 
@@ -105,11 +101,7 @@ public class ProjectServiceTest extends IntegrationTest {
                 projectRepository.save(Project.createProject(team, title, description, dueDt));
         projectParticipantRepository.save(
                 ProjectParticipant.createProjectParticipant(
-                        participant,
-                        project,
-                        member.getNickname(),
-                        "Profile",
-                        ProjectParticipantRole.ADMIN));
+                        participant, project, ProjectParticipantRole.ADMIN));
         return project;
     }
 
@@ -126,11 +118,7 @@ public class ProjectServiceTest extends IntegrationTest {
                 projectRepository.save(Project.createProject(team, title, description, dueDt));
         projectParticipantRepository.save(
                 ProjectParticipant.createProjectParticipant(
-                        participant,
-                        project,
-                        member.getNickname(),
-                        "Profile",
-                        ProjectParticipantRole.ADMIN));
+                        participant, project, ProjectParticipantRole.ADMIN));
         return project;
     }
 
@@ -208,11 +196,7 @@ public class ProjectServiceTest extends IntegrationTest {
             TeamParticipant participant = teamParticipantRepository.findById(2L).get();
             projectParticipantRepository.save(
                     ProjectParticipant.createProjectParticipant(
-                            participant,
-                            member1JoinProject,
-                            "Nickname",
-                            "Profile",
-                            ProjectParticipantRole.MEMBER));
+                            participant, member1JoinProject, ProjectParticipantRole.MEMBER));
             // when
             Slice<ProjectListInfoResponse> response =
                     projectService.getProjectListInfo(teamId, null, 10);
@@ -633,7 +617,7 @@ public class ProjectServiceTest extends IntegrationTest {
             loginAs(member1);
             projectService.getProjectParticipantList(1L, null, 1).forEach(System.out::println);
             ProjectParticipantInfoResponse myInfo = projectService.getProjectParticipant(1L);
-            assertThat(myInfo.projectNickname()).isEqualTo(member1.getNickname());
+            assertThat(myInfo.nickname()).isEqualTo(member1.getNickname());
             assertThat(myInfo.role()).isEqualTo(ProjectParticipantRole.MEMBER);
         }
 
@@ -664,7 +648,7 @@ public class ProjectServiceTest extends IntegrationTest {
             // then
             List<String> requesterIds =
                     projectService.getProjectParticipantList(1L, null, 3).stream()
-                            .map(ProjectParticipantInfoResponse::projectNickname)
+                            .map(ProjectParticipantInfoResponse::nickname)
                             .toList();
 
             assertThat(new HashSet<>(requesterIds))
@@ -747,7 +731,7 @@ public class ProjectServiceTest extends IntegrationTest {
             composeProjectMembers();
             Long newAdminId =
                     projectService.getProjectParticipantList(1L, null, 3).stream()
-                            .filter(r -> !r.projectNickname().equals(memberAdmin.getNickname()))
+                            .filter(r -> !r.nickname().equals(memberAdmin.getNickname()))
                             .map(ProjectParticipantInfoResponse::projectParticipantId)
                             .findAny()
                             .get();
@@ -755,8 +739,8 @@ public class ProjectServiceTest extends IntegrationTest {
             projectService.changeProjectAdmin(1L, newAdminId);
             projectService.deleteProjectParticipant(1L);
             // then
-            assertThat(projectService.getProjectParticipant(1L).projectNickname())
-                    .isEqualTo(String.valueOf(ProjectParticipantUnknown.NICKNAME));
+            assertThat(projectService.getProjectParticipant(1L).status())
+                    .isEqualTo(String.valueOf(ProjectParticipantStatus.INACTIVE));
         }
     }
 }

@@ -10,19 +10,16 @@ import com.amcamp.domain.contribution.dto.response.ContributionInfoResponse;
 import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.domain.OauthInfo;
-import com.amcamp.domain.project.application.ProjectService;
 import com.amcamp.domain.project.dao.ProjectParticipantRepository;
 import com.amcamp.domain.project.dao.ProjectRepository;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.project.domain.ProjectParticipantRole;
-import com.amcamp.domain.sprint.application.SprintService;
 import com.amcamp.domain.sprint.dao.SprintRepository;
 import com.amcamp.domain.sprint.domain.Sprint;
 import com.amcamp.domain.task.application.TaskService;
 import com.amcamp.domain.task.domain.TaskDifficulty;
 import com.amcamp.domain.task.dto.request.TaskCreateRequest;
-import com.amcamp.domain.team.application.TeamService;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.dao.TeamRepository;
 import com.amcamp.domain.team.domain.Team;
@@ -46,11 +43,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public class ContributionServiceTest extends IntegrationTest {
-    @Autowired private TeamService teamService;
     @Autowired private MemberRepository memberRepository;
     @Autowired private MemberUtil memberUtil;
-    @Autowired private ProjectService projectService;
-    @Autowired private SprintService sprintService;
     @Autowired private TaskService taskService;
     @Autowired private ContributionService contributionService;
     @Autowired private TeamRepository teamRepository;
@@ -113,19 +107,11 @@ public class ContributionServiceTest extends IntegrationTest {
         participant =
                 projectParticipantRepository.save(
                         ProjectParticipant.createProjectParticipant(
-                                teamParticipantAdmin,
-                                project,
-                                member.getNickname(),
-                                member.getProfileImageUrl(),
-                                ProjectParticipantRole.ADMIN));
+                                teamParticipantAdmin, project, ProjectParticipantRole.ADMIN));
         newParticipant =
                 projectParticipantRepository.save(
                         ProjectParticipant.createProjectParticipant(
-                                teamParticipantUser,
-                                project,
-                                newMember.getNickname(),
-                                newMember.getProfileImageUrl(),
-                                ProjectParticipantRole.MEMBER));
+                                teamParticipantUser, project, ProjectParticipantRole.MEMBER));
 
         sprint =
                 sprintRepository.save(

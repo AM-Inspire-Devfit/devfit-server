@@ -6,17 +6,14 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import com.amcamp.IntegrationTest;
 import com.amcamp.domain.contribution.dao.ContributionRepository;
 import com.amcamp.domain.contribution.domain.Contribution;
-import com.amcamp.domain.member.application.MemberService;
 import com.amcamp.domain.member.dao.MemberRepository;
 import com.amcamp.domain.member.domain.Member;
 import com.amcamp.domain.member.domain.OauthInfo;
-import com.amcamp.domain.project.application.ProjectService;
 import com.amcamp.domain.project.dao.ProjectParticipantRepository;
 import com.amcamp.domain.project.dao.ProjectRepository;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.project.domain.ProjectParticipantRole;
-import com.amcamp.domain.sprint.application.SprintService;
 import com.amcamp.domain.sprint.dao.SprintRepository;
 import com.amcamp.domain.sprint.domain.Sprint;
 import com.amcamp.domain.task.application.TaskService;
@@ -49,13 +46,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public class TaskServiceTest extends IntegrationTest {
-    @Autowired private MemberService memberService;
     @Autowired private TeamRepository teamRepository;
     @Autowired private MemberRepository memberRepository;
     @Autowired private MemberUtil memberUtil;
-    @Autowired private ProjectService projectService;
     @Autowired private ProjectRepository projectRepository;
-    @Autowired private SprintService sprintService;
     @Autowired private TeamService teamService;
     @Autowired private TaskService taskService;
     @Autowired private TaskRepository taskRepository;
@@ -118,19 +112,11 @@ public class TaskServiceTest extends IntegrationTest {
         participant =
                 projectParticipantRepository.save(
                         ProjectParticipant.createProjectParticipant(
-                                teamParticipantAdmin,
-                                project,
-                                member.getNickname(),
-                                member.getProfileImageUrl(),
-                                ProjectParticipantRole.ADMIN));
+                                teamParticipantAdmin, project, ProjectParticipantRole.ADMIN));
         newParticipant =
                 projectParticipantRepository.save(
                         ProjectParticipant.createProjectParticipant(
-                                teamParticipantUser,
-                                project,
-                                newMember.getNickname(),
-                                newMember.getProfileImageUrl(),
-                                ProjectParticipantRole.MEMBER));
+                                teamParticipantUser, project, ProjectParticipantRole.MEMBER));
 
         sprint =
                 sprintRepository.save(
@@ -553,7 +539,7 @@ public class TaskServiceTest extends IntegrationTest {
             // then
             assertThat(result.getContent()).hasSize(2);
             assertThat(result.getContent().get(0).memberId()).isEqualTo(null);
-            assertThat(result.getContent().get(0).projectNickname()).isEqualTo(null);
+            assertThat(result.getContent().get(0).nickname()).isEqualTo(null);
             assertThat(result.getContent().get(0).profileImageUrl()).isEqualTo(null);
         }
 

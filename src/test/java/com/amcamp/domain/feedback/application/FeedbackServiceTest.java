@@ -16,6 +16,7 @@ import com.amcamp.domain.project.dao.ProjectRepository;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.project.domain.ProjectParticipantRole;
+import com.amcamp.domain.project.domain.ProjectParticipantStatus;
 import com.amcamp.domain.sprint.dao.SprintRepository;
 import com.amcamp.domain.sprint.domain.Sprint;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
@@ -103,47 +104,31 @@ public class FeedbackServiceTest extends IntegrationTest {
         sender =
                 projectParticipantRepository.save(
                         ProjectParticipant.createProjectParticipant(
-                                teamParticipantAdmin,
-                                project,
-                                senderMember.getNickname(),
-                                senderMember.getProfileImageUrl(),
-                                ProjectParticipantRole.ADMIN));
+                                teamParticipantAdmin, project, ProjectParticipantRole.ADMIN));
 
         receiver =
                 projectParticipantRepository.save(
                         ProjectParticipant.createProjectParticipant(
-                                teamParticipantUser,
-                                project,
-                                receiverMember.getNickname(),
-                                receiverMember.getProfileImageUrl(),
-                                ProjectParticipantRole.MEMBER));
+                                teamParticipantUser, project, ProjectParticipantRole.MEMBER));
 
         anotherReceiver =
                 projectParticipantRepository.save(
                         ProjectParticipant.createProjectParticipant(
-                                teamParticipantUser,
-                                anotherProject,
-                                "test",
-                                "test",
-                                ProjectParticipantRole.ADMIN));
+                                teamParticipantUser, anotherProject, ProjectParticipantRole.ADMIN));
 
         anotherSender =
                 projectParticipantRepository.save(
                         ProjectParticipant.createProjectParticipant(
-                                teamParticipantUser,
-                                anotherProject,
-                                "test",
-                                "test",
-                                ProjectParticipantRole.ADMIN));
+                                teamParticipantUser, anotherProject, ProjectParticipantRole.ADMIN));
 
         unknownReceiver =
                 projectParticipantRepository.save(
                         ProjectParticipant.createProjectParticipant(
                                 teamParticipantUser,
                                 anotherProject,
-                                "UNKNOWN_PROJECT_NICKNAME",
-                                "UNKNOWN_PROJECT_PROFILE_URL",
                                 ProjectParticipantRole.MEMBER));
+
+        unknownReceiver.changeStatus(ProjectParticipantStatus.INACTIVE);
 
         sprint =
                 sprintRepository.save(
@@ -262,11 +247,9 @@ public class FeedbackServiceTest extends IntegrationTest {
         }
 
         @Test
+        @Transactional
         void 프로젝트에서_나간_사용자에게_피드백_메시지를_전송하면_예외가_발생한다() {
             // given
-            //  로그인한 사용자를 project(2)에 참여중인 anotherSender로 변경
-            setAuthenticatedUser(anotherSender.getTeamParticipant().getMember());
-
             FeedbackSendRequest request =
                     new FeedbackSendRequest(
                             sprint.getId(), unknownReceiver.getId(), feedbackMessage);
