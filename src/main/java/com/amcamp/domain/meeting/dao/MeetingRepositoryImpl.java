@@ -26,6 +26,7 @@ public class MeetingRepositoryImpl implements MeetingRepositoryCustom {
                         .select(
                                 Projections.constructor(
                                         MeetingInfoResponse.class,
+                                        meeting.id,
                                         meeting.title,
                                         meeting.meetingStart,
                                         meeting.meetingEnd))
