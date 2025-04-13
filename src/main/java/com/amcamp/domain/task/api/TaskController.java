@@ -3,6 +3,7 @@ package com.amcamp.domain.task.api;
 import com.amcamp.domain.task.application.TaskService;
 import com.amcamp.domain.task.dto.request.TaskBasicInfoUpdateRequest;
 import com.amcamp.domain.task.dto.request.TaskCreateRequest;
+import com.amcamp.domain.task.dto.response.TaskBasicInfoResponse;
 import com.amcamp.domain.task.dto.response.TaskInfoResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -75,7 +76,7 @@ public class TaskController {
             summary = "마이 페이지 내 스프린트별 태스크 조회",
             description = "멤버에 할당된 태스크를 스프린트 아이디값에 따라 불러 옵니다.")
     @GetMapping("/{sprintId}/me")
-    public Slice<TaskInfoResponse> taskListByMember(
+    public Slice<TaskBasicInfoResponse> taskListByMember(
             @PathVariable Long sprintId,
             @Parameter(description = "이전 페이지의 마지막 태스크 ID (첫 페이지는 비워두세요)")
                     @RequestParam(required = false)

@@ -14,6 +14,7 @@ import com.amcamp.domain.task.dao.TaskRepository;
 import com.amcamp.domain.task.domain.*;
 import com.amcamp.domain.task.dto.request.TaskBasicInfoUpdateRequest;
 import com.amcamp.domain.task.dto.request.TaskCreateRequest;
+import com.amcamp.domain.task.dto.response.TaskBasicInfoResponse;
 import com.amcamp.domain.task.dto.response.TaskInfoResponse;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.domain.Team;
@@ -154,7 +155,7 @@ public class TaskService {
     }
 
     @Transactional(readOnly = true)
-    public Slice<TaskInfoResponse> getTasksByMember(Long sprintId, Long lastTaskId, int size) {
+    public Slice<TaskBasicInfoResponse> getTasksByMember(Long sprintId, Long lastTaskId, int size) {
         final Member currentMember = memberUtil.getCurrentMember();
         final Sprint sprint = findBySprintId(sprintId);
         final Project project = sprint.getProject();

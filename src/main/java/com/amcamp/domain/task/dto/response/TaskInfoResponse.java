@@ -13,7 +13,7 @@ public record TaskInfoResponse(
         @Schema(description = "태스크 진행 현황", example = "ON_GOING") TaskStatus taskStatus,
         @Schema(description = "태스크 담당 상태", example = "ASSIGNED") AssignedStatus assignedStatus,
         @Schema(description = "태스크 SOS 상태", example = "SOS") SOSStatus sosStatus,
-        @Schema(description = "태스크 담당자 아이디", example = "1") Long memberId,
+        @Schema(description = "태스크 담당자 아이디", example = "1") Long projectParticipantId,
         @Schema(description = "태스크 담당자 닉네임", example = "최현태") String nickname,
         @Schema(description = "태스크 담당자 프로필 url", example = "Presigned URL")
                 String profileImageUrl) {

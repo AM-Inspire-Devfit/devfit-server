@@ -1,10 +1,15 @@
 package com.amcamp.domain.task.dao;
 
+import static com.amcamp.domain.member.domain.QMember.member;
+import static com.amcamp.domain.project.domain.QProjectParticipant.projectParticipant;
 import static com.amcamp.domain.task.domain.QTask.task;
+import static com.amcamp.domain.team.domain.QTeamParticipant.teamParticipant;
 
+import com.amcamp.domain.member.domain.QMember;
 import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.task.domain.AssignedStatus;
 import com.amcamp.domain.task.domain.QTask;
+import com.amcamp.domain.task.dto.response.TaskBasicInfoResponse;
 import com.amcamp.domain.task.dto.response.TaskInfoResponse;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Projections;
@@ -39,35 +44,32 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
                                         task.assignedStatus,
                                         task.sosStatus,
                                         getAssigneeId(task),
-                                        getAssigneeNickname(task),
-                                        getAssigneeProfileImageUrl(task)))
+                                        getAssigneeNickname(member),
+                                        getAssigneeProfileImageUrl(member)))
                         .from(task)
-                        .leftJoin(task.assignee)
+                        .leftJoin(task.assignee, projectParticipant)
+                        .leftJoin(projectParticipant.teamParticipant, teamParticipant)
+                        .leftJoin(teamParticipant.member, member)
                         .where(task.sprint.id.eq(sprintId), lastTaskId(lastTaskId))
                         .orderBy(task.createdDt.asc())
                         .limit(size + 1)
                         .fetch();
 
-        System.out.println("조회된 Task 개수: " + results.size());
         return checkLastPage(size, results);
     }
 
     @Override
-    public Slice<TaskInfoResponse> findBySprintAndAssignee(
+    public Slice<TaskBasicInfoResponse> findBySprintAndAssignee(
             Long sprintId, ProjectParticipant assignee, Long lastTaskId, int size) {
-        List<TaskInfoResponse> results =
+        List<TaskBasicInfoResponse> results =
                 jpaQueryFactory
                         .select(
                                 Projections.constructor(
-                                        TaskInfoResponse.class,
+                                        TaskBasicInfoResponse.class,
                                         task.id,
                                         task.description,
-                                        task.taskDifficulty,
-                                        task.dueDt,
                                         task.taskStatus,
-                                        task.assignedStatus,
-                                        task.sosStatus,
-                                        task.assignee.id))
+                                        task.sosStatus))
                         .from(task)
                         .where(
                                 task.sprint.id.eq(sprintId),
@@ -87,17 +89,17 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
                 .otherwise(Expressions.nullExpression());
     }
 
-    public Expression<String> getAssigneeNickname(QTask task) {
+    public Expression<String> getAssigneeNickname(QMember member) {
         return new CaseBuilder()
-                .when(task.assignedStatus.eq(AssignedStatus.ASSIGNED))
-                .then(task.assignee.teamParticipant.member.nickname)
+                .when(member.isNotNull())
+                .then(member.nickname)
                 .otherwise(Expressions.nullExpression());
     }
 
-    private Expression<String> getAssigneeProfileImageUrl(QTask task) {
+    private Expression<String> getAssigneeProfileImageUrl(QMember member) {
         return new CaseBuilder()
-                .when(task.assignedStatus.eq(AssignedStatus.ASSIGNED))
-                .then(task.assignee.teamParticipant.member.profileImageUrl)
+                .when(member.isNotNull())
+                .then(member.profileImageUrl)
                 .otherwise(Expressions.nullExpression());
     }
 
@@ -108,14 +110,13 @@ public class TaskRepositoryImpl implements TaskRepositoryCustom {
         return task.id.gt(taskId);
     }
 
-    private Slice<TaskInfoResponse> checkLastPage(int pageSize, List<TaskInfoResponse> results) {
+    private <T> Slice<T> checkLastPage(int pageSize, List<T> results) {
         boolean hasNext = false;
 
         if (results.size() > pageSize) {
             hasNext = true;
             results.remove(pageSize);
         }
-
         return new SliceImpl<>(results, PageRequest.of(0, pageSize), hasNext);
     }
 }
