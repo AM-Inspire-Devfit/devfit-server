@@ -260,7 +260,9 @@ public class ProjectService {
                 .isPresent()) {
             throw new CommonException(ProjectErrorCode.PROJECT_PARTICIPANT_ALREADY_EXISTS);
         }
-        if (projectRegistrationRepository.findByRequester(participant).isPresent()) {
+        if (projectRegistrationRepository
+                .findByProjectAndRequester(project, participant)
+                .isPresent()) {
             throw new CommonException(ProjectErrorCode.PROJECT_REGISTRATION_ALREADY_EXISTS);
         }
         return participant;

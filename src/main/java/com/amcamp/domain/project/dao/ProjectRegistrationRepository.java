@@ -12,4 +12,7 @@ public interface ProjectRegistrationRepository
     List<ProjectRegistration> findAllByProject(Project project);
 
     Optional<ProjectRegistration> findByRequester(TeamParticipant teamParticipant);
+
+    Optional<ProjectRegistration> findByProjectAndRequester(
+            Project project, TeamParticipant participant);
 }
