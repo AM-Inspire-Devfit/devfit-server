@@ -251,6 +251,12 @@ public class ProjectService {
         TeamParticipant participant = getValidTeamParticipant(member, project.getTeam());
         if (projectParticipantRepository
                 .findByProjectAndTeamParticipant(project, participant)
+                .filter(
+                        r ->
+                                r.getStatus()
+                                        .equals(
+                                                ProjectParticipantStatus
+                                                        .ACTIVE)) // inactive 인 경우 신청 가능하도록
                 .isPresent()) {
             throw new CommonException(ProjectErrorCode.PROJECT_PARTICIPANT_ALREADY_EXISTS);
         }
