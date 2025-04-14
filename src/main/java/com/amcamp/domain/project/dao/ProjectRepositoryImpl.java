@@ -4,6 +4,7 @@ import static com.amcamp.domain.project.domain.QProject.project;
 import static com.amcamp.domain.project.domain.QProjectParticipant.projectParticipant;
 
 import com.amcamp.domain.project.domain.ProjectParticipantRole;
+import com.amcamp.domain.project.domain.ProjectParticipantStatus;
 import com.amcamp.domain.project.dto.response.ProjectInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectListInfoResponse;
 import com.amcamp.domain.project.dto.response.ProjectParticipantInfoResponse;
@@ -30,6 +31,13 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
     public Slice<ProjectListInfoResponse> findAllByTeamIdWithPagination(
             Long teamId, Long lastProjectId, int pageSize, TeamParticipant teamParticipant) {
 
+        NumberExpression<Integer> activeParticipation =
+                new CaseBuilder()
+                        .when(projectParticipant.status.eq(ProjectParticipantStatus.ACTIVE))
+                        .then(1)
+                        .otherwise(0)
+                        .coalesce(0);
+
         NumberExpression<Integer> adminCase =
                 new CaseBuilder()
                         .when(projectParticipant.projectRole.eq(ProjectParticipantRole.ADMIN))
@@ -49,7 +57,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                                                 project.description,
                                                 project.startDt,
                                                 project.dueDt),
-                                        projectParticipant.id.count().gt(0),
+                                        activeParticipation.sum().gt(0),
                                         adminCase.sum().gt(0)))
                         .from(project)
                         .leftJoin(projectParticipant)
