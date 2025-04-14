@@ -16,7 +16,6 @@ import com.amcamp.domain.team.dao.TeamRepository;
 import com.amcamp.domain.team.domain.Team;
 import com.amcamp.domain.team.domain.TeamParticipant;
 import com.amcamp.global.exception.CommonException;
-import com.amcamp.global.exception.errorcode.MemberErrorCode;
 import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.util.MemberUtil;
@@ -115,12 +114,7 @@ public class ProjectService {
         Member currentMember = memberUtil.getCurrentMember(); // 현재 사용자 (기존 Admin)
         Project project = getProjectById(projectId);
         ProjectParticipant currentAdmin = validateProjectAdmin(currentMember, project);
-
-        Member newAdminMember =
-                memberRepository
-                        .findById(newAdminId)
-                        .orElseThrow(() -> new CommonException(MemberErrorCode.MEMBER_NOT_FOUND));
-        ProjectParticipant newAdmin = getValidProjectParticipant(newAdminMember, project);
+        ProjectParticipant newAdmin = getProjectParticipantById(newAdminId); // 양도할 프로젝트멤버
 
         currentAdmin.changeRole(ProjectParticipantRole.MEMBER);
         newAdmin.changeRole(ProjectParticipantRole.ADMIN);
@@ -214,6 +208,13 @@ public class ProjectService {
     }
 
     // project utils
+
+    private ProjectParticipant getProjectParticipantById(Long projectMemberId) {
+        return projectParticipantRepository
+                .findById(projectMemberId)
+                .orElseThrow(
+                        () -> new CommonException(ProjectErrorCode.PROJECT_PARTICIPANT_NOT_EXISTS));
+    }
 
     private String normalizeProjectTitle(String name) {
         return name.trim().replaceAll("[^0-9a-zA-Z가-힣 ]", "_");
