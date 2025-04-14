@@ -47,7 +47,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
                         .otherwise(0);
 
         StringExpression joinStatusExpr =
-                projectRegistration.requestStatus.stringValue().coalesce("NONE");
+                projectRegistration.requestStatus.stringValue().min().coalesce("NONE");
 
         List<ProjectListInfoResponse> responses =
                 jpaQueryFactory

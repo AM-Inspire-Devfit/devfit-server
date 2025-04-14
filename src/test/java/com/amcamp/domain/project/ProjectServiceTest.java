@@ -449,10 +449,11 @@ public class ProjectServiceTest extends IntegrationTest {
             // given
             Long teamId = getTeamId();
             Team team = teamRepository.findById(teamId).get();
+            // 프로젝트 생성, 프로젝트 ID 1L 할당
             createTestProject(teamId, 1L);
             logout();
 
-            // when
+            // when: member1이 가입 신청
             loginAs(member1);
             teamService.joinTeam(teamInviteCodeRequest);
             TeamParticipant teamParticipant1 =
@@ -460,21 +461,21 @@ public class ProjectServiceTest extends IntegrationTest {
             projectService.requestToProjectRegistration(1L);
 
             logout();
+
+            // when: member2도 가입 신청
             loginAs(member2);
             teamService.joinTeam(teamInviteCodeRequest);
             TeamParticipant teamParticipant2 =
                     teamParticipantRepository.findByMemberAndTeam(member2, team).get();
             projectService.requestToProjectRegistration(1L);
 
-            // then
+            // then: 팀 관리자인 memberAdmin이 가입 신청 목록을 조회
             logout();
             loginAs(memberAdmin);
             Slice<ProjectRegisterDetailResponse> response =
                     projectService.getProjectRegistrationList(1L, null, 10);
-
             List<Long> requesterIds =
                     response.stream().map(ProjectRegisterDetailResponse::requesterId).toList();
-
             assertThat(new HashSet<>(requesterIds))
                     .isEqualTo(Set.of(teamParticipant1.getId(), teamParticipant2.getId()));
         }
@@ -488,10 +489,10 @@ public class ProjectServiceTest extends IntegrationTest {
             loginAs(member1);
             teamService.joinTeam(teamInviteCodeRequest);
 
-            // when
+            // when: 최초 가입 신청
             projectService.requestToProjectRegistration(1L);
 
-            // then
+            // then: 이미 가입 신청한 팀 참여자가 다시 신청하면 예외 발생
             assertThatThrownBy(() -> projectService.requestToProjectRegistration(1L))
                     .isInstanceOf(CommonException.class)
                     .hasMessageContaining(
@@ -504,7 +505,7 @@ public class ProjectServiceTest extends IntegrationTest {
             Long teamId = getTeamId();
             createTestProject(teamId, 1L);
 
-            // when,then
+            // when, then: 아직 가입 신청하지 않은 상태에서(즉, ACTIVE 상태로 이미 가입되어 있는 상태에서) 가입 신청을 시도하면 예외 발생
             assertThatThrownBy(() -> projectService.requestToProjectRegistration(1L))
                     .isInstanceOf(CommonException.class)
                     .hasMessageContaining(
