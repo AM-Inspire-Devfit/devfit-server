@@ -4,4 +4,4 @@ spring:
       on-profile: "dev"
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
