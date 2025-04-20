@@ -12,6 +12,7 @@ import com.amcamp.domain.sprint.domain.Sprint;
 import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintUpdateRequest;
 import com.amcamp.domain.sprint.dto.response.SprintDetailResponse;
+import com.amcamp.domain.sprint.dto.response.SprintIdResponse;
 import com.amcamp.domain.sprint.dto.response.SprintInfoResponse;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
 import com.amcamp.domain.team.domain.Team;
@@ -121,6 +122,16 @@ public class SprintService {
         validatePagingRequest(baseSprintId, direction);
 
         return sprintRepository.findAllSprintByProjectId(projectId, baseSprintId, direction);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SprintIdResponse> findAllSprintId(Long projectId) {
+        final Member currentMember = memberUtil.getCurrentMember();
+        final Project project = findByProjectId(projectId);
+        ProjectParticipant participant =
+                validateProjectParticipant(project, project.getTeam(), currentMember);
+
+        return sprintRepository.findAllSprintIdByProjectId(projectId);
     }
 
     @Transactional(readOnly = true)
