@@ -18,6 +18,7 @@ import com.amcamp.domain.sprint.domain.Sprint;
 import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintUpdateRequest;
 import com.amcamp.domain.sprint.dto.response.SprintDetailResponse;
+import com.amcamp.domain.sprint.dto.response.SprintIdResponse;
 import com.amcamp.domain.sprint.dto.response.SprintInfoResponse;
 import com.amcamp.domain.task.dao.TaskRepository;
 import com.amcamp.domain.task.domain.Task;
@@ -328,6 +329,35 @@ public class SprintServiceTest extends IntegrationTest {
             assertThat(results.getContent().get(0).taskList().size()).isEqualTo(2);
             assertThat(results.getContent().get(0).taskList().get(0).taskStatus())
                     .isEqualTo(TaskStatus.COMPLETED);
+        }
+    }
+
+    @Nested
+    class 프로젝트별_스프린트아이디_목록을_조회할_때 {
+        @Test
+        void 프로젝트가_존재하지_않으면_예외가_발생한다() {
+            // when & then
+            assertThatThrownBy(() -> sprintService.findAllSprint(999L, null, null))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(ProjectErrorCode.PROJECT_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        void 프로젝트가_존재한다면_모든_스프린트아이디를_반환한다() {
+            // given
+            List<Sprint> sprintList =
+                    List.of(
+                            Sprint.createSprint(project, "1", "testDescription1", dueDt),
+                            Sprint.createSprint(project, "2", "testDescription2", dueDt),
+                            Sprint.createSprint(project, "3", "testDescription3", dueDt));
+            sprintRepository.saveAll(sprintList);
+
+            // when
+            List<SprintIdResponse> results = sprintService.findAllSprintId(1L);
+
+            // given
+            assertThat(results.size()).isEqualTo(3);
+            assertThat(results).extracting("title").containsExactly("1", "2", "3"); // 순서까지 확인
         }
     }
 

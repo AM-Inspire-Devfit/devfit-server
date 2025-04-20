@@ -5,11 +5,13 @@ import com.amcamp.domain.sprint.dao.SprintPagingDirection;
 import com.amcamp.domain.sprint.dto.request.SprintCreateRequest;
 import com.amcamp.domain.sprint.dto.request.SprintUpdateRequest;
 import com.amcamp.domain.sprint.dto.response.SprintDetailResponse;
+import com.amcamp.domain.sprint.dto.response.SprintIdResponse;
 import com.amcamp.domain.sprint.dto.response.SprintInfoResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
@@ -63,6 +65,12 @@ public class SprintController {
                     @RequestParam(required = false)
                     SprintPagingDirection direction) {
         return sprintService.findAllSprint(projectId, baseSprintId, direction);
+    }
+
+    @Operation(summary = "프로젝트별 스프린트 아이디 목록 조회", description = "특정 프로젝트의 스프린트 아이디 목록을 조회합니다.")
+    @GetMapping("/{projectId}/list")
+    public List<SprintIdResponse> sprintIdAllByMember(@PathVariable Long projectId) {
+        return sprintService.findAllSprintId(projectId);
     }
 
     @Operation(summary = "회원별 프로젝트 내 스프린트 목록 조회", description = "마이페이지에서 특정 프로젝트의 스프린트 목록을 조회합니다.")

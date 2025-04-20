@@ -5,6 +5,7 @@ import static com.amcamp.domain.task.domain.QTask.task;
 
 import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.sprint.dto.response.SprintDetailResponse;
+import com.amcamp.domain.sprint.dto.response.SprintIdResponse;
 import com.amcamp.domain.task.dto.response.TaskBasicInfoResponse;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.SprintErrorCode;
@@ -52,6 +53,21 @@ public class SprintRepositoryImpl implements SprintRepositoryCustom {
         List<SprintDetailResponse> results = convertToSprintDetails(sprintList, taskList);
 
         return checkLastPage(results);
+    }
+
+    @Override
+    public List<SprintIdResponse> findAllSprintIdByProjectId(Long projectId) {
+        List<SprintIdResponse> results =
+                jpaQueryFactory
+                        .select(
+                                Projections.constructor(
+                                        SprintIdResponse.class, sprint.id, sprint.title))
+                        .from(sprint)
+                        .where(sprint.project.id.eq(projectId))
+                        .orderBy(sprint.id.asc())
+                        .fetch();
+
+        return results;
     }
 
     private BooleanExpression buildPagingCondition(
