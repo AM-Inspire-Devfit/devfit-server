@@ -271,6 +271,7 @@ public class TaskServiceTest extends IntegrationTest {
         }
 
         @Test
+        @Transactional
         void 정상적으로_완료된_태스크를_미완료처리한다() {
             // given
             TaskCreateRequest taskRequest =
@@ -283,12 +284,14 @@ public class TaskServiceTest extends IntegrationTest {
                             .orElseThrow(() -> new CommonException(TaskErrorCode.TASK_NOT_FOUND));
 
             task.assignTask(participant);
-            task.updateTaskStatus();
 
-            // when
+            // when & then
             task.updateTaskStatus();
+            assertThat(task.getDueDt()).isEqualTo(LocalDate.now());
 
-            // then
+            // when & then
+            task.updateTaskStatus();
+            assertThat(task.getDueDt()).isNull();
             assertThat(task.getTaskStatus()).isEqualTo(TaskStatus.ON_GOING);
         }
 

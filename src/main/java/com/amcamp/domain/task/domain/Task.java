@@ -89,9 +89,12 @@ public class Task extends BaseTimeEntity {
     }
 
     public void updateTaskStatus() {
-        if (this.taskStatus != TaskStatus.COMPLETED) this.taskStatus = TaskStatus.COMPLETED;
-        else {
+        if (this.taskStatus != TaskStatus.COMPLETED) {
+            this.taskStatus = TaskStatus.COMPLETED;
+            this.dueDt = LocalDate.now();
+        } else {
             this.taskStatus = TaskStatus.ON_GOING;
+            this.dueDt = null;
         }
     }
 
