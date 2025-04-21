@@ -49,6 +49,24 @@ public class TeamRepositoryImpl implements TeamRepositoryCustom {
         return checkLastPage(pageSize, results);
     }
 
+    @Override
+    public List<TeamInfoResponse> findAllTeamByMemberIdV2(Long memberId) {
+        return jpaQueryFactory
+                .select(
+                        Projections.constructor(
+                                TeamInfoResponse.class,
+                                team.id,
+                                team.name,
+                                team.description,
+                                team.emoji))
+                .from(teamParticipant)
+                .leftJoin(teamParticipant.team, team)
+                .on(team.id.eq(teamParticipant.team.id))
+                .where(teamParticipant.member.id.eq(memberId))
+                .orderBy(teamParticipant.createdDt.desc())
+                .fetch();
+    }
+
     private BooleanExpression lastTeamId(Long teamId) {
         if (teamId == null) {
             return null;

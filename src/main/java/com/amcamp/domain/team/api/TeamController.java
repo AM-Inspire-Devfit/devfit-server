@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
@@ -78,6 +79,7 @@ public class TeamController {
         return teamService.findTeamAdmin(teamId);
     }
 
+    @Deprecated
     @Operation(summary = "팀 목록 조회", description = "회원이 참여한 팀 목록을 조회합니다.")
     @GetMapping("/list")
     public Slice<TeamInfoResponse> teamFindAll(
@@ -87,5 +89,11 @@ public class TeamController {
             @Parameter(description = "페이지당 팀 수", example = "1") @RequestParam(value = "size")
                     int pageSize) {
         return teamService.findAllTeam(lastTeamId, pageSize);
+    }
+
+    @Operation(summary = "팀 목록 조회", description = "회원이 참여한 팀 목록을 조회합니다.")
+    @GetMapping("/list/all")
+    public List<TeamInfoResponse> teamFindAll() {
+        return teamService.findAllTeamV2();
     }
 }
