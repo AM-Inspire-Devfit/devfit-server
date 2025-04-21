@@ -1,13 +1,16 @@
 package com.amcamp.domain.feedback.dao;
 
 import static com.amcamp.domain.feedback.domain.QFeedback.feedback;
+import static com.amcamp.domain.member.domain.QMember.member;
+import static com.amcamp.domain.project.domain.QProjectParticipant.projectParticipant;
+import static com.amcamp.domain.team.domain.QTeamParticipant.teamParticipant;
 
 import com.amcamp.domain.feedback.dto.response.FeedbackInfoResponse;
 import com.amcamp.domain.project.domain.ProjectParticipant;
-import com.amcamp.domain.project.domain.QProjectParticipant;
 import com.amcamp.domain.project.dto.response.ProjectParticipantFeedbackInfoResponse;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.FeedbackErrorCode;
+import com.amcamp.global.exception.errorcode.ProjectErrorCode;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
@@ -55,7 +58,6 @@ public class FeedbackRepositoryImpl implements FeedbackRepositoryCustom {
     @Override
     public Slice<ProjectParticipantFeedbackInfoResponse> findSprintFeedbackStatusByParticipant(
             ProjectParticipant sender, Long sprintId, Long lastProjectParticipantId, int pageSize) {
-        QProjectParticipant receiver = QProjectParticipant.projectParticipant;
 
         // 1. sender가 이 sprint에서 피드백한 receiver ID 목록 먼저 뽑기
         List<Long> feedbackGivenReceiverIds =
@@ -71,22 +73,30 @@ public class FeedbackRepositoryImpl implements FeedbackRepositoryCustom {
                         .select(
                                 Projections.constructor(
                                         ProjectParticipantFeedbackInfoResponse.class,
-                                        receiver.id,
-                                        receiver.teamParticipant.member.nickname,
-                                        receiver.teamParticipant.member.profileImageUrl,
-                                        receiver.projectRole,
-                                        receiver.status,
+                                        projectParticipant.id,
+                                        member.nickname,
+                                        member.profileImageUrl,
+                                        projectParticipant.projectRole,
+                                        projectParticipant.status,
                                         new CaseBuilder()
-                                                .when(receiver.id.in(feedbackGivenReceiverIds))
+                                                .when(
+                                                        projectParticipant.id.in(
+                                                                feedbackGivenReceiverIds))
                                                 .then("COMPLETED")
                                                 .otherwise("PENDING")))
-                        .from(receiver)
+                        .from(projectParticipant)
+                        .leftJoin(projectParticipant.teamParticipant, teamParticipant)
+                        .leftJoin(teamParticipant.member, member)
                         .where(
-                                receiver.project.eq(sender.getProject()),
-                                receiver.id.gt(lastProjectParticipantId))
-                        .orderBy(receiver.id.asc())
+                                projectParticipant.project.eq(sender.getProject()),
+                                lastProjectParticipantId(lastProjectParticipantId))
+                        .orderBy(projectParticipant.id.asc())
                         .limit(pageSize + 1)
                         .fetch();
+
+        if (results.isEmpty()) {
+            throw new CommonException(ProjectErrorCode.PROJECT_PARTICIPANT_NOT_EXISTS);
+        }
 
         return checkLastPage(pageSize, results);
     }
@@ -97,6 +107,14 @@ public class FeedbackRepositoryImpl implements FeedbackRepositoryCustom {
         }
 
         return feedback.id.lt(feedbackId);
+    }
+
+    private BooleanExpression lastProjectParticipantId(Long projectParticipantId) {
+        if (projectParticipantId == null) {
+            return null;
+        }
+
+        return projectParticipant.id.gt(projectParticipantId);
     }
 
     private <T> Slice<T> checkLastPage(int pageSize, List<T> results) {
