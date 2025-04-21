@@ -1,0 +1,25 @@
+spring:
+  profiles:
+    group:
+      test: "test"
+      local: "local"
+      dev: "dev, datasource, actuator"
+    include:
+      - redis
+      - security
+      - s3
+      - openai
+
+spring-doc:
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+  swagger-ui:
+    tags-sorter: alpha
+    operations-sorter : method
+    disable-swagger-default-url: true
+    path: /swagger-ui
+    doc-expansion : none
+
+swagger:
+  username: ${SWAGGER_USERNAME:default}
+  password: ${SWAGGER_PASSWORD:default}
