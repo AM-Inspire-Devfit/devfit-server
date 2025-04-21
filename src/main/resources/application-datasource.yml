@@ -1,0 +1,16 @@
+spring:
+  config:
+    activate:
+      on-profile: "datasource"
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${DB_NAME}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
+  jpa:
+    properties:
+      hibernate:
+        default_batch_fetch_size: 100
+logging:
+  level:
+    org.hibernate.SQL: debug
