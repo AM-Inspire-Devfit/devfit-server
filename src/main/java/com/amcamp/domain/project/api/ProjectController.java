@@ -99,7 +99,7 @@ public class ProjectController {
     @DeleteMapping("/{projectId}/registration/cancel")
     public ResponseEntity<Void> projectRegistrationDelete(
             @PathVariable Long projectId, @RequestParam Long projectRegisterId) {
-        projectService.deleteProjectRegistration(projectId, projectRegisterId);
+        projectService.deleteProjectRegistration(projectId);
         return ResponseEntity.ok().build();
     }
 
