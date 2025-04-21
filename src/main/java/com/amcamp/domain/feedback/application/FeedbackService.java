@@ -12,6 +12,7 @@ import com.amcamp.domain.project.dao.ProjectRepository;
 import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.project.domain.ProjectParticipantStatus;
+import com.amcamp.domain.project.dto.response.ProjectParticipantFeedbackInfoResponse;
 import com.amcamp.domain.sprint.dao.SprintRepository;
 import com.amcamp.domain.sprint.domain.Sprint;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
@@ -79,6 +80,20 @@ public class FeedbackService {
 
         return feedbackRepository.findSprintFeedbacksByParticipant(
                 projectParticipant.getId(), sprintId, lastFeedbackId, pageSize);
+    }
+
+    @Transactional(readOnly = true)
+    public Slice<ProjectParticipantFeedbackInfoResponse> findFeedbackStatusBySprint(
+            Long projectId, Long sprintId, Long lastProjectParticipantId, int pageSize) {
+        final Member currentMember = memberUtil.getCurrentMember();
+        final Project project = findByProjectId(projectId);
+        final Sprint sprint = findBySprintId(sprintId);
+
+        ProjectParticipant projectParticipant = validateProjectParticipant(currentMember, project);
+        validateProjectSprintMismatch(project, sprint);
+
+        return feedbackRepository.findSprintFeedbackStatusByParticipant(
+                projectParticipant, sprintId, lastProjectParticipantId, pageSize);
     }
 
     private Project findByProjectId(Long projectId) {

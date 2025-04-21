@@ -17,6 +17,7 @@ import com.amcamp.domain.project.domain.Project;
 import com.amcamp.domain.project.domain.ProjectParticipant;
 import com.amcamp.domain.project.domain.ProjectParticipantRole;
 import com.amcamp.domain.project.domain.ProjectParticipantStatus;
+import com.amcamp.domain.project.dto.response.ProjectParticipantFeedbackInfoResponse;
 import com.amcamp.domain.sprint.dao.SprintRepository;
 import com.amcamp.domain.sprint.domain.Sprint;
 import com.amcamp.domain.team.dao.TeamParticipantRepository;
@@ -57,6 +58,7 @@ public class FeedbackServiceTest extends IntegrationTest {
     private ProjectParticipant anotherSender;
     private ProjectParticipant receiver;
     private ProjectParticipant anotherReceiver;
+    private ProjectParticipant notReceiver;
     private ProjectParticipant unknownReceiver;
     private Sprint sprint;
     private Sprint anotherSprint;
@@ -78,6 +80,13 @@ public class FeedbackServiceTest extends IntegrationTest {
                                 "testReceiverProfileImageUrl",
                                 OauthInfo.createOauthInfo("testOauthId", "testOauthProvider")));
 
+        Member notReceiverMember =
+                memberRepository.save(
+                        Member.createMember(
+                                "testNotReceiverNickname",
+                                "testNotReceiverProfileImageUrl",
+                                OauthInfo.createOauthInfo("testOauthId", "testOauthProvider")));
+
         // 초기에 로그인한 사용자를 sender로 설정
         setAuthenticatedUser(senderMember);
 
@@ -91,6 +100,11 @@ public class FeedbackServiceTest extends IntegrationTest {
                 teamParticipantRepository.save(
                         TeamParticipant.createParticipant(
                                 receiverMember, team, TeamParticipantRole.USER));
+
+        TeamParticipant teamParticipantUserNotReceiver =
+                teamParticipantRepository.save(
+                        TeamParticipant.createParticipant(
+                                notReceiverMember, team, TeamParticipantRole.USER));
 
         project =
                 projectRepository.save(
@@ -110,6 +124,12 @@ public class FeedbackServiceTest extends IntegrationTest {
                 projectParticipantRepository.save(
                         ProjectParticipant.createProjectParticipant(
                                 teamParticipantUser, project, ProjectParticipantRole.MEMBER));
+        notReceiver =
+                projectParticipantRepository.save(
+                        ProjectParticipant.createProjectParticipant(
+                                teamParticipantUserNotReceiver,
+                                project,
+                                ProjectParticipantRole.MEMBER));
 
         anotherReceiver =
                 projectParticipantRepository.save(
@@ -345,6 +365,71 @@ public class FeedbackServiceTest extends IntegrationTest {
                                             project.getId(), 999L, null, 1))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(SprintErrorCode.SPRINT_NOT_FOUND.getMessage());
+        }
+    }
+
+    @Nested
+    class 스프린트별_동료평가_여부를_확인할_때 {
+        @Test
+        void 스프린트가_존재하지않으면_예외가_발생한다() {
+            // when & then
+            assertThatThrownBy(
+                            () ->
+                                    feedbackService.findFeedbackStatusBySprint(
+                                            project.getId(), 999L, null, 1))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(SprintErrorCode.SPRINT_NOT_FOUND.getMessage());
+        }
+
+        @Test
+        void 요청한_프로젝트가_로그인된_사용자가_참여한_프로젝트가_아니라면_예외가_발생한다() {
+            // given
+            // sender는 project(1)에만 참여 중이고,
+            // receiver는 project(1)와 anotherProject(2) 둘 다 참여 중이므로
+            // 검증을 명확히 하기 위해 로그인한 사용자를 sender로 변경
+            setAuthenticatedUser(sender.getTeamParticipant().getMember());
+
+            // when & then
+            assertThatThrownBy(
+                            () ->
+                                    feedbackService.findFeedbackStatusBySprint(
+                                            anotherProject.getId(), sprint.getId(), null, 1))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(ProjectErrorCode.PROJECT_PARTICIPATION_REQUIRED.getMessage());
+        }
+
+        @Test
+        void 팀원정보와_동료평가여부를_반환한다() {
+            feedbackRepository.save(Feedback.createFeedback(sender, receiver, sprint, "수고하셨습니다!"));
+            // when: sender 기준, 해당 스프린트에서의 팀원 평가 상태 조회
+            Slice<ProjectParticipantFeedbackInfoResponse> result =
+                    feedbackService.findFeedbackStatusBySprint(
+                            project.getId(), sprint.getId(), 0L, 10);
+
+            // then
+            assertThat(result.getContent().size())
+                    .isEqualTo(
+                            3); // receiver 1명만 ACTIVE 상태로 있는 프로젝트 참가자, 본인과 피드백을 받지 않은 사람은 PENDING
+
+            // (1) 동료평가를 받은 사람은 COMPLETED
+            ProjectParticipantFeedbackInfoResponse received_response =
+                    result.getContent().stream()
+                            .filter(r -> r.projectParticipantId().equals(receiver.getId()))
+                            .findFirst()
+                            .orElseThrow(() -> new AssertionError("receiver에 대한 응답이 존재하지 않음"));
+
+            assertThat(received_response.nickname()).isEqualTo("testReceiverNickname");
+            assertThat(received_response.feedbackStatus()).isEqualTo("COMPLETED");
+
+            // (1) 동료평가를 받지 사람 & sender는 PENDING
+            ProjectParticipantFeedbackInfoResponse sender_response =
+                    result.getContent().stream()
+                            .filter(r -> r.projectParticipantId().equals(sender.getId()))
+                            .findFirst()
+                            .orElseThrow(() -> new AssertionError("sender에 대한 응답이 존재하지 않음"));
+
+            assertThat(sender_response.nickname()).isEqualTo("testSenderNickname");
+            assertThat(sender_response.feedbackStatus()).isEqualTo("PENDING");
         }
     }
 
