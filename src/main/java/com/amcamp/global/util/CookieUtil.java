@@ -13,6 +13,7 @@ public class CookieUtil {
     public HttpHeaders generateRefreshTokenCookie(String refreshToken) {
         ResponseCookie refreshTokenCookie =
                 ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, refreshToken)
+                        .domain(".devfit.site")
                         .path("/")
                         .secure(true)
                         .sameSite(determineSameSitePolicy())
@@ -28,6 +29,7 @@ public class CookieUtil {
     public HttpHeaders deleteRefreshTokenCookie() {
         ResponseCookie refreshTokenCookie =
                 ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, "")
+                        .domain(".devfit.site")
                         .path("/")
                         .maxAge(0)
                         .secure(true)
