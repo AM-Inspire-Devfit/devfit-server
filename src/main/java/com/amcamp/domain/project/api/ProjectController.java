@@ -97,8 +97,7 @@ public class ProjectController {
 
     @Operation(summary = "프로젝트 가입 신청 취소", description = "프로젝트 가입 신청을 취소합니다.")
     @DeleteMapping("/{projectId}/registration/cancel")
-    public ResponseEntity<Void> projectRegistrationDelete(
-            @PathVariable Long projectId, @RequestParam Long projectRegisterId) {
+    public ResponseEntity<Void> projectRegistrationDelete(@PathVariable Long projectId) {
         projectService.deleteProjectRegistration(projectId);
         return ResponseEntity.ok().build();
     }
