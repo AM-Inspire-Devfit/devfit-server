@@ -20,6 +20,7 @@ import com.amcamp.global.exception.errorcode.TeamErrorCode;
 import com.amcamp.global.util.MemberUtil;
 import com.amcamp.global.util.RandomUtil;
 import com.amcamp.global.util.RedisUtil;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Slice;
@@ -177,6 +178,12 @@ public class TeamService {
     public Slice<TeamInfoResponse> findAllTeam(Long lastTeamId, int pageSize) {
         Member currentMember = memberUtil.getCurrentMember();
         return teamRepository.findAllTeamByMemberId(currentMember.getId(), lastTeamId, pageSize);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TeamInfoResponse> findAllTeam() {
+        Member currentMember = memberUtil.getCurrentMember();
+        return teamRepository.findAllTeamByMemberId(currentMember.getId());
     }
 
     @Transactional(readOnly = true)
