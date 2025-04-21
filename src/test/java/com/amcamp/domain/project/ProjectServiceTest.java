@@ -584,7 +584,7 @@ public class ProjectServiceTest extends IntegrationTest {
             teamService.joinTeam(teamInviteCodeRequest);
             // when
             projectService.requestToProjectRegistration(1L);
-            projectService.deleteProjectRegistration(1L, 1L);
+            projectService.deleteProjectRegistration(1L);
             // then
             logout();
             loginAs(memberAdmin);

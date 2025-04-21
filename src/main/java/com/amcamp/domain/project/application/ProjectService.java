@@ -170,11 +170,12 @@ public class ProjectService {
         getProjectRegistrationById(registrationId).updateStatus(ProjectRegistrationStatus.REJECTED);
     }
 
-    public void deleteProjectRegistration(Long projectId, Long projectRegisterId) {
+    public void deleteProjectRegistration(Long projectId) {
         Member member = memberUtil.getCurrentMember();
         Project project = getProjectById(projectId);
         TeamParticipant teamParticipant = getValidTeamParticipant(member, project.getTeam());
-        ProjectRegistration registration = getProjectRegistrationById(projectRegisterId);
+        ProjectRegistration registration =
+                getProjectRegistrationByProjectAndRequester(project, teamParticipant);
 
         if (teamParticipant.equals(registration.getRequester())) {
             projectRegistrationRepository.delete(registration);
@@ -271,6 +272,14 @@ public class ProjectService {
     private ProjectRegistration getProjectRegistrationById(Long registrationId) {
         return projectRegistrationRepository
                 .findById(registrationId)
+                .orElseThrow(
+                        () -> new CommonException(ProjectErrorCode.PROJECT_REGISTRATION_NOT_FOUND));
+    }
+
+    private ProjectRegistration getProjectRegistrationByProjectAndRequester(
+            Project project, TeamParticipant requester) {
+        return projectRegistrationRepository
+                .findByProjectAndRequester(project, requester)
                 .orElseThrow(
                         () -> new CommonException(ProjectErrorCode.PROJECT_REGISTRATION_NOT_FOUND));
     }
