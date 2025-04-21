@@ -5,6 +5,7 @@ import com.amcamp.domain.feedback.dto.request.FeedbackSendRequest;
 import com.amcamp.domain.feedback.dto.request.OriginalFeedbackRequest;
 import com.amcamp.domain.feedback.dto.response.FeedbackInfoResponse;
 import com.amcamp.domain.feedback.dto.response.FeedbackRefineResponse;
+import com.amcamp.domain.project.dto.response.ProjectParticipantFeedbackInfoResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,6 +22,21 @@ import org.springframework.web.bind.annotation.*;
 public class FeedbackController {
 
     private final FeedbackService feedbackService;
+
+    @Operation(summary = "스프린트별 동료평가 여부 확인", description = "스프린트별/팀원별 동료평가 여부를 확인합니다. ")
+    @GetMapping("/{sprintId}")
+    public Slice<ProjectParticipantFeedbackInfoResponse> feedbackStatusFind(
+            @PathVariable Long sprintId,
+            @Parameter(description = "프로젝트 아이디") @RequestParam Long projectId,
+            @Parameter(description = "이전 페이지의 마지막 프로젝트 참가자 ID (첫 페이지는 비워두세요)")
+                    @RequestParam(required = false)
+                    Long lastProjectParticipantId,
+            @Parameter(description = "페이지당 프로젝트 참여자 수", example = "1") @RequestParam(value = "size")
+                    int pageSize) {
+
+        return feedbackService.findFeedbackStatusBySprint(
+                projectId, sprintId, lastProjectParticipantId, pageSize);
+    }
 
     @Operation(
             summary = "OpenAI 기반 피드백 메시지 개선",

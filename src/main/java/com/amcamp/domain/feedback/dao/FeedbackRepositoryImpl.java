@@ -3,10 +3,14 @@ package com.amcamp.domain.feedback.dao;
 import static com.amcamp.domain.feedback.domain.QFeedback.feedback;
 
 import com.amcamp.domain.feedback.dto.response.FeedbackInfoResponse;
+import com.amcamp.domain.project.domain.ProjectParticipant;
+import com.amcamp.domain.project.domain.QProjectParticipant;
+import com.amcamp.domain.project.dto.response.ProjectParticipantFeedbackInfoResponse;
 import com.amcamp.global.exception.CommonException;
 import com.amcamp.global.exception.errorcode.FeedbackErrorCode;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +52,45 @@ public class FeedbackRepositoryImpl implements FeedbackRepositoryCustom {
         return checkLastPage(pageSize, results);
     }
 
+    @Override
+    public Slice<ProjectParticipantFeedbackInfoResponse> findSprintFeedbackStatusByParticipant(
+            ProjectParticipant sender, Long sprintId, Long lastProjectParticipantId, int pageSize) {
+        QProjectParticipant receiver = QProjectParticipant.projectParticipant;
+
+        // 1. sender가 이 sprint에서 피드백한 receiver ID 목록 먼저 뽑기
+        List<Long> feedbackGivenReceiverIds =
+                jpaQueryFactory
+                        .select(feedback.receiver.id)
+                        .from(feedback)
+                        .where(feedback.sender.eq(sender), feedback.sprint.id.eq(sprintId))
+                        .fetch();
+
+        // 2. 프로젝트 참여자 목록 뽑고, 해당 ID가 feedbackGivenReceiverIds 안에 있는지 체크해서 status 판단
+        List<ProjectParticipantFeedbackInfoResponse> results =
+                jpaQueryFactory
+                        .select(
+                                Projections.constructor(
+                                        ProjectParticipantFeedbackInfoResponse.class,
+                                        receiver.id,
+                                        receiver.teamParticipant.member.nickname,
+                                        receiver.teamParticipant.member.profileImageUrl,
+                                        receiver.projectRole,
+                                        receiver.status,
+                                        new CaseBuilder()
+                                                .when(receiver.id.in(feedbackGivenReceiverIds))
+                                                .then("COMPLETED")
+                                                .otherwise("PENDING")))
+                        .from(receiver)
+                        .where(
+                                receiver.project.eq(sender.getProject()),
+                                receiver.id.gt(lastProjectParticipantId))
+                        .orderBy(receiver.id.asc())
+                        .limit(pageSize + 1)
+                        .fetch();
+
+        return checkLastPage(pageSize, results);
+    }
+
     private BooleanExpression lastFeedbackId(Long feedbackId) {
         if (feedbackId == null) {
             return null;
@@ -56,8 +99,7 @@ public class FeedbackRepositoryImpl implements FeedbackRepositoryCustom {
         return feedback.id.lt(feedbackId);
     }
 
-    private Slice<FeedbackInfoResponse> checkLastPage(
-            int pageSize, List<FeedbackInfoResponse> results) {
+    private <T> Slice<T> checkLastPage(int pageSize, List<T> results) {
         boolean hasNext = false;
 
         if (results.size() > pageSize) {
