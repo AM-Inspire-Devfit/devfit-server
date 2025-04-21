@@ -31,6 +31,7 @@ public class Meeting extends BaseTimeEntity {
     private LocalDateTime meetingEnd;
 
     @Column(name = "meeting_status")
+    @Enumerated(EnumType.STRING)
     private MeetingStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY)
